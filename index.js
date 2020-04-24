@@ -2,10 +2,10 @@ module.exports = {
   root: true,
   env: {
     browser: true,
-    node: true
+    node: true,
   },
   parserOptions: {
-    parser: "babel-eslint"
+    parser: "babel-eslint",
   },
   extends: ["prettier", "plugin:prettier/recommended"],
   rules: {
@@ -14,8 +14,8 @@ module.exports = {
     "global-require": 0,
     "import/no-extraneous-dependencies": 0,
     "import/no-unresolved": 0,
-    "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
-    "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
+    "no-console": process.env.ENVIROMENT === "production" ? "error" : "off",
+    "no-debugger": process.env.ENVIROMENT === "production" ? "error" : "off",
     "no-new": 0,
     "no-param-reassign": 0,
     "no-plusplus": 0,
@@ -29,9 +29,9 @@ module.exports = {
       {
         blankLine: "always",
         prev: "*",
-        next: "return"
-      }
+        next: "return",
+      },
     ],
-    semi: [1, "never"]
-  }
+    semi: [1, "never"],
+  },
 };

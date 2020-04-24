@@ -2,12 +2,12 @@ module.exports = {
   root: true,
   env: {
     browser: true,
-    node: true
+    node: true,
   },
   parserOptions: {
-    parser: "babel-eslint"
+    parser: "babel-eslint",
   },
-  extends: ["prettier", "prettier/vue", "plugin:vue/recommended"],
+  extends: ["prettier", "plugin:prettier/recommended", "prettier/vue", "plugin:vue/recommended"],
   plugins: ["vue"],
   rules: {
     "vue/attributes-order": "off",
@@ -16,8 +16,8 @@ module.exports = {
       "kebab-case",
       {
         registeredComponentsOnly: true,
-        ignores: []
-      }
+        ignores: [],
+      },
     ],
     "vue/html-indent": ["error", 2],
     "vue/max-attributes-per-line": "off",
@@ -26,11 +26,11 @@ module.exports = {
       "error",
       {
         html: {
-          void: "always"
-        }
-      }
+          void: "always",
+        },
+      },
     ],
-    "vue/multiline-html-element-content-newline": 0,
-    "vue/singleline-html-element-content-newline": 2
-  }
+    "vue/multiline-html-element-content-newline": "off",
+    "vue/singleline-html-element-content-newline": "off",
+  },
 };
