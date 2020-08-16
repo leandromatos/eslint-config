@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "0.0.7",
+  "version": "0.0.8-0",
   "main": "index.js",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
