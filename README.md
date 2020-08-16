@@ -1,27 +1,27 @@
-# ESLint Config
+# Eslint Config
 
 ### Setup
 
-Use yarn to install eslint and custom config:
+Use yarn to install Eslint and custom config:
 
-```bash
-yarn add --dev @leandromatos/eslint-config
+```sh
+yarn add --dev eslint @leandromatos/eslint-config
 ```
 
 Create a new `.eslintrc.js` file and export an object containing your settings:
 
 ```js
 module.exports = {
-  extends: ["@leandromatos/eslint-config"],
-};
+  extends: ['@leandromatos/eslint-config'],
+}
 ```
 
-If you are working on project with Vue, create a new `.eslintrc.js` file and export an object containing your settings:
+If you are working on a project that uses Vue, you also need to add the settings for Vue to the `.eslintrc.js` file:
 
 ```js
 module.exports = {
-  extends: ["@leandromatos/eslint-config", "@leandromatos/eslint-config/vue"],
-};
+  extends: ['@leandromatos/eslint-config', '@leandromatos/eslint-config/vue'],
+}
 ```
 
 ---

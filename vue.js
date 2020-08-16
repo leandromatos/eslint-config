@@ -5,32 +5,32 @@ module.exports = {
     node: true,
   },
   parserOptions: {
-    parser: "babel-eslint",
+    parser: 'babel-eslint',
   },
-  extends: ["prettier", "plugin:prettier/recommended", "prettier/vue", "plugin:vue/recommended"],
-  plugins: ["vue"],
+  extends: ['prettier', 'plugin:prettier/recommended', 'prettier/vue', 'plugin:vue/recommended'],
+  plugins: ['vue'],
   rules: {
-    "vue/attributes-order": "off",
-    "vue/component-name-in-template-casing": [
-      "error",
-      "kebab-case",
+    'vue/attributes-order': 'off',
+    'vue/component-name-in-template-casing': [
+      'error',
+      'kebab-case',
       {
         registeredComponentsOnly: true,
         ignores: [],
       },
     ],
-    "vue/html-indent": ["error", 2],
-    "vue/max-attributes-per-line": "off",
-    "vue/no-v-html": "off",
-    "vue/html-self-closing": [
-      "error",
+    'vue/html-indent': ['error', 2],
+    'vue/max-attributes-per-line': 'off',
+    'vue/no-v-html': 'off',
+    'vue/html-self-closing': [
+      'error',
       {
         html: {
-          void: "always",
+          void: 'always',
         },
       },
     ],
-    "vue/multiline-html-element-content-newline": "off",
-    "vue/singleline-html-element-content-newline": "off",
+    'vue/multiline-html-element-content-newline': 'off',
+    'vue/singleline-html-element-content-newline': 'off',
   },
-};
+}
