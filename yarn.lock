@@ -109,12 +109,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@leandromatos/prettier-config@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@leandromatos/prettier-config/-/prettier-config-0.0.5.tgz#c2f77ccf200777ffbeec6bde240ba5509238e475"
-  integrity sha512-DN1/p8lCvmFjKrnwU7xvjl11DHhEkjcew+UTZ51UQaBdf4w5ZfadylTohAzKKgQ0+3P01QmDR+B5LBNWo3RNqQ==
-  dependencies:
-    prettier "^2.1.2"
+"@leandromatos/prettier-config@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@leandromatos/prettier-config/-/prettier-config-0.0.6.tgz#4aee6d5afad87ce708a7dac8c1da25534b4dc827"
+  integrity sha512-rAU6K7/Jb7LgF9f3RkR8Oy03WHNb+LdUgnD2lE97lvg57ggBna6MN3Aj9tLylh7Aq/uHivKM2aWQBz+UU++0HQ==
 
 acorn-jsx@^5.2.0:
   version "5.3.1"
@@ -819,7 +817,7 @@ prettier-linter-helpers@^1.0.0:
   dependencies:
     fast-diff "^1.1.2"
 
-prettier@2.1.2, prettier@^2.1.2:
+prettier@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.1.2.tgz#3050700dae2e4c8b67c4c3f666cdb8af405e1ce5"
   integrity sha512-16c7K+x4qVlJg9rEbXl7HEGmQyZlG4R9AgP+oHKRMsMsuk8s+ATStlf1NpDqyBI1HpVyfjLOeMhH2LvuNvV5Vg==
