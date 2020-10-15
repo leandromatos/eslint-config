@@ -8,8 +8,11 @@
     "index.js",
     "vue.js"
   ],
-  "devDependencies": {
-    "@leandromatos/prettier-config": "^0.0.5",
+  "scripts": {
+    "lint": "yarn run prettier '**/*.{js,json,md,yml}' --write && yarn run eslint . --fix"
+  },
+  "dependencies": {
+    "@leandromatos/prettier-config": "^0.0.6",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.11.0",
     "prettier": "2.1.2",
