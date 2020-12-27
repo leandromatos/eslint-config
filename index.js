@@ -10,7 +10,8 @@ module.exports = {
     parser: 'babel-eslint',
     sourceType: 'module',
   },
-  extends: ['prettier', 'plugin:prettier/recommended'],
+  extends: ['prettier'],
+  plugins: ['prettier'],
   rules: {
     'class-methods-use-this': 0,
     'consistent-return': 0,
