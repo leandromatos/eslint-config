@@ -20,7 +20,7 @@
     "eslint-plugin-vue": "^7.3.0"
   },
   "devDependencies": {
-    "@leandromatos/prettier-config": "^0.0.8",
+    "@leandromatos/prettier-config": "^0.0.9",
     "prettier": "2.2.1"
   }
 }
