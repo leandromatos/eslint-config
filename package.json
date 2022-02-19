@@ -13,14 +13,14 @@
   },
   "dependencies": {
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.16.0",
-    "eslint-config-prettier": "^7.1.0",
-    "eslint-plugin-markdown": "^1.0.2",
-    "eslint-plugin-prettier": "3.3.0",
-    "eslint-plugin-vue": "^7.3.0"
+    "eslint": "^8.9.0",
+    "eslint-config-prettier": "^8.4.0",
+    "eslint-plugin-markdown": "^2.2.1",
+    "eslint-plugin-prettier": "4.0.0",
+    "eslint-plugin-vue": "^8.4.1"
   },
   "devDependencies": {
-    "@leandromatos/prettier-config": "^0.0.9",
-    "prettier": "2.2.1"
+    "@leandromatos/prettier-config": "^0.0.10",
+    "prettier": "2.5.1"
   }
 }
