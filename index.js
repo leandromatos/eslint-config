@@ -6,8 +6,9 @@ module.exports = {
     es6: true,
   },
   parserOptions: {
-    ecmaVersion: 11,
-    parser: 'babel-eslint',
+    ecmaVersion: 13,
+    parser: '@babel/eslint-parser',
+    requireConfigFile: false,
     sourceType: 'module',
   },
   extends: ['prettier'],
