@@ -22,6 +22,7 @@ module.exports = {
     ],
     'vue/html-indent': ['error', 2],
     'vue/max-attributes-per-line': 'off',
+    'vue/multi-word-component-names': 'off',
     'vue/no-v-html': 'off',
     'vue/html-self-closing': [
       'error',
