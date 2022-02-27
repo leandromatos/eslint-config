@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@babel/eslint-parser": "^7.17.0",
-    "eslint": "^8.9.0",
+    "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-markdown": "^2.2.1",
     "eslint-plugin-prettier": "4.0.0",
-    "eslint-plugin-vue": "^8.4.1"
+    "eslint-plugin-vue": "^8.5.0"
   },
   "devDependencies": {
     "@leandromatos/prettier-config": "^0.0.10",
