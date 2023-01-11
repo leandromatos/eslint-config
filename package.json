@@ -8,19 +8,13 @@
     "index.js",
     "vue.js"
   ],
-  "scripts": {
-    "lint": "yarn run prettier '**/*.{js,json,md,yml}' --write && yarn run eslint . --fix"
-  },
   "dependencies": {
     "@babel/eslint-parser": "^7.19.1",
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-markdown": "^3.0.0",
-    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.8.0"
   },
-  "devDependencies": {
-    "@leandromatos/prettier-config": "^0.0.10",
-    "prettier": "2.8.2"
-  }
+  "devDependencies": {}
 }
