@@ -12,7 +12,7 @@ module.exports = {
     sourceType: "module",
   },
   extends: ["prettier"],
-  plugins: ["prettier", "simple-import-sort"],
+  plugins: ["prettier", "simple-import-sort", "import"],
   rules: {
     "class-methods-use-this": 0,
     "consistent-return": 0,
