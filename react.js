@@ -1,16 +1,19 @@
 module.exports = {
-  root: true,
   env: {
     browser: true,
     es2021: true,
     jest: true,
   },
+  extends: ["plugin:react/recommended", "plugin:react-hooks/recommended", "standard", "plugin:prettier/recommended"],
+  parser: "@typescript-eslint/parser",
   parserOptions: {
-    parser: "@babel/eslint-parser",
-    requireConfigFile: false,
+    ecmaFeatures: {
+      jsx: true,
+    },
+    ecmaVersion: "latest",
+    sourceType: "module",
   },
-  extends: ["plugin:prettier/recommended", "plugin:vue/recommended", "plugin:prettier/recommended"],
-  plugins: ["vue", "simple-import-sort", "import"],
+  plugins: ["react", "jsx-a11y", "@typescript-eslint", "simple-import-sort", "import"],
   rules: {
     "prettier/prettier": [
       "error",
@@ -32,29 +35,20 @@ module.exports = {
         ],
       },
     ],
-    "vue/attributes-order": "off",
-    "vue/component-name-in-template-casing": [
-      "error",
-      "kebab-case",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "jsx-a11y/alt-text": [
+      "warn",
       {
-        registeredComponentsOnly: true,
-        ignores: [],
+        elements: ["img"],
+        img: ["Image"],
       },
     ],
-    "vue/html-indent": ["error", 2],
-    "vue/max-attributes-per-line": "off",
-    "vue/multi-word-component-names": "off",
-    "vue/no-v-html": "off",
-    "vue/html-self-closing": [
-      "error",
-      {
-        html: {
-          void: "always",
-        },
-      },
-    ],
-    "vue/multiline-html-element-content-newline": "off",
-    "vue/singleline-html-element-content-newline": "off",
+    "jsx-a11y/aria-props": "warn",
+    "jsx-a11y/aria-proptypes": "warn",
+    "jsx-a11y/aria-unsupported-elements": "warn",
+    "jsx-a11y/role-has-required-aria-props": "warn",
+    "jsx-a11y/role-supports-aria-props": "warn",
     "class-methods-use-this": 0,
     "consistent-return": 0,
     "global-require": 0,
@@ -80,5 +74,13 @@ module.exports = {
     ],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
+  },
+  settings: {
+    react: {
+      version: "detect",
+    },
+    "import/parsers": {
+      [require.resolve("@typescript-eslint/parser")]: [".ts", ".tsx", ".d.ts"],
+    },
   },
 };
