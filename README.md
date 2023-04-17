@@ -1,5 +1,9 @@
 # Eslint Config
 
+### Note
+
+With the v2.x, you don't need to install the custom [prettier-config](https://github.com/leandromatos/prettier-config). All the prettier rules were added to this eslint-config.
+
 ### Setup
 
 Use yarn to install Eslint and custom config:
