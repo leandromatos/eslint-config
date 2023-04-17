@@ -16,7 +16,9 @@ Create a new `.eslintrc.js` file and export an object containing your settings:
 
 ```js
 module.exports = {
-  extends: ["@leandromatos/eslint-config"],
+  extends: ["@leandromatos/eslint-config/react"],
+  // extends: ["@leandromatos/eslint-config/vue"],
+  // extends: ["@leandromatos/eslint-config/node"],
 };
 ```
 
