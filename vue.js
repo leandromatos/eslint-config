@@ -9,7 +9,10 @@ module.exports = {
     parser: "@babel/eslint-parser",
     requireConfigFile: false,
   },
-  extends: ["plugin:prettier/recommended", "plugin:vue/recommended", "plugin:prettier/recommended"],
+  extends: [
+    "plugin:vue/recommended",
+    "plugin:prettier/recommended"
+  ],
   plugins: ["vue", "simple-import-sort", "import"],
   rules: {
     "prettier/prettier": [
@@ -60,8 +63,8 @@ module.exports = {
     "global-require": 0,
     "import/no-extraneous-dependencies": 0,
     "import/no-unresolved": 0,
-    "no-console": process.env.ENVIROMENT === "production" ? "error" : "off",
-    "no-debugger": process.env.ENVIROMENT === "production" ? "error" : "off",
+    "no-console": process.env.ENVIRONMENT === "production" ? "error" : "off",
+    "no-debugger": process.env.ENVIRONMENT === "production" ? "error" : "off",
     "no-new": 0,
     "no-param-reassign": 0,
     "no-plusplus": 0,

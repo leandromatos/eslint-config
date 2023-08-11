@@ -4,7 +4,13 @@ module.exports = {
     es2021: true,
     jest: true,
   },
-  extends: ["plugin:react/recommended", "plugin:react-hooks/recommended", "standard", "plugin:prettier/recommended"],
+  extends: [
+    "standard",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+  ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaFeatures: {
@@ -14,6 +20,14 @@ module.exports = {
     sourceType: "module",
   },
   plugins: ["react", "jsx-a11y", "@typescript-eslint", "simple-import-sort", "import"],
+  settings: {
+    react: {
+      version: "detect",
+    },
+    "import/parsers": {
+      [require.resolve("@typescript-eslint/parser")]: [".ts", ".tsx", ".d.ts"],
+    },
+  },
   rules: {
     "prettier/prettier": [
       "error",
@@ -25,6 +39,8 @@ module.exports = {
         singleQuote: true,
         tabWidth: 2,
         trailingComma: "all",
+        plugins: ["prettier-plugin-tailwindcss"],
+        tailwindFunctions: ['tv', 'clsx', 'cva', 'tw'],
         overrides: [
           {
             files: ["*.yml", "*.yaml"],
@@ -54,15 +70,15 @@ module.exports = {
     "global-require": 0,
     "import/no-extraneous-dependencies": 0,
     "import/no-unresolved": 0,
-    "no-console": process.env.ENVIROMENT === "production" ? "error" : "off",
-    "no-debugger": process.env.ENVIROMENT === "production" ? "error" : "off",
+    "no-console": process.env.ENVIRONMENT === "production" ? "error" : "off",
+    "no-debugger": process.env.ENVIRONMENT === "production" ? "error" : "off",
     "no-new": 0,
     "no-param-reassign": 0,
     "no-plusplus": 0,
     "no-undef": 0,
     "no-underscore-dangle": 0,
-    "no-unused-vars": 0,
-    "no-useless-constructor": 0,
+    "no-unused-vars": "warn",
+    "no-useless-constructor": "warn",
     "prefer-rest-params": 0,
     "padding-line-between-statements": [
       "error",
@@ -74,13 +90,7 @@ module.exports = {
     ],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-  },
-  settings: {
-    react: {
-      version: "detect",
-    },
-    "import/parsers": {
-      [require.resolve("@typescript-eslint/parser")]: [".ts", ".tsx", ".d.ts"],
-    },
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-useless-construtor": "warn"
   },
 };
