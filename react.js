@@ -90,7 +90,6 @@ module.exports = {
     ],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-    "@typescript-eslint/no-unused-vars": "warn",
-    "@typescript-eslint/no-useless-construtor": "warn"
+    "@typescript-eslint/no-unused-vars": "warn"
   },
 };
