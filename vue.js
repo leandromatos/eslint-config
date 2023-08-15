@@ -70,8 +70,8 @@ module.exports = {
     "no-plusplus": 0,
     "no-undef": 0,
     "no-underscore-dangle": 0,
-    "no-unused-vars": 0,
-    "no-useless-constructor": 0,
+    "no-unused-vars": "warn",
+    "no-useless-constructor": "warn",
     "prefer-rest-params": 0,
     "padding-line-between-statements": [
       "error",
@@ -83,5 +83,6 @@ module.exports = {
     ],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
+    "@typescript-eslint/no-unused-vars": "warn"
   },
 };
