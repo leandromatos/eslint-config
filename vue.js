@@ -6,14 +6,17 @@ module.exports = {
     jest: true,
   },
   parserOptions: {
-    parser: "@babel/eslint-parser",
-    requireConfigFile: false,
+    parser: "@typescript-eslint/parser",
+    ecmaVersion: 2021,
+    sourceType: "module",
   },
   extends: [
     "plugin:vue/recommended",
-    "plugin:prettier/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "plugin:import/typescript",
   ],
-  plugins: ["vue", "simple-import-sort", "import"],
+  plugins: ["simple-import-sort", "import"],
   rules: {
     "prettier/prettier": [
       "error",
@@ -36,53 +39,44 @@ module.exports = {
       },
     ],
     "vue/attributes-order": "off",
-    "vue/component-name-in-template-casing": [
-      "error",
-      "kebab-case",
-      {
-        registeredComponentsOnly: true,
-        ignores: [],
-      },
-    ],
+    "vue/component-name-in-template-casing": ["error", "kebab-case", {
+      registeredComponentsOnly: true,
+      ignores: [],
+    }],
     "vue/html-indent": ["error", 2],
     "vue/max-attributes-per-line": "off",
     "vue/multi-word-component-names": "off",
     "vue/no-v-html": "off",
-    "vue/html-self-closing": [
-      "error",
-      {
-        html: {
-          void: "always",
-        },
+    "vue/html-self-closing": ["error", {
+      html: {
+        void: "always",
       },
-    ],
+    }],
     "vue/multiline-html-element-content-newline": "off",
     "vue/singleline-html-element-content-newline": "off",
-    "class-methods-use-this": 0,
-    "consistent-return": 0,
-    "global-require": 0,
-    "import/no-extraneous-dependencies": 0,
-    "import/no-unresolved": 0,
+    "class-methods-use-this": "off",
+    "consistent-return": "off",
+    "global-require": "off",
+    "import/no-extraneous-dependencies": "off",
+    "import/no-unresolved": "off",
     "no-console": process.env.ENVIRONMENT === "production" ? "error" : "off",
     "no-debugger": process.env.ENVIRONMENT === "production" ? "error" : "off",
-    "no-new": 0,
-    "no-param-reassign": 0,
-    "no-plusplus": 0,
-    "no-undef": 0,
-    "no-underscore-dangle": 0,
+    "no-new": "off",
+    "no-param-reassign": "off",
+    "no-plusplus": "off",
+    "no-undef": "off",
+    "no-underscore-dangle": "off",
     "no-unused-vars": "warn",
     "no-useless-constructor": "warn",
-    "prefer-rest-params": 0,
-    "padding-line-between-statements": [
-      "error",
-      {
-        blankLine: "always",
-        prev: "*",
-        next: "return",
-      },
-    ],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "prefer-rest-params": "off",
+    "padding-line-between-statements": ["error", {
+      blankLine: "always",
+      prev: "*",
+      next: "return",
+    }],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-    "@typescript-eslint/no-unused-vars": "warn"
+    "@typescript-eslint/no-unused-vars": "warn",
   },
 };

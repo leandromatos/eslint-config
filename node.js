@@ -6,7 +6,8 @@ module.exports = {
   extends: [
     "standard",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
+    "plugin:prettier/recommended",
+    "plugin:import/typescript",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -40,20 +41,21 @@ module.exports = {
         ],
       },
     ],
-    "consistent-return": 0,
-    "global-require": 0,
-    "import/no-extraneous-dependencies": 0,
-    "import/no-unresolved": 0,
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "class-methods-use-this": "off",
+    "consistent-return": "off",
+    "global-require": "off",
+    "import/no-extraneous-dependencies": "off",
+    "import/no-unresolved": "off",
     "no-console": process.env.ENVIRONMENT === "production" ? "error" : "off",
     "no-debugger": process.env.ENVIRONMENT === "production" ? "error" : "off",
-    "no-new": 0,
-    "no-param-reassign": 0,
-    "no-plusplus": 0,
-    "no-undef": 0,
-    "no-underscore-dangle": 0,
-    "no-unused-vars": "warn",
+    "no-new": "off",
+    "no-param-reassign": "off",
+    "no-plusplus": "off",
+    "no-undef": "off",
+    "no-underscore-dangle": "off",
     "no-useless-constructor": "warn",
-    "prefer-rest-params": 0,
     "padding-line-between-statements": [
       "error",
       {
@@ -64,6 +66,5 @@ module.exports = {
     ],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-    "@typescript-eslint/no-unused-vars": "warn"
   },
 };
