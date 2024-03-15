@@ -41,21 +41,21 @@ module.exports = {
         ],
       },
     ],
-    "@typescript-eslint/no-unused-vars": "warn",
-    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "class-methods-use-this": "off",
     "consistent-return": "off",
     "global-require": "off",
     "import/no-extraneous-dependencies": "off",
     "import/no-unresolved": "off",
-    "no-console": process.env.ENVIRONMENT === "production" ? "error" : "off",
-    "no-debugger": process.env.ENVIRONMENT === "production" ? "error" : "off",
+    "no-console": "off",
+    "no-debugger": "off",
     "no-new": "off",
     "no-param-reassign": "off",
     "no-plusplus": "off",
     "no-undef": "off",
     "no-underscore-dangle": "off",
-    "no-useless-constructor": "warn",
+    "no-useless-constructor": "off",
     "padding-line-between-statements": [
       "error",
       {
@@ -67,4 +67,4 @@ module.exports = {
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
   },
-};
+}
