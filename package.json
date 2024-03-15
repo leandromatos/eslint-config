@@ -5,6 +5,7 @@
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "files": [
+    "index.js",
     "node.js",
     "react.js",
     "vue.js"
