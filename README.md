@@ -1,35 +1,63 @@
-# Eslint Config
+# ESlint Config
 
-### Note
+> [!IMPORTANT]
+>
+> **This package's version, v3.x, works with ESLint v9.x. If you are using an older version of ESLint, please use the package's version v2.x..**
+>
 
-With the v2.x, you don't need to install the custom [prettier-config](https://github.com/leandromatos/prettier-config). All the prettier rules were added to this eslint-config.
+This is a custom and sharable ESLint configuration for TypeScript, JavaScript, and React projects. It includes the following packages:
 
-### Setup
+- [@typescript-eslint/eslint-plugin](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin)
+- [@typescript-eslint/parser](https://www.npmjs.com/package/@typescript-eslint/parser)
+- [eslint-config-prettier](https://www.npmjs.com/package/eslint-config-prettier)
+- [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import)
+- [eslint-plugin-jsx-a11y](https://www.npmjs.com/package/eslint-plugin-jsx-a11y)
+- [eslint-plugin-prettier](https://www.npmjs.com/package/eslint-plugin-prettier)
+- [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks)
+- [eslint-plugin-react](https://www.npmjs.com/package/eslint-plugin-react)
+- [eslint-plugin-simple-import-sort](https://www.npmjs.com/package/eslint-plugin-simple-import-sort)
+- [eslint](https://www.npmjs.com/package/eslint)
+- [prettier-plugin-tailwindcss](https://www.npmjs.com/package/prettier-plugin-tailwindcss)
+- [prettier](https://www.npmjs.com/package/prettier)
+- [typescript-eslint](https://www.npmjs.com/package/typescript-eslint)
 
-Use yarn to install Eslint and custom config:
+## Usage
 
-```sh
-yarn add --dev eslint @leandromatos/eslint-config
-```
+> [!NOTE]
+>
+> **It's crucial to note that you must install the `typescript` package, even in a project that uses only JavaScript. This is because ESLint leverages TypeScript to parse the code and provide more accurate error messages.**
 
-Create a new `.eslintrc.js` file and export an object containing your settings:
+1. Use yarn or another package manager to install the package. For example:
 
-```js
-module.exports = {
-  extends: ["@leandromatos/eslint-config/node"],
-  // extends: ["@leandromatos/eslint-config/react"],
-  // extends: ["@leandromatos/eslint-config/vue"],
-};
-```
+  ```bash
+  yarn add --dev eslint typescript @leandromatos/eslint-config
+  ```
 
-If you are working on a project that uses Vue, you also need to add the settings for Vue to the `.eslintrc.js` file:
+2. Create a new `.eslint.config.js` file in the root of your project and add the following content:
 
-```js
-module.exports = {
-  extends: ["@leandromatos/eslint-config", "@leandromatos/eslint-config/vue"],
-};
-```
+  ```js
+  import config from "@leandromatos/eslint-config"
 
----
+  export default [
+    ...config
+  ]
+  ```
 
-&copy; All rights reserved
+3. If you want to override some rules, you can do so by adding new configuration objects to the array. For example:
+
+  ```js
+  import config from "@leandromatos/eslint-config"
+
+  export default [
+    ...config,
+    {
+      rules: {
+        "no-unused-vars": "warn"
+      }
+    }
+  ]
+  ```
+
+## License
+
+This package is licensed under the MIT License. For more information, see the [LICENSE](LICENSE) file.
