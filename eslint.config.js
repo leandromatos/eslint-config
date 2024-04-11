@@ -1,8 +1,8 @@
-import customConfig from './lib/index.js'
+import config from './lib/index.js'
 
 export default [
-  ...customConfig,
+  ...config,
   {
-    ignores: ['lib/*'],
+    ignores: ['lib'],
   },
 ]

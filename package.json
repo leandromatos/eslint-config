@@ -1,12 +1,12 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.0",
+  "version": "3.0.0-rc.1",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf lib/*",

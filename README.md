@@ -33,7 +33,7 @@ This is a custom and sharable ESLint configuration for TypeScript, JavaScript, a
   yarn add --dev eslint typescript @leandromatos/eslint-config
   ```
 
-2. Create a new `.eslint.config.js` file in the root of your project and add the following content:
+2. Create a new `eslint.config.js` file in the root of your project and add the following content:
 
   ```js
   import config from "@leandromatos/eslint-config"
