@@ -1,6 +1,7 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.2",
+  "type": "module",
+  "version": "3.0.0-rc.3",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
@@ -8,7 +9,6 @@
     "eslint",
     "config"
   ],
-  "type": "module",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {

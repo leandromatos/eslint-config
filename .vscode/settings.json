@@ -3,7 +3,6 @@
     "source.fixAll.eslint": "explicit"
   },
   "files.associations": {
-    ".lintstagedrc": "json",
     "commit-msg": "shellscript",
     "pre-commit": "shellscript"
   },
