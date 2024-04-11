@@ -1,14 +1,18 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.2",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
+  "keywords": [
+    "eslint",
+    "config"
+  ],
   "type": "module",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "build": "yarn clean && tsc",
+    "build": "yarn clean && tsc && tsc-alias",
     "clean": "rimraf lib/*",
     "lint:fix": "yarn lint --fix",
     "lint": "eslint .",
@@ -33,17 +37,18 @@
     "typescript-eslint": "^7.6.0"
   },
   "devDependencies": {
-    "@types/eslint": "^8.56.7",
+    "@types/eslint": "^8.56.8",
     "@types/eslint__eslintrc": "^2.1.1",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.12.7",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "tsc-alias": "^1.8.8"
   },
   "peerDependencies": {
     "eslint": ">=9",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4"
   },
   "peerDependenciesMeta": {
     "typescript": {
