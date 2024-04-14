@@ -12,9 +12,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build
-lib
-
 # Mac OSX
 .DS_Store
 
