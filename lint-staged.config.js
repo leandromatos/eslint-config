@@ -1,6 +1,6 @@
 /**
  * @type {import('lint-staged').Config}
  */
-export default {
+module.exports = {
   '*.js': () => 'yarn lint',
 }

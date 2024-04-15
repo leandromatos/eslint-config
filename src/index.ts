@@ -1,13 +1,13 @@
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
 import { Linter } from 'eslint'
-import path from 'path'
-import { fileURLToPath } from 'url'
 
-import { config } from '@/config.js'
+import { config } from '@/config'
+// import path from 'path'
+// import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+// const __filename = fileURLToPath(import.meta.url)
+// const __dirname = path.dirname(__filename)
 const compat = new FlatCompat({
   baseDirectory: __dirname,
   recommendedConfig: js.configs.recommended,
@@ -19,6 +19,4 @@ const compat = new FlatCompat({
  * @author Leandro Matos
  * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
  */
-const flatConfig: Linter.FlatConfig[] = [...compat.config(config)]
-
-export default flatConfig
+export const flatConfig: Linter.FlatConfig[] = [...compat.config(config)]
