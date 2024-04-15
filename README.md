@@ -36,20 +36,20 @@ This is a custom and sharable ESLint configuration for TypeScript, JavaScript, a
 2. Create a new `eslint.config.js` file in the root of your project and add the following content:
 
   ```js
-  import config from "@leandromatos/eslint-config"
+  const { flatConfig } = require("@leandromatos/eslint-config")
 
-  export default [
-    ...config
+  module.exports = [
+    ...flatConfig
   ]
   ```
 
 3. If you want to override some rules, you can do so by adding new configuration objects to the array. For example:
 
   ```js
-  import config from "@leandromatos/eslint-config"
+  const { flatConfig } = require("@leandromatos/eslint-config")
 
-  export default [
-    ...config,
+  module.exports = [
+    ...flatConfig,
     {
       rules: {
         "no-unused-vars": "warn"
