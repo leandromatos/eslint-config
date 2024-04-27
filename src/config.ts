@@ -67,6 +67,7 @@ export const config: Linter.Config = {
         },
       },
       rules: {
+        '@typescript-eslint/no-namespace': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/no-unsafe-call': 'warn',
         '@typescript-eslint/no-unsafe-member-access': 'warn',
