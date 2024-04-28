@@ -70,7 +70,7 @@ export const config: Linter.Config = {
         '@typescript-eslint/no-namespace': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
-        '@typescript-eslint/no-unsafe-member-access': 'warn',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-return': 'warn',
         '@typescript-eslint/no-unused-vars': [
           'warn',
