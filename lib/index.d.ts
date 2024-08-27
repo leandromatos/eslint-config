@@ -5,4 +5,4 @@ import { Linter } from 'eslint';
  * @author Leandro Matos
  * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
  */
-export declare const flatConfig: Linter.FlatConfig[];
+export declare const config: Linter.Config[];

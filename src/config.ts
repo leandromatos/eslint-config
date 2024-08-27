@@ -1,6 +1,6 @@
 import { Linter } from 'eslint'
 
-export const config: Linter.Config = {
+export const legacyConfig: Linter.LegacyConfig = {
   env: {
     es2024: true,
     jest: true,

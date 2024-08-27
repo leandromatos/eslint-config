@@ -1,10 +1,10 @@
-const { flatConfig } = require('./lib/index.js')
+const { config } = require('./lib/index.js')
 
 /**
  * @type {import('eslint').Linter.Config}
  */
 module.exports = [
-  ...flatConfig,
+  ...config,
   {
     ignores: ['lib'],
   },

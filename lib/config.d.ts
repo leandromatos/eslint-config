@@ -1,2 +1,2 @@
 import { Linter } from 'eslint';
-export declare const config: Linter.Config;
+export declare const legacyConfig: Linter.LegacyConfig;
