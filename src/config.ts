@@ -67,6 +67,8 @@ export const legacyConfig: Linter.LegacyConfig = {
         },
       },
       rules: {
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-namespace': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
@@ -78,7 +80,6 @@ export const legacyConfig: Linter.LegacyConfig = {
             argsIgnorePattern: '^_',
           },
         ],
-        '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/unbound-method': 'off',
       },
     },
