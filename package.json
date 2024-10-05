@@ -1,12 +1,16 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.17",
+  "version": "3.0.0-rc.18",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
   "keywords": [
     "eslint",
     "config"
+  ],
+  "files": [
+    "lib/**",
+    "LICENSE"
   ],
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
