@@ -1,22 +1,39 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "declaration": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    // Basic Options
+    "target": "ESNext",
     "module": "CommonJS",
-    "moduleResolution": "Node",
-    "newLine": "lf",
+    "lib": ["ESNext"],
     "outDir": "./lib",
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     },
+
+    // Module Resolution Options
+    "moduleResolution": "Node",
+    "moduleDetection": "force",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+
+    // Emit Options
+    "declaration": true,
+    "sourceMap": true,
+
+    // Additional Checks
     "skipLibCheck": true,
+
+    // Strict Type-Checking Options
     "strict": true,
-    "target": "ESNext"
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["lib", "node_modules"],
+  "exclude": ["node_modules", "lib"],
   "tsc-alias": {
     "verbose": false,
     "resolveFullPaths": true
