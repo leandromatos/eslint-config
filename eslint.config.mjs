@@ -1,11 +1,13 @@
-import { config } from '@leandromatos/eslint-config'
+import { config } from './lib/index.js'
 
 /**
- * @type {import('eslint').Linter.Config}
+ * ESLint configuration using flat config format.
+ *
+ * @see {@link https://eslint.org/docs/latest/use/configure/configuration-files-new ESLint Configuration}
  */
 export default [
   ...config,
   {
-    ignores: ['dist'],
+    ignores: ['lib'],
   },
 ]

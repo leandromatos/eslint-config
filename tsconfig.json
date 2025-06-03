@@ -32,7 +32,7 @@
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["eslint.config.mjs", "src/**/*.ts"],
   "exclude": ["node_modules", "lib"],
   "tsc-alias": {
     "verbose": false,
