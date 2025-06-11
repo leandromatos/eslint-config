@@ -144,6 +144,15 @@ const legacyConfig: Linter.LegacyConfig = {
         'react/prop-types': 'off',
       },
     },
+    {
+      files: ['*.md'],
+      parser: 'eslint-plugin-markdownlint/parser',
+      extends: ['plugin:markdownlint/recommended'],
+      rules: {
+        'markdownlint/md013': 'off',
+        'prettier/prettier': 'off',
+      },
+    },
   ],
 }
 
