@@ -57,9 +57,11 @@ const legacyConfig: Linter.LegacyConfig = {
     'prefer-arrow-callback': [
       'error',
       {
-        allowNamedFunctions: true,
+        allowNamedFunctions: false,
+        allowUnboundThis: true,
       },
     ],
+    'arrow-body-style': ['error', 'as-needed'],
     'prettier/prettier': [
       'error',
       {
@@ -179,6 +181,18 @@ const legacyConfig: Linter.LegacyConfig = {
             ],
             plugins: ['prettier-plugin-tailwindcss'],
             tailwindFunctions: ['tv', 'clsx', 'cva', 'tw'],
+          },
+        ],
+        'react/jsx-sort-props': [
+          'error',
+          {
+            callbacksLast: true,
+            shorthandFirst: false,
+            shorthandLast: true,
+            multiline: 'last',
+            ignoreCase: true,
+            noSortAlphabetically: false,
+            reservedFirst: true,
           },
         ],
         'react/react-in-jsx-scope': 'off',
