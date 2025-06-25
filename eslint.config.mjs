@@ -10,4 +10,11 @@ export default [
   {
     ignores: ['lib'],
   },
+  {
+    files: ['eslint.config.mjs'],
+    rules: {
+      'import/no-relative-parent-imports': 'off',
+      'no-restricted-imports': 'off',
+    },
+  },
 ]

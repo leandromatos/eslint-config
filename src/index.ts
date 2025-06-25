@@ -25,6 +25,19 @@ const legacyConfig: Linter.LegacyConfig = {
       },
     ],
     'import/no-extraneous-dependencies': 'off',
+    'import/no-relative-packages': 'error',
+    'import/no-relative-parent-imports': 'error',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['.*/*'],
+            message: 'Use absolute imports with @ alias instead of relative imports',
+          },
+        ],
+      },
+    ],
     'import/no-unresolved': 'off',
     'no-undef': 'off',
     'no-unused-vars': [
