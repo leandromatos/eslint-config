@@ -1,6 +1,6 @@
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
-import { Linter } from 'eslint'
+import type { Linter } from 'eslint'
 
 const legacyConfig: Linter.LegacyConfig = {
   env: {
@@ -17,6 +17,13 @@ const legacyConfig: Linter.LegacyConfig = {
   root: true,
   rules: {
     curly: ['error', 'multi'],
+    'func-style': [
+      'error',
+      'declaration',
+      {
+        allowArrowFunctions: true,
+      },
+    ],
     'import/no-extraneous-dependencies': 'off',
     'import/no-unresolved': 'off',
     'no-undef': 'off',
@@ -32,6 +39,12 @@ const legacyConfig: Linter.LegacyConfig = {
         blankLine: 'always',
         next: 'return',
         prev: '*',
+      },
+    ],
+    'prefer-arrow-callback': [
+      'error',
+      {
+        allowNamedFunctions: true,
       },
     ],
     'prettier/prettier': [
@@ -70,8 +83,23 @@ const legacyConfig: Linter.LegacyConfig = {
         },
       },
       rules: {
+        '@typescript-eslint/consistent-type-exports': [
+          'error',
+          {
+            fixMixedExportsWithInlineTypeSpecifier: true,
+          },
+        ],
+        '@typescript-eslint/consistent-type-imports': [
+          'error',
+          {
+            disallowTypeAnnotations: false,
+            fixStyle: 'separate-type-imports',
+            prefer: 'type-imports',
+          },
+        ],
         '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-explicit-any': 'warn',
+        '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/no-namespace': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
