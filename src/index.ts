@@ -24,6 +24,13 @@ const legacyConfig: Linter.LegacyConfig = {
         allowArrowFunctions: true,
       },
     ],
+    'import/no-duplicates': [
+      'error',
+      {
+        considerQueryString: true,
+        'prefer-inline': false,
+      },
+    ],
     'import/no-extraneous-dependencies': 'off',
     'import/no-relative-packages': 'error',
     'import/no-relative-parent-imports': 'error',
