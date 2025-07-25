@@ -92,11 +92,10 @@ const legacyConfig: Linter.LegacyConfig = {
   overrides: [
     {
       files: ['*.ts', '*.tsx'],
-      extends: ['plugin:@typescript-eslint/recommended'],
+      extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-type-checked'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
         project: true,
-        // tsconfigRootDir: __dirname,
       },
       plugins: ['@typescript-eslint'],
       settings: {
