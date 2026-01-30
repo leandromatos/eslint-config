@@ -211,6 +211,7 @@ const legacyConfig: Linter.LegacyConfig = {
       extends: ['plugin:markdownlint/recommended'],
       rules: {
         'markdownlint/md013': 'off',
+        'markdownlint/md024': 'off',
         'markdownlint/md033': 'off',
         'prettier/prettier': 'off',
       },
