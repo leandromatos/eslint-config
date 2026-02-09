@@ -1,6 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
-import markdown from '@eslint/markdown'
 import type { Linter } from 'eslint'
 
 const legacyConfig: Linter.LegacyConfig = {
@@ -206,6 +205,17 @@ const legacyConfig: Linter.LegacyConfig = {
         'react/prop-types': 'off',
       },
     },
+    {
+      files: ['*.md'],
+      parser: 'eslint-plugin-markdownlint/parser',
+      extends: ['plugin:markdownlint/recommended'],
+      rules: {
+        'markdownlint/md013': 'off',
+        'markdownlint/md024': 'off',
+        'markdownlint/md033': 'off',
+        'prettier/prettier': 'off',
+      },
+    },
   ],
 }
 
@@ -220,16 +230,4 @@ const compat = new FlatCompat({
  * @author Leandro Matos
  * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
  */
-export const config: Linter.Config[] = [
-  {
-    ignores: ['**/*.md'],
-  },
-  ...compat.config(legacyConfig),
-  ...(markdown.configs.recommended as Linter.Config[]),
-  {
-    files: ['**/*.md'],
-    rules: {
-      'markdown/no-html': 'off',
-    },
-  },
-]
+export const config: Linter.Config[] = [...compat.config(legacyConfig)]

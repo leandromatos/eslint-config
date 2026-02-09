@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.43",
+  "version": "3.0.0-rc.44",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
@@ -26,14 +26,14 @@
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.3",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.2",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
-    "eslint": "^10.0.0",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "@eslint/markdown": "^7.5.1",
+    "eslint-plugin-markdownlint": "^0.9.0",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -47,6 +47,7 @@
     "@types/eslint": "^9.6.1",
     "@types/lint-staged": "^14.0.0",
     "@types/node": "^25.2.2",
+    "@types/react": "^19.1.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "tsc-alias": "^1.8.16"

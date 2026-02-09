@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+    "types": ["node", "react"],
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "files": ["example.ts", "example.tsx"]
+}

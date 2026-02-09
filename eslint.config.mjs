@@ -17,4 +17,16 @@ export default [
       'no-restricted-imports': 'off',
     },
   },
+  {
+    files: ['fixtures/**/*.ts', 'fixtures/**/*.tsx'],
+    languageOptions: {
+      parserOptions: {
+        project: './fixtures/tsconfig.json',
+      },
+    },
+    rules: {
+      'import/no-relative-parent-imports': 'off',
+      'no-restricted-imports': 'off',
+    },
+  },
 ]

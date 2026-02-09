@@ -3,7 +3,11 @@
     "allow": [
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:eslint.org)",
-      "WebFetch(domain:typescript-eslint.io)"
+      "WebFetch(domain:typescript-eslint.io)",
+      "Bash(gh api:*)",
+      "Bash(yarn)",
+      "Bash(yarn build)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
