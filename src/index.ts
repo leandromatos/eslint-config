@@ -92,7 +92,7 @@ const legacyConfig: Linter.LegacyConfig = {
   },
   overrides: [
     {
-      files: ['*.ts', '*.tsx'],
+      files: ['**/*.ts', '**/*.tsx'],
       extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-type-checked'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
@@ -144,7 +144,7 @@ const legacyConfig: Linter.LegacyConfig = {
       },
     },
     {
-      files: ['*.tsx'],
+      files: ['**/*.tsx'],
       env: {
         browser: true,
       },

@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:eslint.org)",
+      "WebFetch(domain:typescript-eslint.io)"
     ]
   }
 }

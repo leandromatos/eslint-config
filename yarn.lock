@@ -210,7 +210,7 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-10.0.1.tgz#1e8a876f50117af8ab67e47d5ad94d38d6622583"
   integrity sha512-zeR9k5pd4gxjZ0abRoIaxdc7I3nDktoXZk2qOv9gCNWx3mVwEn32VRhyLaRsDiJjTs0xq/T8mfPtyuXu7GWBcA==
 
-"@eslint/markdown@^7.0.1":
+"@eslint/markdown@^7.5.1":
   version "7.5.1"
   resolved "https://registry.yarnpkg.com/@eslint/markdown/-/markdown-7.5.1.tgz#08b254b1424d764ca1a55b82e00ecaf09baba8a5"
   integrity sha512-R8uZemG9dKTbru/DQRPblbJyXpObwKzo8rv1KYGGuPUPtjM4LXBYM9q5CIZAComzZupws3tWbDwam5AFpPLyJQ==

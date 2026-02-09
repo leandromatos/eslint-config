@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.41",
+  "version": "3.0.0-rc.42",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
@@ -33,7 +33,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "@eslint/markdown": "^7.0.1",
+    "@eslint/markdown": "^7.5.1",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -54,8 +54,5 @@
   "peerDependencies": {
     "eslint": ">=9",
     "typescript": ">=5"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
