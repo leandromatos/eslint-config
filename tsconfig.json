@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     // Basic Options
+    "ignoreDeprecations": "",
     "target": "ESNext",
     "module": "CommonJS",
     "lib": ["ESNext"],
+    "rootDir": "./src",
     "outDir": "./lib",
     "baseUrl": "./",
     "paths": {

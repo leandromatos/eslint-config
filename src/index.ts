@@ -69,6 +69,7 @@ const legacyConfig: Linter.LegacyConfig = {
       },
     ],
     'arrow-body-style': ['error', 'as-needed'],
+    'object-shorthand': ['error', 'always'],
     'prettier/prettier': [
       'error',
       {
@@ -118,6 +119,7 @@ const legacyConfig: Linter.LegacyConfig = {
             prefer: 'type-imports',
           },
         ],
+        '@typescript-eslint/no-deprecated': 'warn',
         '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-import-type-side-effects': 'error',
