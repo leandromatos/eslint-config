@@ -1,0 +1,5 @@
+{
+  // JSONC supports comments
+  "name": "example",
+  "trailingComma": "is also tolerated",
+}

@@ -11,6 +11,13 @@ export default [
     ignores: ['lib'],
   },
   {
+    settings: {
+      react: {
+        version: '19.0',
+      },
+    },
+  },
+  {
     files: ['eslint.config.mjs'],
     rules: {
       'import/no-relative-parent-imports': 'off',
@@ -18,7 +25,7 @@ export default [
     },
   },
   {
-    files: ['fixtures/**/*.ts', 'fixtures/**/*.tsx'],
+    files: ['fixtures/*.ts', 'fixtures/*.tsx'],
     languageOptions: {
       parserOptions: {
         project: './fixtures/tsconfig.json',

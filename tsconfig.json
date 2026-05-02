@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     // Basic Options
-    "ignoreDeprecations": "",
     "target": "ESNext",
     "module": "CommonJS",
     "lib": ["ESNext"],
@@ -19,6 +18,7 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "types": ["node"],
 
     // Emit Options
     "declaration": true,
@@ -32,7 +32,10 @@
     "noImplicitAny": false,
     "strictNullChecks": false,
     "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+
+    // Deprecations
+    "ignoreDeprecations": "6.0"
   },
   "include": ["eslint.config.mjs", "src/**/*.ts"],
   "exclude": ["node_modules", "lib"],

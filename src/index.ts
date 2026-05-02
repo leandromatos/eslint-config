@@ -1,6 +1,10 @@
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
+import markdownPlugin from '@eslint/markdown'
 import type { Linter } from 'eslint'
+import jsoncPlugin from 'eslint-plugin-jsonc'
+import ymlPlugin from 'eslint-plugin-yml'
+import tseslint from 'typescript-eslint'
 
 const legacyConfig: Linter.LegacyConfig = {
   env: {
@@ -207,17 +211,6 @@ const legacyConfig: Linter.LegacyConfig = {
         'react/prop-types': 'off',
       },
     },
-    {
-      files: ['*.md'],
-      parser: 'eslint-plugin-markdownlint/parser',
-      extends: ['plugin:markdownlint/recommended'],
-      rules: {
-        'markdownlint/md013': 'off',
-        'markdownlint/md024': 'off',
-        'markdownlint/md033': 'off',
-        'prettier/prettier': 'off',
-      },
-    },
   ],
 }
 
@@ -227,9 +220,38 @@ const compat = new FlatCompat({
 })
 
 /**
+ * Apply a default `files` filter to flat config entries that don't already declare one.
+ * Several upstream plugins (eslint-plugin-prettier, eslint-plugin-yml, eslint-plugin-jsonc)
+ * register rules globally, which causes them to crash when ESLint tries to apply them
+ * to files of other languages (e.g. running JSON-AST rules on a .md file).
+ */
+const scopeIfNoFiles = (configs: Linter.Config[], files: string[]): Linter.Config[] =>
+  configs.map(c => (c.files ? c : { ...c, files }))
+
+const jsExtensions = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}']
+const ymlExtensions = ['**/*.{yml,yaml}']
+const jsonExtensions = ['**/*.{json,jsonc,json5}']
+
+/**
  * This is a custom ESLint configuration. It extends the recommended ESLint configuration and adds some custom rules.
  *
  * @author Leandro Matos
  * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
  */
-export const config: Linter.Config[] = [...compat.config(legacyConfig)]
+export const config: Linter.Config[] = [
+  ...scopeIfNoFiles(compat.config(legacyConfig), jsExtensions),
+  ...scopeIfNoFiles(ymlPlugin.configs['flat/standard'], ymlExtensions),
+  ...scopeIfNoFiles(ymlPlugin.configs['flat/prettier'], ymlExtensions),
+  ...scopeIfNoFiles(jsoncPlugin.configs['flat/recommended-with-jsonc'], jsonExtensions),
+  ...scopeIfNoFiles(jsoncPlugin.configs['flat/prettier'], jsonExtensions),
+  ...markdownPlugin.configs.recommended,
+  ...markdownPlugin.configs.processor,
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ['**/*.md/**'],
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      'no-restricted-imports': 'off',
+    },
+  },
+]
