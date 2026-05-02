@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 >
-> **This package requires ESLint v9 or higher. For older ESLint versions, please use v2.x of this package.**
+> **This package requires ESLint v10 or higher. For ESLint v9, use v3.0.0-rc.45 or earlier. For older ESLint versions, use v2.x of this package.**
 
 This is a custom and sharable ESLint configuration for TypeScript, JavaScript, React, Markdown, YAML, and JSON projects. It includes the following packages:
 
@@ -47,12 +47,12 @@ This is a custom and sharable ESLint configuration for TypeScript, JavaScript, R
 
 > [!NOTE]
 >
-> **It's crucial to note that you must install the `typescript` package, even in a project that uses only JavaScript. This is because ESLint leverages TypeScript to parse the code and provide more accurate error messages.**
+> **You must install `eslint`, `typescript`, and `prettier` explicitly — they are peer dependencies. `typescript` is required even in JavaScript-only projects because ESLint uses it to parse code and produce accurate error messages. `prettier` is required because the recommended workflow includes running `prettier --write` directly (see [Markdown Code Blocks](#markdown-code-blocks)) and reliable resolution of the Prettier CLI requires it as a top-level dependency.**
 
 Use your preferred package manager to install the ESLint configuration:
 
 ```bash
-yarn add --dev eslint typescript @leandromatos/eslint-config
+yarn add --dev eslint typescript prettier @leandromatos/eslint-config
 ```
 
 > You can use any package manager of your choice (npm, pnpm, bun, etc.)
