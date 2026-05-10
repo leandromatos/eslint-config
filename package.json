@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.47",
+  "version": "3.0.0-rc.48",
   "repository": "https://github.com/leandromatos/eslint-config",
   "author": "Leandro Matos",
   "license": "MIT",
@@ -25,11 +25,12 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
+    "@eslint/compat": "^2.1.0",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",
     "@eslint/markdown": "^8.0.1",
-    "@typescript-eslint/eslint-plugin": "^8.59.1",
-    "@typescript-eslint/parser": "^8.59.1",
+    "@typescript-eslint/eslint-plugin": "^8.59.2",
+    "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
@@ -39,18 +40,17 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-simple-import-sort": "^13.0.0",
-    "eslint-plugin-yml": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.1"
+    "typescript-eslint": "^8.59.2"
   },
   "devDependencies": {
     "@types/eslint": "^9.6.1",
     "@types/lint-staged": "^14.0.0",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.4",
     "prettier": "^3.8.3",
     "tsc-alias": "^1.8.17"
   },

@@ -1,10 +1,9 @@
+import { fixupConfigRules } from '@eslint/compat'
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
 import markdownPlugin from '@eslint/markdown'
 import type { Linter } from 'eslint'
 import jsoncPlugin from 'eslint-plugin-jsonc'
-import ymlPlugin from 'eslint-plugin-yml'
-import tseslint from 'typescript-eslint'
 
 const legacyConfig: Linter.LegacyConfig = {
   env: {
@@ -78,14 +77,6 @@ const legacyConfig: Linter.LegacyConfig = {
       'error',
       {
         arrowParens: 'avoid',
-        overrides: [
-          {
-            files: ['*.yml', '*.yaml'],
-            options: {
-              singleQuote: false,
-            },
-          },
-        ],
         printWidth: 120,
         semi: false,
         singleQuote: true,
@@ -96,7 +87,7 @@ const legacyConfig: Linter.LegacyConfig = {
   },
   overrides: [
     {
-      files: ['*.ts', '*.tsx'],
+      files: ['*.ts', '*.tsx', '*.mts', '*.cts'],
       extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-type-checked'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
@@ -105,7 +96,7 @@ const legacyConfig: Linter.LegacyConfig = {
       plugins: ['@typescript-eslint'],
       settings: {
         'import/parsers': {
-          '@typescript-eslint/parser': ['.ts', '.d.ts'],
+          '@typescript-eslint/parser': ['.ts', '.tsx', '.mts', '.cts', '.d.ts'],
         },
       },
       rules: {
@@ -165,7 +156,7 @@ const legacyConfig: Linter.LegacyConfig = {
           version: 'detect',
         },
         'import/parsers': {
-          '@typescript-eslint/parser': ['.ts', '.d.ts', '.tsx'],
+          '@typescript-eslint/parser': ['.ts', '.tsx', '.mts', '.cts', '.d.ts'],
         },
       },
       rules: {
@@ -183,14 +174,6 @@ const legacyConfig: Linter.LegacyConfig = {
             printWidth: 120,
             semi: false,
             singleQuote: true,
-            overrides: [
-              {
-                files: ['*.yml', '*.yaml'],
-                options: {
-                  singleQuote: false,
-                },
-              },
-            ],
             plugins: ['prettier-plugin-tailwindcss'],
             tailwindFunctions: ['tv', 'clsx', 'cva', 'tw'],
           },
@@ -221,15 +204,14 @@ const compat = new FlatCompat({
 
 /**
  * Apply a default `files` filter to flat config entries that don't already declare one.
- * Several upstream plugins (eslint-plugin-prettier, eslint-plugin-yml, eslint-plugin-jsonc)
- * register rules globally, which causes them to crash when ESLint tries to apply them
- * to files of other languages (e.g. running JSON-AST rules on a .md file).
+ * Several upstream plugins (eslint-plugin-prettier, eslint-plugin-jsonc) register rules
+ * globally, which causes them to crash when ESLint tries to apply them to files of other
+ * languages (e.g. running JSON-AST rules on a .md file).
  */
 const scopeIfNoFiles = (configs: Linter.Config[], files: string[]): Linter.Config[] =>
   configs.map(c => (c.files ? c : { ...c, files }))
 
 const jsExtensions = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}']
-const ymlExtensions = ['**/*.{yml,yaml}']
 const jsonExtensions = ['**/*.{json,jsonc,json5}']
 
 /**
@@ -239,19 +221,14 @@ const jsonExtensions = ['**/*.{json,jsonc,json5}']
  * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
  */
 export const config: Linter.Config[] = [
-  ...scopeIfNoFiles(compat.config(legacyConfig), jsExtensions),
-  ...scopeIfNoFiles(ymlPlugin.configs['flat/standard'], ymlExtensions),
-  ...scopeIfNoFiles(ymlPlugin.configs['flat/prettier'], ymlExtensions),
+  ...scopeIfNoFiles(fixupConfigRules(compat.config(legacyConfig)), jsExtensions),
   ...scopeIfNoFiles(jsoncPlugin.configs['flat/recommended-with-jsonc'], jsonExtensions),
   ...scopeIfNoFiles(jsoncPlugin.configs['flat/prettier'], jsonExtensions),
   ...markdownPlugin.configs.recommended,
-  ...markdownPlugin.configs.processor,
   {
-    ...tseslint.configs.disableTypeChecked,
-    files: ['**/*.md/**'],
+    files: ['**/*.md'],
     rules: {
-      ...tseslint.configs.disableTypeChecked.rules,
-      'no-restricted-imports': 'off',
+      'markdown/no-missing-label-refs': 'off',
     },
   },
 ]
