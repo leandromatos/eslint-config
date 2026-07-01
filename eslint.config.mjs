@@ -9,13 +9,6 @@ import config from './index.js'
 export default [
   ...config,
   {
-    settings: {
-      react: {
-        version: '19.0',
-      },
-    },
-  },
-  {
     files: ['eslint.config.mjs'],
     rules: {
       'import-x/no-relative-parent-imports': 'off',
