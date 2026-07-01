@@ -4,6 +4,7 @@ import config from './index.js'
  * ESLint configuration for this repository, consuming the package's own config.
  *
  * @see {@link https://eslint.org/docs/latest/use/configure/configuration-files ESLint Configuration}
+ * @type {import('eslint').Linter.Config[]}
  */
 export default [
   ...config,
