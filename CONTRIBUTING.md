@@ -34,6 +34,6 @@ Any failure aborts the commit, so nothing lands until all of it passes.
 
 Changes land through pull requests; the checks run on them. A release is a separate, explicit step:
 
-1. Bump the version. For a snapshot, run `./scripts/snapshot-version-bump.sh`, which produces `X.Y.Z-snapshot.YYYYMMDD.N`.
+1. Bump the version. For a snapshot, run `yarn release:snapshot` (`X.Y.Z-snapshot.YYYYMMDD.N`); for a stable release, `yarn release:production [promote|patch|minor|major]` (a clean `X.Y.Z`, where `promote` drops the snapshot suffix).
 2. Commit as `chore(release): vX.Y.Z…` and create a matching `vX.Y.Z…` tag.
 3. Push the branch and the tag. The publish workflow (`deploy.yaml`) sends snapshots to the `snapshot` dist-tag and stable versions to `latest`.
