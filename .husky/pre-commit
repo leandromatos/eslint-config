@@ -1,2 +1,5 @@
 # run lint-staged to check for linting errors
 yarn lint-staged --verbose
+
+# verify the lockfile is in sync with package.json
+yarn install --check-files

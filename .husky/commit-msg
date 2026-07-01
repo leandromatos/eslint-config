@@ -1,0 +1,2 @@
+# run yarn commitlint with the --edit flag to open the editor
+yarn commitlint --verbose --edit $1
