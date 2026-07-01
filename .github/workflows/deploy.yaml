@@ -1,26 +1,66 @@
 name: Publish package to NPM
+
 on:
   push:
     tags:
       - "v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: yarn
           registry-url: "https://registry.npmjs.org"
+
       - name: Update npm
         run: npm install -g npm@latest
+
       - name: Install Dependencies
         run: yarn
+
+      - name: Ensure Tag is on Latest Commit from 'release/v3'
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          BRANCH="release/v3"
+
+          TAG_COMMIT=$(git rev-list -n 1 "$TAG_NAME")
+          git fetch origin "$BRANCH"
+          BRANCH_COMMIT=$(git rev-parse origin/"$BRANCH")
+
+          if [ "$TAG_COMMIT" != "$BRANCH_COMMIT" ]; then
+            echo "Tag '$TAG_NAME' is not pointing to the latest commit on '$BRANCH'"
+            exit 1
+          fi
+
+      - name: Validate Tag Commit Message
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          TAG_COMMIT=$(git rev-list -n 1 "$TAG_NAME")
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s" "$TAG_COMMIT")
+          echo "$COMMIT_MESSAGE" | yarn commitlint --verbose
+
       - name: Publish to NPM
-        run: npm publish
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ "$VERSION" == *-snapshot.* ]]; then
+            npm publish --tag snapshot
+          else
+            npm publish
+          fi
