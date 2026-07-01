@@ -3,3 +3,6 @@ yarn lint-staged --verbose
 
 # verify the lockfile is in sync with package.json
 yarn install --check-files
+
+# run the test suite before allowing the commit
+yarn test
