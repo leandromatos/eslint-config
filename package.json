@@ -1,6 +1,7 @@
 {
   "name": "@leandromatos/eslint-config",
   "version": "3.0.0-rc.49",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/leandromatos/eslint-config.git"
@@ -16,55 +17,43 @@
     "eslint",
     "config"
   ],
+  "main": "index.js",
+  "exports": "./index.js",
   "files": [
-    "lib/**",
+    "index.js",
     "LICENSE"
   ],
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
   "scripts": {
-    "build": "yarn clean:build && yarn compile && yarn resolve-alias",
-    "clean:build": "rm -rf lib/*",
-    "resolve-alias": "tsc-alias",
-    "compile": "tsc",
-    "lint:fix": "yarn build && yarn lint --fix",
-    "lint": "yarn build && eslint .",
-    "prepare": "husky",
-    "prepublishOnly": "yarn build"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
   },
   "dependencies": {
-    "@eslint/compat": "^2.1.0",
-    "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",
     "@eslint/markdown": "^8.0.2",
-    "@typescript-eslint/eslint-plugin": "^8.61.1",
-    "@typescript-eslint/parser": "^8.61.1",
-    "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-jsonc": "^3.2.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-simple-import-sort": "^13.0.0",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1"
-  },
-  "devDependencies": {
-    "@types/eslint": "^9.6.1",
-    "@types/lint-staged": "^14.0.0",
-    "@types/node": "^25.9.3",
-    "@types/react": "^19.2.17",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
-    "prettier": "^3.8.4",
-    "tsc-alias": "^1.8.17"
+    "globals": "^17.7.0",
+    "typescript-eslint": "^8.62.1"
   },
   "peerDependencies": {
     "eslint": ">=10",
-    "prettier": ">=3",
     "typescript": ">=5"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.0",
+    "@leandromatos/commitlint-config": "^0.5.0",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "eslint": "^10.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4",
+    "typescript": "^6.0.3"
   }
 }

@@ -1,15 +1,12 @@
-import { config } from './lib/index.js'
+import config from './index.js'
 
 /**
- * ESLint configuration using flat config format.
+ * ESLint configuration for this repository, consuming the package's own config.
  *
- * @see {@link https://eslint.org/docs/latest/use/configure/configuration-files-new ESLint Configuration}
+ * @see {@link https://eslint.org/docs/latest/use/configure/configuration-files ESLint Configuration}
  */
 export default [
   ...config,
-  {
-    ignores: ['lib'],
-  },
   {
     settings: {
       react: {
@@ -20,19 +17,14 @@ export default [
   {
     files: ['eslint.config.mjs'],
     rules: {
-      'import/no-relative-parent-imports': 'off',
+      'import-x/no-relative-parent-imports': 'off',
       'no-restricted-imports': 'off',
     },
   },
   {
-    files: ['fixtures/*.ts', 'fixtures/*.tsx'],
-    languageOptions: {
-      parserOptions: {
-        project: './fixtures/tsconfig.json',
-      },
-    },
+    files: ['fixtures/**/*.ts', 'fixtures/**/*.tsx'],
     rules: {
-      'import/no-relative-parent-imports': 'off',
+      'import-x/no-relative-parent-imports': 'off',
       'no-restricted-imports': 'off',
     },
   },
