@@ -27,21 +27,16 @@ Install ESLint, TypeScript, and the config as dev dependencies:
 yarn add --dev eslint typescript @leandromatos/eslint-config
 ```
 
-`eslint >= 10` and `typescript >= 5` are peer dependencies, so you bring your own. This package requires ESLint 10; for ESLint 9 pin `3.0.0-rc.45` or earlier, and for older ESLint use `2.x`.
+`eslint >= 10` and `typescript >= 5` are peer dependencies, so you bring your own.
 
 ## 🚀 Quick Start
 
-Create an `eslint.config.mjs` and spread the config:
+Create an `eslint.config.mjs`:
 
 ```js
 import config from '@leandromatos/eslint-config'
 
-export default [
-  ...config,
-  {
-    ignores: ['dist'],
-  },
-]
+export default config
 ```
 
 The type-aware rules need a `tsconfig.json` at your project root. Then run ESLint as usual:
@@ -54,9 +49,9 @@ For formatting, pair it with [@leandromatos/prettier-config](https://github.com/
 
 ### Editor and lint-staged setup
 
-Because formatting lives in Prettier and not ESLint, your editor and your pre-commit hook need both tools: Prettier to format, ESLint to fix defects. Skip this and formatting stops happening on save — a silent regression if you are coming from v2, where `eslint --fix` also formatted through `eslint-plugin-prettier`. Nothing errors; the code just stops being formatted.
+Because formatting lives in Prettier and not ESLint, your editor and your pre-commit hook need both tools: Prettier to format, ESLint to fix defects. Skip this and formatting stops happening on save: `eslint --fix` does not format, so if Prettier is not wired up, nothing does. Nothing errors; the code just silently stops being formatted.
 
-VSCode (`.vscode/settings.json`) — format with Prettier on save, and run ESLint's fixes as a separate action:
+VSCode, with the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extensions (`.vscode/settings.json`) — format with Prettier on save, and run ESLint's fixes as a separate action:
 
 ```json
 {
@@ -70,7 +65,7 @@ VSCode (`.vscode/settings.json`) — format with Prettier on save, and run ESLin
 
 Setting `defaultFormatter` explicitly also avoids a real conflict: if another formatter runs on save, it formats differently from `prettier-config` and the two fight over the file.
 
-lint-staged (`lint-staged.config.mjs`) — Prettier writes first, then ESLint fixes:
+[lint-staged](https://github.com/lint-staged/lint-staged) (`lint-staged.config.mjs`) — Prettier writes first, then ESLint fixes:
 
 ```js
 export default {
@@ -96,15 +91,7 @@ The config is a stack of flat config objects, applied by file type:
 | Markdown     | `.md`                              | `@eslint/markdown` structural rules                                                 |
 | Prettier     | all                                | `eslint-config-prettier` disables style rules, applied last                         |
 
-### Notable rules
-
-| Rule                                         | Setting                       | Description                                                  |
-| -------------------------------------------- | ----------------------------- | ------------------------------------------------------------ |
-| `no-restricted-imports`                      | error on relative imports     | Forces absolute imports with an `@` alias.                   |
-| `func-style`                                 | `declaration`, arrows allowed | Named functions as declarations, arrows where you want them. |
-| `padding-line-between-statements`            | blank line before `return`    | Consistent spacing around returns.                           |
-| `@typescript-eslint/consistent-type-imports` | `separate-type-imports`       | Type-only imports use `import type`.                         |
-| `arrow-body-style`                           | `as-needed`                   | No unnecessary arrow bodies.                                 |
+The exact rules each layer sets are in [`index.js`](index.js).
 
 ## ⚙️ Configuration
 
@@ -126,11 +113,11 @@ export default [
 
 ## 🏷️ Versioning
 
-Semver, published to npm. Peers are `eslint >= 10` and `typescript >= 5`; an ESLint major that changes the flat config API ships as a major here too. Snapshots publish as `X.Y.Z-snapshot.YYYYMMDD.N` to test a change before a stable release.
+Semver, published to npm. Peers are `eslint >= 10` and `typescript >= 5`; an ESLint major that changes the flat config API ships as a major here too. Snapshots publish to the `snapshot` dist-tag as `X.Y.Z-snapshot.YYYYMMDD.N`; stable releases go to `latest`.
 
 ## 🤝 Contributing
 
-Commits follow Conventional Commits, validated by [@leandromatos/commitlint-config](https://github.com/leandromatos/commitlint-config). Work on a `release/vMAJOR` branch and open a pull request. A release is a separate, explicit step: bump the version (the `snapshot-version-bump.sh` script for pre-releases), then push a `v*` tag, which the publish workflow picks up.
+This repository follows [Conventional Commits](https://www.conventionalcommits.org). See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, releases, and local setup.
 
 ## 📄 License
 
