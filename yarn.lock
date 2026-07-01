@@ -543,13 +543,13 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-10.0.1.tgz#1e8a876f50117af8ab67e47d5ad94d38d6622583"
   integrity sha512-zeR9k5pd4gxjZ0abRoIaxdc7I3nDktoXZk2qOv9gCNWx3mVwEn32VRhyLaRsDiJjTs0xq/T8mfPtyuXu7GWBcA==
 
-"@eslint/markdown@^8.0.2":
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/@eslint/markdown/-/markdown-8.0.2.tgz#8454aacacbd05b411680ac3d184f4d11bbe36e4a"
-  integrity sha512-W+/0qHp0WbvFEljUvvECNpSWrUHpBWIWwp7F3QqEwQKmaRCmfEWvk6VfUia9pTQ0th6HyBGBsPfg/kG3/aQxLA==
+"@eslint/markdown@^8.0.3":
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/@eslint/markdown/-/markdown-8.0.3.tgz#ab2c8a9203c2a27e62c19e586ddbd7d464872e56"
+  integrity sha512-rBTSSShrq7e4O+PWfeE4azH4/CWPNrC+VGxBXiW00o3vYVJnznsZiDayj3KC9JztIMVRZxZHn2nrDIUau/4j7A==
   dependencies:
     "@eslint/core" "^1.2.1"
-    "@eslint/plugin-kit" "^0.7.1"
+    "@eslint/plugin-kit" "^0.7.2"
     github-slugger "^2.0.0"
     mdast-util-from-markdown "^2.0.2"
     mdast-util-frontmatter "^2.0.1"
@@ -565,7 +565,7 @@
   resolved "https://registry.yarnpkg.com/@eslint/object-schema/-/object-schema-3.0.5.tgz#88e9bf4d11d2b19c082e78ebe7ce88724a5eb091"
   integrity sha512-vqTaUEgxzm+YDSdElad6PiRoX4t8VGDjCtt05zn4nU810UIx/uNEV7/lZJ6KwFThKZOzOxzXy48da+No7HZaMw==
 
-"@eslint/plugin-kit@^0.7.0", "@eslint/plugin-kit@^0.7.1", "@eslint/plugin-kit@^0.7.2":
+"@eslint/plugin-kit@^0.7.0", "@eslint/plugin-kit@^0.7.2":
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/@eslint/plugin-kit/-/plugin-kit-0.7.2.tgz#4b0962f3f2c7ce8bc98b3ecfe34525c09d2cb729"
   integrity sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==
@@ -646,10 +646,10 @@
     "@commitlint/cli" "^20.5.3"
     "@commitlint/config-conventional" "^20.5.3"
 
-"@leandromatos/prettier-config@^2.0.0-snapshot.20260701.1":
-  version "2.0.0-snapshot.20260701.1"
-  resolved "https://registry.yarnpkg.com/@leandromatos/prettier-config/-/prettier-config-2.0.0-snapshot.20260701.1.tgz#2a61d05df0946cc6cc3f8e2bae174aec4d33a518"
-  integrity sha512-XgtR6HpTNzAFVymCEg/kGC8UJHGhiPzsxQStxbAG7cjXbde1wwKHS6zvygdmexlm4Bwhze1ZtMWlb7OeiAzeHA==
+"@leandromatos/prettier-config@^2.0.0-snapshot.20260701.2":
+  version "2.0.0-snapshot.20260701.2"
+  resolved "https://registry.yarnpkg.com/@leandromatos/prettier-config/-/prettier-config-2.0.0-snapshot.20260701.2.tgz#ff82abc888173fd71629190e0093d0c58c45aa4e"
+  integrity sha512-LNV5V60ZKM8O9m/z7gbEKhKTXkBSENnkc2W4JwAqctCdMvhfvJTqdBWtMMNEV1R4k9VPrPMstLPx5N3b4VUSTg==
   dependencies:
     prettier-plugin-tailwindcss "^0.8.0"
 
@@ -852,10 +852,10 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-2.1.0.tgz#052aa67a48eccc4309d7f0191b7e41434b90bb78"
   integrity sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==
 
-"@types/node@^26.0.1":
-  version "26.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.0.1.tgz#4a60e2c7a6d68bd261e265f8983bfe1601263ce3"
-  integrity sha512-fc3KiUoBt6kie0N9bIW3E47vZsuaMf0PM2AaUpLCLT0s/LvX1nxAim6Fc049cNxODPpGm6qRAuUOB86SkRuPQw==
+"@types/node@^26.1.0":
+  version "26.1.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.1.0.tgz#aa85f0727fc5611347091c478341c63650903439"
+  integrity sha512-O0A1G3xPGy4w7AgQdAQYUlQ+BKk2Oovw8eRpofyp5KdBZULnbe+WqaOVNrm705SHphCiG4XHsACrSmPu1f+Kgw==
   dependencies:
     undici-types "~8.3.0"
 
