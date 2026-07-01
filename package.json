@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-rc.49",
+  "version": "3.0.0-snapshot.20260701.1",
   "type": "module",
   "repository": {
     "type": "git",
