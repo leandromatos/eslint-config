@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "3.0.0-snapshot.20260701.7",
+  "version": "3.0.0-snapshot.20260705.1",
   "description": "ESLint flat configuration with TypeScript, React, import sorting, JSON, and Markdown support.",
   "keywords": [
     "eslint",
