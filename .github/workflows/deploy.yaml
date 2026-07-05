@@ -62,5 +62,5 @@ jobs:
           if [[ "$VERSION" == *-snapshot.* ]]; then
             npm publish --tag snapshot
           else
-            npm publish
+            npm publish --tag latest
           fi
