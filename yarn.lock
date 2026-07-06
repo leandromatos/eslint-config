@@ -488,18 +488,18 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@leandromatos/commitlint-config@^0.6.0-snapshot.20260705.1":
-  version "0.6.0-snapshot.20260705.1"
-  resolved "https://registry.yarnpkg.com/@leandromatos/commitlint-config/-/commitlint-config-0.6.0-snapshot.20260705.1.tgz#502aaae3a0e074b810e71068bc8b7574ef9b9c82"
-  integrity sha512-XGs8RV/2roXTeqan1tQzn9Hrq2UMV7KCTXEix8NBAWlw0H1g8BQGDZNgCT3daC5ak3xh9MWIEWpbbWrQcYuUiQ==
+"@leandromatos/commitlint-config@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@leandromatos/commitlint-config/-/commitlint-config-1.0.1.tgz#f3f61f40570cf44146e18067ee75ade85f3b1111"
+  integrity sha512-JlxGBnva8OpwJJPxZaoYK0LSPNvzslK8nMC9f2k3rph8D0Pm/8DLhIjQ0M02j12D3Vnc4Hln68VvViUQeiZRDA==
   dependencies:
     "@commitlint/cli" "^21.2.0"
     "@commitlint/config-conventional" "^21.2.0"
 
-"@leandromatos/prettier-config@^2.0.0-snapshot.20260705.1":
-  version "2.0.0-snapshot.20260705.1"
-  resolved "https://registry.yarnpkg.com/@leandromatos/prettier-config/-/prettier-config-2.0.0-snapshot.20260705.1.tgz#0b344971b84d701f670aac516134b97838cf10ef"
-  integrity sha512-Q1oIBkwKWENe/gRb1tUyxb5chnM95yqHD+hWonvHfAlv55Lka4zOOiqaUquDzzKmT5g45f6kcOHMuESIxStY8Q==
+"@leandromatos/prettier-config@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@leandromatos/prettier-config/-/prettier-config-2.0.1.tgz#0646a3397e35cea78305e2e579eb1dbfb56d8f1b"
+  integrity sha512-Ppf27nKS3yZ+MJPU793n4csD52z/mNWMvqN0F7alUSBurHBjNG3fG5PjRCz6hUr26JtkodfwtZdHHTTso6690Q==
   dependencies:
     prettier-plugin-tailwindcss "^0.8.0"
 
