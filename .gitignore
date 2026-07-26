@@ -139,4 +139,4 @@ docs/
 .npmrc
 
 # Generated type declarations
-index.d.ts
+src/index.d.ts

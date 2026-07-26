@@ -24,7 +24,7 @@ Any failure aborts the commit, so nothing lands until all of it passes.
 
 | Script            | Purpose                               |
 | ----------------- | ------------------------------------- |
-| `yarn build`      | Emit `index.d.ts` from the JSDoc.     |
+| `yarn build`      | Emit `src/index.d.ts` from the JSDoc. |
 | `yarn lint`       | Type-check and run ESLint.            |
 | `yarn lint:fix`   | Run ESLint with `--fix`.              |
 | `yarn test`       | Run the Vitest suite once.            |

@@ -1,4 +1,4 @@
-import config from './index.js'
+import config from './src/index.js'
 
 /**
  * ESLint configuration for this repository, consuming the package's own config.
@@ -9,7 +9,7 @@ import config from './index.js'
 export default [
   ...config,
   {
-    ignores: ['index.d.ts'],
+    ignores: ['src/index.d.ts'],
   },
   {
     files: ['eslint.config.mjs'],
@@ -26,7 +26,7 @@ export default [
     },
   },
   {
-    files: ['test/**/*.js'],
+    files: ['src/__tests__/**/*.js'],
     rules: {
       'import-x/no-relative-parent-imports': 'off',
       'no-restricted-imports': 'off',

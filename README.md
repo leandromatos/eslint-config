@@ -6,7 +6,7 @@ Personal [ESLint](https://eslint.org) configuration: flat config, type-aware, an
 
 - **One config, every project** — a single source of truth for ESLint rules, so linting never drifts between repositories.
 - **Type-aware out of the box** — TypeScript rules that read the type-checker through `projectService`, catching what syntactic analysis cannot: floating promises, unsafe returns, deprecated APIs.
-- **Native flat config, ESM** — no `FlatCompat`, no compat shims, no build step. The published `index.js` is the config.
+- **Native flat config, ESM** — no `FlatCompat`, no compat shims, no build step. The published `src/index.js` is the config.
 - **Typed** — publishes type declarations, so importing it from TypeScript gives you a checked `ConfigArray` instead of an implicit `any`.
 - **Formatting is Prettier's job** — the config never formats; it turns off the style rules that would fight the formatter and leaves the rest to Prettier. Pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
 - **Absolute, sorted imports** — `import-x` blocks relative parent imports; `simple-import-sort` keeps imports and exports ordered.
@@ -94,7 +94,7 @@ The config is a stack of flat config objects, applied by file type:
 | Markdown     | `.md`                              | `@eslint/markdown` structural rules                                                 |
 | Prettier     | all                                | `eslint-config-prettier` disables style rules, applied last                         |
 
-The exact rules each layer sets are in [`index.js`](index.js).
+The exact rules each layer sets are in [`src/index.js`](src/index.js).
 
 ## ⚙️ Configuration
 

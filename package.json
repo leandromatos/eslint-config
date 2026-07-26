@@ -13,17 +13,17 @@
     "url": "git+https://github.com/leandromatos/eslint-config.git"
   },
   "type": "module",
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./index.d.ts",
-      "default": "./index.js"
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
     }
   },
   "files": [
-    "index.js",
-    "index.d.ts",
+    "src",
+    "!src/__tests__",
     "LICENSE"
   ],
   "publishConfig": {
@@ -33,7 +33,7 @@
   },
   "scripts": {
     "build": "yarn clean:build && yarn compile",
-    "clean:build": "rm -f index.d.ts",
+    "clean:build": "rm -f src/index.d.ts",
     "compile": "tsc --project tsconfig.json",
     "lint": "yarn lint:ts && yarn lint:js",
     "lint:ts": "tsc --project tsconfig.json --noEmit",
