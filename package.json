@@ -13,10 +13,17 @@
     "url": "git+https://github.com/leandromatos/eslint-config.git"
   },
   "type": "module",
-  "main": "index.js",
-  "exports": "./index.js",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
   "files": [
     "index.js",
+    "index.d.ts",
     "LICENSE"
   ],
   "publishConfig": {
@@ -25,7 +32,11 @@
     "tag": "latest"
   },
   "scripts": {
-    "lint": "yarn lint:js",
+    "build": "yarn clean:build && yarn compile",
+    "clean:build": "rm -f index.d.ts",
+    "compile": "tsc --project tsconfig.json",
+    "lint": "yarn lint:ts && yarn lint:js",
+    "lint:ts": "tsc --project tsconfig.json --noEmit",
     "lint:js": "eslint .",
     "lint:fix": "yarn lint:fix:js",
     "lint:fix:js": "eslint . --fix",
@@ -60,6 +71,7 @@
     "@commitlint/cli": "^21.2.1",
     "@leandromatos/commitlint-config": "^1.0.1",
     "@leandromatos/prettier-config": "^2.0.1",
+    "@types/eslint-plugin-jsx-a11y": "^6.10.1",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@vitest/coverage-v8": "^4.1.10",

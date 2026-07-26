@@ -137,3 +137,6 @@ docs/
 
 # NPM Config
 .npmrc
+
+# Generated type declarations
+index.d.ts

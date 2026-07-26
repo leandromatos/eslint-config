@@ -9,6 +9,9 @@ import config from './index.js'
 export default [
   ...config,
   {
+    ignores: ['index.d.ts'],
+  },
+  {
     files: ['eslint.config.mjs'],
     rules: {
       'import-x/no-relative-parent-imports': 'off',

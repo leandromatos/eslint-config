@@ -21,7 +21,6 @@ const markdownFiles = ['**/*.md']
  *
  * @author Leandro Matos
  * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
- * @type {import('eslint').Linter.Config[]}
  */
 export default tseslint.config(
   {
