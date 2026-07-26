@@ -28,6 +28,14 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      // JSX is enabled for the whole base layer, not just for .tsx. The layer
+      // matches .jsx too, and without this the default parser cannot read it —
+      // a .jsx file failed with "Parsing error: Unexpected token <" rather than
+      // being linted. The React rules stay on .tsx; this only makes the syntax
+      // parseable everywhere the layer claims to apply.
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
       globals: {
         ...globals.node,
         ...globals.jest,
