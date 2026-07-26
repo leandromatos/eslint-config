@@ -107,7 +107,11 @@ teardown() {
 }
 
 @test "confirm_or_abort fails with a usable message when no terminal is reachable" {
-  run bash -c "source '$BATS_TEST_DIRNAME/../guards.sh'; confirm_or_abort" </dev/null
+  # 'env -u' is load-bearing. RELEASE_ASSUME_YES is exported by whoever runs a
+  # release, so it reaches this suite through the pre-commit hook and sends the
+  # function down the assume-yes path. Without unsetting it, the test passes in a
+  # clean shell and fails during an actual release — the one moment it matters.
+  run env -u RELEASE_ASSUME_YES bash -c "source '$BATS_TEST_DIRNAME/../guards.sh'; confirm_or_abort" </dev/null
   [ "$status" -eq 1 ]
   [[ "$output" == *"no terminal available to confirm"* ]]
   [[ "$output" == *"RELEASE_ASSUME_YES=1"* ]]
