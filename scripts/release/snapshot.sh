@@ -4,7 +4,11 @@ set -euo pipefail
 # Tag the default branch HEAD as a snapshot of the next planned release and push
 # the tag, which triggers the publish workflow.
 #
-# Usage: release:snapshot [auto|patch|minor|major|X.Y.Z]
+# Usage: release:snapshot [auto|patch|minor|major|X.Y.Z] [--dry-run]
+#   --dry-run prints the plan and exits without tagging or pushing. Use it to see
+#   the plan when running somewhere the confirmation prompt cannot reach a
+#   terminal, then re-run with RELEASE_ASSUME_YES=1.
+#
 #   auto (the default) infers the bump from the Conventional Commits landed since
 #   the last production tag: '!' or a 'BREAKING CHANGE:' footer means major, a
 #   'feat' means minor, anything else is a patch. On 0.x an inferred major is
@@ -19,7 +23,14 @@ set -euo pipefail
 # throwaway preview, so it leaves no trace in the history; the version travels in
 # the tag and the workflow writes it into package.json at publish time.
 
-BUMP_INPUT="${1:-auto}"
+BUMP_INPUT="auto"
+DRY_RUN=false
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    *) BUMP_INPUT="$arg" ;;
+  esac
+done
 
 SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./guards.sh
@@ -63,6 +74,11 @@ printf "  Snapshot tag:      %s\n" "$TAG_NAME"
 printf "  Bump:              %s%s\n" "$RESOLVED_BUMP" "$DETECTION_NOTE"
 printf "  Will tag commit:   %s\n" "$(git log -1 --pretty=format:'%h %s' "$DEFAULT_BRANCH")"
 printf "\n"
+
+if [ "$DRY_RUN" = true ]; then
+  printf "Dry run: nothing was tagged or pushed.\n"
+  exit 0
+fi
 
 confirm_or_abort
 

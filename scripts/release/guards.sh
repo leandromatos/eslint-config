@@ -96,10 +96,36 @@ current_package_version() {
   node -p "require('./package.json').version"
 }
 
+# Reads the answer from the controlling terminal rather than stdin. Run through a
+# wrapper that redirects stdin — 'yarn run', a pipeline, most editor task runners —
+# a plain 'read' sees EOF, and under 'set -e' the script dies on a bare exit 1
+# right after printing the plan, which reads like the release failed.
+#
+# RELEASE_ASSUME_YES=1 skips the prompt for a non-interactive run. It is opt-in on
+# purpose: the plan is the last checkpoint before a tag is pushed and published.
 confirm_or_abort() {
-  printf "Continue? [y/N] "
-  local answer
-  read -r answer
+  if [ "${RELEASE_ASSUME_YES:-}" = "1" ]; then
+    printf "Continue? [y/N] y (RELEASE_ASSUME_YES=1)\n"
+    return 0
+  fi
+
+  # '[ -r /dev/tty ]' is not a usable probe: the node can be readable and still
+  # fail to open with "Device not configured" when the process has no controlling
+  # terminal. Opening it is the only reliable test, so try that and fall back.
+  local answer=""
+  if { exec 3</dev/tty; } 2>/dev/null; then
+    printf "Continue? [y/N] "
+    read -r answer <&3 || answer=""
+    exec 3<&-
+  elif [ -t 0 ]; then
+    printf "Continue? [y/N] "
+    read -r answer || answer=""
+  else
+    printf "Error: no terminal available to confirm.\n" >&2
+    printf "Run this from an interactive shell, or set RELEASE_ASSUME_YES=1 to skip the prompt.\n" >&2
+    exit 1
+  fi
+
   if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
     printf "Aborted.\n"
     exit 0
