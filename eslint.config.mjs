@@ -9,7 +9,7 @@ import config from './src/index.js'
 export default [
   ...config,
   {
-    ignores: ['src/index.d.ts'],
+    ignores: ['coverage', 'src/index.d.ts'],
   },
   {
     files: ['eslint.config.mjs'],
