@@ -22,14 +22,16 @@ Any failure aborts the commit, so nothing lands until all of it passes.
 
 ## Available scripts
 
-| Script            | Purpose                               |
-| ----------------- | ------------------------------------- |
-| `yarn build`      | Emit `src/index.d.ts` from the JSDoc. |
-| `yarn lint`       | Type-check and run ESLint.            |
-| `yarn lint:fix`   | Run ESLint with `--fix`.              |
-| `yarn test`       | Run the Vitest suite once.            |
-| `yarn test:watch` | Run the suite in watch mode.          |
-| `yarn test:cov`   | Run the suite with a coverage report. |
+| Script            | Purpose                                     |
+| ----------------- | ------------------------------------------- |
+| `yarn build`      | Emit `src/index.d.ts` from the JSDoc.       |
+| `yarn lint`       | Type-check and run ESLint.                  |
+| `yarn lint:fix`   | Run ESLint with `--fix`.                    |
+| `yarn test`       | Run both suites.                            |
+| `yarn test:js`    | Run the Vitest suite once.                  |
+| `yarn test:sh`    | Run the bats suite for the release scripts. |
+| `yarn test:watch` | Run the suite in watch mode.                |
+| `yarn test:cov`   | Run the suite with a coverage report.       |
 
 ## Releases
 
@@ -49,7 +51,7 @@ Run `yarn release:snapshot` for a pre-release or `yarn release:production` for a
 
 `auto` reads the log because there are no pull requests to carry labels, and commitlint already guarantees the log's shape: a `!` or a `BREAKING CHANGE:` footer means major, a `feat` means minor, anything else is a patch. On `0.x` an inferred major is capped to minor, since a caret there locks the minor rather than the major; graduating to `1.0.0` stays an explicit `major`.
 
-Each script prints a plan and waits for confirmation before creating anything. Both refuse to run on a dirty working tree, off the default branch, out of sync with `origin`, with a release commit already at HEAD, or when the tag exists. On abort, the local tag is removed.
+Each script prints a plan and waits for confirmation before creating anything. The release scripts are covered by a bats suite under `scripts/release/__tests__`, run by `yarn test`. Both refuse to run on a dirty working tree, off the default branch, out of sync with `origin`, with a release commit already at HEAD, or when the tag exists. On abort, the local tag is removed.
 
 ### Where the version comes from
 
