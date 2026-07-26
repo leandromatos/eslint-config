@@ -7,6 +7,7 @@ Personal [ESLint](https://eslint.org) configuration: flat config, type-aware, an
 - **One config, every project** — a single source of truth for ESLint rules, so linting never drifts between repositories.
 - **Type-aware out of the box** — TypeScript rules that read the type-checker through `projectService`, catching what syntactic analysis cannot: floating promises, unsafe returns, deprecated APIs.
 - **Native flat config, ESM** — no `FlatCompat`, no compat shims, no build step. The published `index.js` is the config.
+- **Typed** — publishes type declarations, so importing it from TypeScript gives you a checked `ConfigArray` instead of an implicit `any`.
 - **Formatting is Prettier's job** — the config never formats; it turns off the style rules that would fight the formatter and leaves the rest to Prettier. Pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
 - **Absolute, sorted imports** — `import-x` blocks relative parent imports; `simple-import-sort` keeps imports and exports ordered.
 - **Batteries for React, JSON, and Markdown** — React and Hooks rules on `.tsx`, structural linting for JSON, JSONC, and Markdown.
@@ -27,7 +28,9 @@ Install ESLint, TypeScript, and the config as dev dependencies:
 yarn add --dev eslint typescript @leandromatos/eslint-config
 ```
 
-`eslint >= 10` and `typescript >= 5` are peer dependencies, so you bring your own.
+`eslint >= 10` and `typescript >= 5 < 7` are peer dependencies, so you bring your own. The upper bound on TypeScript tracks the range typescript-eslint supports, since the type-aware layer runs through its parser.
+
+Node `>= 22.12.0` is required.
 
 ## 🚀 Quick Start
 
@@ -113,7 +116,7 @@ export default [
 
 ## 🏷️ Versioning
 
-Semver, published to npm. Peers are `eslint >= 10` and `typescript >= 5`; an ESLint major that changes the flat config API ships as a major here too. Snapshots publish to the `snapshot` dist-tag as `X.Y.Z-snapshot.YYYYMMDD.N`; stable releases go to `latest`.
+Semver, published to npm. Peers are `eslint >= 10` and `typescript >= 5 < 7`, on Node `>= 22.12.0`; an ESLint major that changes the flat config API ships as a major here too. Snapshots publish to the `snapshot` dist-tag as `X.Y.Z-snapshot.YYYYMMDD.N`; stable releases go to `latest`.
 
 ## 🤝 Contributing
 
