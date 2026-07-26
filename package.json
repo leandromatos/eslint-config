@@ -51,7 +51,7 @@
   },
   "peerDependencies": {
     "eslint": ">=10",
-    "typescript": ">=5"
+    "typescript": ">=5 <7"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
