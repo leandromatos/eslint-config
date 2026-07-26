@@ -33,9 +33,43 @@ Any failure aborts the commit, so nothing lands until all of it passes.
 
 ## Releases
 
-Changes land through pull requests; the checks run on them. A release is a separate, explicit step:
+This repository is trunk-based on `main` and does not use pull requests; the hooks above are what gate a change. A release is a separate, explicit step.
 
-1. Cut the release. Run `yarn release:snapshot` for a pre-release (`X.Y.Z-snapshot.YYYYMMDD.N`) or `yarn release:production` for a stable one (`X.Y.Z`). Both accept an optional `auto|patch|minor|major|X.Y.Z`; `auto` is the default and infers the bump from the commits since the last tag. Each prints a plan and waits for confirmation, then tags and pushes — pushing the tag is what publishes.
-2. The publish workflow (`deploy.yaml`) picks the dist-tag from the version in the tag: snapshots go to `snapshot`, clean `X.Y.Z` goes to `latest`.
+### Cutting one
 
-The tag carries the version, not `package.json`. A snapshot leaves no commit behind and does not touch `package.json`; a production release commits `chore(release): vX.Y.Z` before tagging. The bump is computed from the real published state — the greater of the latest tag and the version on npm — never from `package.json`.
+Run `yarn release:snapshot` for a pre-release or `yarn release:production` for a stable one. Both take an optional bump:
+
+| Argument | Behavior                                                           |
+| -------- | ------------------------------------------------------------------ |
+| `auto`   | default; inferred from the Conventional Commits since the last tag |
+| `patch`  | `X.Y.Z` → `X.Y.(Z+1)`                                              |
+| `minor`  | `X.Y.Z` → `X.(Y+1).0`                                              |
+| `major`  | `X.Y.Z` → `(X+1).0.0`                                              |
+| `X.Y.Z`  | explicit target                                                    |
+
+`auto` reads the log because there are no pull requests to carry labels, and commitlint already guarantees the log's shape: a `!` or a `BREAKING CHANGE:` footer means major, a `feat` means minor, anything else is a patch. On `0.x` an inferred major is capped to minor, since a caret there locks the minor rather than the major; graduating to `1.0.0` stays an explicit `major`.
+
+Each script prints a plan and waits for confirmation before creating anything. Both refuse to run on a dirty working tree, off the default branch, out of sync with `origin`, with a release commit already at HEAD, or when the tag exists. On abort, the local tag is removed.
+
+### Where the version comes from
+
+The tag is the source of truth. `package.json`'s `.version` is a derived value: the publish workflow reads the version out of the tag and writes it in with `npm version --no-git-tag-version` before `npm publish`.
+
+The bump is applied to the real published state, never to `.version`:
+
+```plaintext
+base = max(highest production tag, highest version published to npm)
+```
+
+The distinction is not cosmetic. Between releases `.version` holds the _last published_ version, so bumping from it produces `X.Y.Z-snapshot.N` against an already-published `X.Y.Z` — and a prerelease sorts _below_ its own release, which lands the `snapshot` dist-tag behind `latest`.
+
+### What each path leaves behind
+
+- **Snapshot** creates no commit and does not touch `package.json`. It tags `main`'s HEAD as `vX.Y.Z-snapshot.YYYYMMDD.N` and pushes. Mid-cycle `package.json` reads the last stable version while npm serves a newer snapshot; that is the derived-value design working, not drift.
+- **Production** writes `package.json`, commits `chore(release): vX.Y.Z`, tags it, and pushes both.
+
+`deploy.yaml` picks the dist-tag from the version in the tag: anything carrying `-snapshot.` publishes with `--tag snapshot`, a clean `X.Y.Z` with `--tag latest`. Both are passed explicitly, so a snapshot can never reach `latest`.
+
+### First-time setup
+
+Publishing runs over OIDC (trusted publishing), with no npm token. It needs a trusted publisher registered once on npm — package settings → Trusted Publisher → GitHub Actions, pointing at `leandromatos` / `eslint-config` / `deploy.yaml`. Without it the publish fails with a 404.
