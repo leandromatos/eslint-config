@@ -43,8 +43,8 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:cov": "vitest run --coverage",
-    "release:snapshot": "./scripts/snapshot-version-bump.sh",
-    "release:production": "./scripts/production-version-bump.sh",
+    "release:snapshot": "./scripts/release/snapshot.sh",
+    "release:production": "./scripts/release/production.sh",
     "prepare": "husky"
   },
   "dependencies": {

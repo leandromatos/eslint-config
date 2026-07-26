@@ -61,7 +61,15 @@ jobs:
 
       - name: Publish to NPM
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG_NAME#v}"
+
+          # The tag carries the version, package.json does not. A snapshot leaves
+          # no commit behind, so the checked-out package.json still holds the
+          # previous release; writing the tag's version in here is what keeps the
+          # published artifact and the tag in agreement on both paths.
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
           if [[ "$VERSION" == *-snapshot.* ]]; then
             npm publish --tag snapshot
           else

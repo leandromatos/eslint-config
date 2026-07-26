@@ -24,7 +24,8 @@ Any failure aborts the commit, so nothing lands until all of it passes.
 
 | Script            | Purpose                               |
 | ----------------- | ------------------------------------- |
-| `yarn lint`       | Run ESLint over the repository.       |
+| `yarn build`      | Emit `index.d.ts` from the JSDoc.     |
+| `yarn lint`       | Type-check and run ESLint.            |
 | `yarn lint:fix`   | Run ESLint with `--fix`.              |
 | `yarn test`       | Run the Vitest suite once.            |
 | `yarn test:watch` | Run the suite in watch mode.          |
@@ -34,6 +35,7 @@ Any failure aborts the commit, so nothing lands until all of it passes.
 
 Changes land through pull requests; the checks run on them. A release is a separate, explicit step:
 
-1. Bump the version. For a snapshot, run `yarn release:snapshot` (`X.Y.Z-snapshot.YYYYMMDD.N`); for a stable release, `yarn release:production [promote|patch|minor|major]` (a clean `X.Y.Z`, where `promote` drops the snapshot suffix).
-2. Commit as `chore(release): vX.Y.Z…` and create a matching `vX.Y.Z…` tag.
-3. Push the branch and the tag. The publish workflow (`deploy.yaml`) sends snapshots to the `snapshot` dist-tag and stable versions to `latest`.
+1. Cut the release. Run `yarn release:snapshot` for a pre-release (`X.Y.Z-snapshot.YYYYMMDD.N`) or `yarn release:production` for a stable one (`X.Y.Z`). Both accept an optional `auto|patch|minor|major|X.Y.Z`; `auto` is the default and infers the bump from the commits since the last tag. Each prints a plan and waits for confirmation, then tags and pushes — pushing the tag is what publishes.
+2. The publish workflow (`deploy.yaml`) picks the dist-tag from the version in the tag: snapshots go to `snapshot`, clean `X.Y.Z` goes to `latest`.
+
+The tag carries the version, not `package.json`. A snapshot leaves no commit behind and does not touch `package.json`; a production release commits `chore(release): vX.Y.Z` before tagging. The bump is computed from the real published state — the greater of the latest tag and the version on npm — never from `package.json`.
