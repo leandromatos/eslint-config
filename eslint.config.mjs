@@ -9,7 +9,8 @@ import config from './src/index.js'
 export default [
   ...config,
   {
-    ignores: ['coverage', 'src/index.d.ts'],
+    // Deliberately broken files, linted by the spec suite, never by this repo.
+    ignores: ['coverage', 'src/index.d.ts', 'fixtures/invalid'],
   },
   {
     files: ['eslint.config.mjs'],

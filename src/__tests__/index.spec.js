@@ -44,4 +44,50 @@ describe('eslint-config', () => {
 
     expect(result.errorCount).toBe(0)
   })
+
+  it('lints JSON structurally', async () => {
+    const result = await lint('{ "a": 1, "a": 2 }\n', 'sample.json')
+
+    expect(result.messages.map(message => message.ruleId)).toContain('jsonc/no-dupe-keys')
+  })
+
+  it('lints Markdown structurally', async () => {
+    const result = await lint('# Title\n\n[text]()\n', 'sample.md')
+
+    expect(result.messages.map(message => message.ruleId)).toContain('markdown/no-empty-links')
+  })
+
+  it('leaves no-missing-label-refs off', async () => {
+    // Turned off on purpose, and worth pinning: the rule misreads the bracket
+    // syntax used by checklists and shortcut references.
+    const result = await lint('# Title\n\n[broken][missing]\n', 'sample.md')
+
+    expect(result.messages.map(message => message.ruleId)).not.toContain('markdown/no-missing-label-refs')
+  })
+
+  // These need real files. The type-checked layer runs through projectService,
+  // which resolves a file against the nearest tsconfig — a path handed to
+  // lintText that does not exist on disk is reported as outside the project
+  // instead of being linted, which is why the cases above all use .js.
+  describe('layers that need a TypeScript project', () => {
+    const lintFixture = async name => {
+      const [result] = await onDisk.lintFiles([`fixtures/invalid/${name}`])
+
+      return result
+    }
+
+    const onDisk = new ESLint({ overrideConfigFile: true, baseConfig: config })
+
+    it('reports a floating promise', async () => {
+      const result = await lintFixture('floating-promise.ts')
+
+      expect(result.messages.map(message => message.ruleId)).toContain('@typescript-eslint/no-floating-promises')
+    })
+
+    it('reports an image without alt text', async () => {
+      const result = await lintFixture('missing-alt.tsx')
+
+      expect(result.messages.map(message => message.ruleId)).toContain('jsx-a11y/alt-text')
+    })
+  })
 })
