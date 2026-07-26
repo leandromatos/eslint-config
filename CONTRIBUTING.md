@@ -70,6 +70,14 @@ The distinction is not cosmetic. Between releases `.version` holds the _last pub
 
 `deploy.yaml` picks the dist-tag from the version in the tag: anything carrying `-snapshot.` publishes with `--tag snapshot`, a clean `X.Y.Z` with `--tag latest`. Both are passed explicitly, so a snapshot can never reach `latest`.
 
+A production tag also gets a GitHub Release, with notes grouped by Conventional Commit type from the commits since the previous production tag. GitHub's own `--generate-notes` is not used: it builds its list from merged pull requests, and this repository has none, so it would produce an empty release. Snapshots get no GitHub Release; the `snapshot` dist-tag is their record.
+
+Preview the notes for any ref without creating anything:
+
+```bash
+./scripts/release/create-github-release.sh <ref> --dry-run
+```
+
 ### First-time setup
 
 Publishing runs over OIDC (trusted publishing), with no npm token. It needs a trusted publisher registered once on npm — package settings → Trusted Publisher → GitHub Actions, pointing at `leandromatos` / `eslint-config` / `deploy.yaml`. Without it the publish fails with a 404.
