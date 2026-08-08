@@ -236,5 +236,3 @@ export const importBoundaries = ({
       : []),
   ]
 }
-
-export default importBoundaries

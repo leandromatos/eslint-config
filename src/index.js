@@ -10,6 +10,10 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
+// Re-exported so a project needs one import, not two. Nothing runs at import time: the
+// filesystem walk happens when the factory is called.
+export { importBoundaries } from './import-boundaries.js'
+
 const jsFiles = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}']
 const tsFiles = ['**/*.{ts,tsx,mts,cts}']
 const tsxFiles = ['**/*.tsx']

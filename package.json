@@ -19,10 +19,6 @@
     ".": {
       "types": "./src/index.d.ts",
       "default": "./src/index.js"
-    },
-    "./import-boundaries": {
-      "types": "./src/import-boundaries.d.ts",
-      "default": "./src/import-boundaries.js"
     }
   },
   "files": [

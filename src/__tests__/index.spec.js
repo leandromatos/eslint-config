@@ -1,7 +1,7 @@
 import { ESLint } from 'eslint'
 import { describe, expect, it } from 'vitest'
 
-import config from '../index.js'
+import config, { importBoundaries } from '../index.js'
 
 const eslint = new ESLint({ overrideConfigFile: true, baseConfig: config })
 
@@ -15,6 +15,10 @@ describe('eslint-config', () => {
   it('exports a non-empty flat config array', () => {
     expect(Array.isArray(config)).toBe(true)
     expect(config.length).toBeGreaterThan(0)
+  })
+
+  it('re-exports importBoundaries, so a project needs one import', () => {
+    expect(typeof importBoundaries).toBe('function')
   })
 
   it('flags relative parent imports', async () => {

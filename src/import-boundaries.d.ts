@@ -6,7 +6,6 @@ export function importBoundaries({
   testFolder,
   noCycle,
 }: ImportBoundariesOptions): import('eslint').Linter.Config[]
-export default importBoundaries
 /**
  * Options accepted by {@link importBoundaries}.
  */

@@ -29,6 +29,14 @@ export default [
     },
   },
   {
+    // The entry point re-exports its sibling, and this package has no `@` alias to
+    // reach it through.
+    files: ['src/index.js'],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
+  },
+  {
     files: ['src/__tests__/**/*.js'],
     rules: {
       'import-x/no-relative-parent-imports': 'off',

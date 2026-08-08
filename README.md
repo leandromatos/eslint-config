@@ -10,7 +10,7 @@ Personal [ESLint](https://eslint.org) configuration: flat config, type-aware, an
 - **Typed** — publishes type declarations, so importing it from TypeScript gives you a checked `ConfigArray` instead of an implicit `any`.
 - **Formatting is Prettier's job** — the config never formats; it turns off the style rules that would fight the formatter and leaves the rest to Prettier. Pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
 - **Absolute, sorted imports** — `import-x` blocks relative parent imports; `simple-import-sort` keeps imports and exports ordered.
-- **Import boundaries on request** — an optional layer that derives barrel-crossing rules from your folder structure, so layered projects enforce the same architecture without hand-writing the patterns.
+- **Import boundaries on request** — an optional `importBoundaries` export that derives barrel-crossing rules from your folder structure, so layered projects enforce the same architecture without hand-writing the patterns.
 - **Batteries for React, JSON, and Markdown** — React and Hooks rules on `.tsx`, structural linting for JSON, JSONC, and Markdown.
 
 ## 🧭 How It Works
@@ -97,7 +97,7 @@ The config is a stack of flat config objects, applied by file type:
 
 The exact rules each layer sets are in [`src/index.js`](src/index.js).
 
-The package also ships a second entry point, `@leandromatos/eslint-config/import-boundaries`, which is opt-in and not part of the default export. See [Import boundaries](#import-boundaries).
+The package also exports `importBoundaries`, an opt-in layer that is not part of the default export. See [Import boundaries](#import-boundaries).
 
 ## ⚙️ Configuration
 
@@ -119,13 +119,12 @@ export default [
 
 ### Import boundaries
 
-Some projects organize code by layer: a `services` folder holding `*.service.ts`, an `entities` folder holding `*.entity.ts`, and an `index.ts` barrel in each. Once that convention holds, the import rules that protect it are mechanical, and the `import-boundaries` entry point generates them from the folders on disk.
+Some projects organize code by layer: a `services` folder holding `*.service.ts`, an `entities` folder holding `*.entity.ts`, and an `index.ts` barrel in each. Once that convention holds, the import rules that protect it are mechanical, and the `importBoundaries` export generates them from the folders on disk.
 
-The entry point ships the mechanism, never the vocabulary. There is no default `suffixToFolder` map, because any default would be one framework's naming imposed on every project that installs the package. You declare which suffixes and folders your project uses, and the rules are derived from that:
+It ships the mechanism, never the vocabulary. There is no default `suffixToFolder` map, because any default would be one framework's naming imposed on every project that installs the package. You declare which suffixes and folders your project uses, and the rules are derived from that:
 
 ```js
-import config from '@leandromatos/eslint-config'
-import importBoundaries from '@leandromatos/eslint-config/import-boundaries'
+import config, { importBoundaries } from '@leandromatos/eslint-config'
 
 export default [
   ...config,
@@ -137,7 +136,7 @@ export default [
 ]
 ```
 
-The base config has to come first: `import-boundaries` sets `import-x/no-cycle`, and the base config is what registers that plugin.
+The base config has to come first: `importBoundaries` sets `import-x/no-cycle`, and the base config is what registers that plugin.
 
 #### A NestJS example
 

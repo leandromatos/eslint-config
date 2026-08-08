@@ -1,7 +1,7 @@
 import { ESLint } from 'eslint'
 import { describe, expect, it } from 'vitest'
 
-import { importBoundaries } from '../import-boundaries.js'
+import { importBoundaries } from '../index.js'
 
 const ROOT = 'fixtures/boundaries/src'
 
