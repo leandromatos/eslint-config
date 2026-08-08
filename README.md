@@ -202,7 +202,7 @@ Three rules fall out of the layout. Barrels themselves are exempt from all of th
 
 That last row is the one that surprises people. A file cannot go through the barrel of the layer it lives in, because that barrel re-exports the file itself — `token.entity` → `index` → `token.entity` is a cycle. Siblings are reached directly instead, and only inside the caller's own layer directory: a direct `*.entity` import from a different directory is still blocked, which is the hole the barrel rule exists to close.
 
-Absolute imports are required over relative ones, so `./services` is an error too. With `testFolder` set, production code cannot import from it, while files in it can, since tests are never part of a production import graph.
+Absolute imports are required over relative ones, so `./services` is an error too. With `testFolder` set, production code cannot import from it, while everything inside it can, since tests are never part of a production import graph. That exemption keys off the folder, not the suffix, so a shared helper with no layer suffix counts as a test file and still reaches the tree it belongs to.
 
 | Option           | Required | Default | Description                                                                                                                                     |
 | ---------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |

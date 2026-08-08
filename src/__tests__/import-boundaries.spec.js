@@ -116,6 +116,28 @@ describe('importBoundaries', () => {
       ).toBe(true)
     })
 
+    it('treats an unsuffixed file under the test folder as a test', async () => {
+      // A shared helper there carries no layer suffix, so keying the exemption off the
+      // suffix alone left it classified as production code and cut off from the tree it
+      // belongs to.
+      const messages = await messagesFor(
+        '@/authorizer/tokens/__tests__/tokens.spec',
+        'authorizer/tokens/__tests__/helpers.ts',
+      )
+
+      expect(messages).not.toContainEqual(expect.stringContaining('Do not import test files'))
+    })
+
+    it('keeps every other constraint on that helper', async () => {
+      expect(
+        await blockedWith(
+          '@/authorizer/tokens/services/tokens.service',
+          'authorizer/tokens/__tests__/helpers.ts',
+          'Use barrel imports',
+        ),
+      ).toBe(true)
+    })
+
     it('lets a test import another test', async () => {
       // Tests are never part of a production import graph, so the `spec` layer is the
       // one layer that does not carry the restriction.

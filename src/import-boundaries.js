@@ -187,32 +187,44 @@ export const importBoundaries = ({
     }
   })
 
+  const barrelPattern = {
+    group: suffixes.map(suffix => `${alias}/**/*.${suffix}`),
+    message: 'Use barrel imports',
+  }
+
   /** @type {import('eslint').Linter.RuleEntry} */
-  const barrelOnly = [
-    'error',
-    {
-      patterns: [
-        relativePattern,
-        {
-          group: suffixes.map(suffix => `${alias}/**/*.${suffix}`),
-          message: 'Use barrel imports',
-        },
-        ...testPatterns,
-      ],
-    },
-  ]
+  const barrelOnly = ['error', { patterns: [relativePattern, barrelPattern, ...testPatterns] }]
+
+  /** @type {import('eslint').Linter.RuleEntry} */
+  const barrelOnlyForTests = ['error', { patterns: [relativePattern, barrelPattern] }]
 
   /** @type {import('eslint').Linter.RuleEntry} */
   const noCycleRule = ['error', { maxDepth: 2 }]
+
+  const unsuffixedIgnores = ['**/index.ts', ...suffixes.map(suffix => `**/*.${suffix}.ts`)]
 
   return [
     // Files without a layer suffix: every layer is reached through its barrel.
     {
       files: [`${root}/**/*.ts`],
-      ignores: ['**/index.ts', ...suffixes.map(suffix => `**/*.${suffix}.ts`)],
+      ignores: unsuffixedIgnores,
       rules: { 'no-restricted-imports': barrelOnly },
     },
     ...layerOverrides,
+    // A file under the test folder is a test file whatever it is named. Keying the
+    // exemption off the suffix alone left an unsuffixed helper there classified as
+    // production code, unable to reach the test tree it belongs to. This repeats the
+    // unsuffixed rules minus that one restriction, so helpers keep every other
+    // constraint.
+    ...(testFolder
+      ? [
+          {
+            files: [`${root}/**/${testFolder}/**/*.ts`],
+            ignores: unsuffixedIgnores,
+            rules: { 'no-restricted-imports': barrelOnlyForTests },
+          },
+        ]
+      : []),
     ...(noCycle
       ? [
           {
