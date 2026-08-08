@@ -16,6 +16,12 @@
 #   tag <name>               tag HEAD
 
 setup_sandbox() {
+  # git exports these while a hook is running, and they point at the repository the
+  # hook fires in. Inherited here they would aim every sandbox command at that index
+  # instead of the sandbox's own, so `yarn test` passed on its own and failed from
+  # `pre-commit` with "invalid object" for files the sandbox has never seen.
+  unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_PREFIX
+
   SANDBOX_DIR=$(mktemp -d)
   SANDBOX_BIN="$SANDBOX_DIR/bin"
   mkdir -p "$SANDBOX_BIN"
