@@ -8,7 +8,8 @@
     "moduleResolution": "nodenext",
     "target": "esnext",
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
-  "include": ["src/index.js"]
+  "include": ["src/index.js", "src/import-boundaries.js"]
 }

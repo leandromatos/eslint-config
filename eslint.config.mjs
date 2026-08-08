@@ -9,8 +9,10 @@ import config from './src/index.js'
 export default [
   ...config,
   {
-    // Deliberately broken files, linted by the spec suite, never by this repo.
-    ignores: ['coverage', 'src/index.d.ts', 'fixtures/invalid'],
+    // Generated declarations, plus fixture trees the spec suite lints on its own terms:
+    // `invalid` is deliberately broken, and `boundaries` exists to be walked, so neither
+    // belongs to a tsconfig project the type-checked layer could read.
+    ignores: ['coverage', 'src/*.d.ts', 'fixtures/invalid', 'fixtures/boundaries'],
   },
   {
     files: ['eslint.config.mjs'],

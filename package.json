@@ -19,6 +19,10 @@
     ".": {
       "types": "./src/index.d.ts",
       "default": "./src/index.js"
+    },
+    "./import-boundaries": {
+      "types": "./src/import-boundaries.d.ts",
+      "default": "./src/import-boundaries.js"
     }
   },
   "files": [
@@ -33,8 +37,8 @@
   },
   "scripts": {
     "build": "yarn clean:build && yarn compile",
-    "clean:build": "rm -f src/index.d.ts",
-    "compile": "tsc --project tsconfig.json",
+    "clean:build": "rm -f src/*.d.ts",
+    "compile": "tsc --project tsconfig.json && prettier --write --log-level warn 'src/*.d.ts'",
     "lint": "yarn lint:ts && yarn lint:js",
     "lint:ts": "tsc --project tsconfig.json --noEmit",
     "lint:js": "eslint .",
