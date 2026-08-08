@@ -10,6 +10,7 @@ Personal [ESLint](https://eslint.org) configuration: flat config, type-aware, an
 - **Typed** — publishes type declarations, so importing it from TypeScript gives you a checked `ConfigArray` instead of an implicit `any`.
 - **Formatting is Prettier's job** — the config never formats; it turns off the style rules that would fight the formatter and leaves the rest to Prettier. Pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
 - **Absolute, sorted imports** — `import-x` blocks relative parent imports; `simple-import-sort` keeps imports and exports ordered.
+- **Import boundaries on request** — an optional layer that derives barrel-crossing rules from your folder structure, so layered projects enforce the same architecture without hand-writing the patterns.
 - **Batteries for React, JSON, and Markdown** — React and Hooks rules on `.tsx`, structural linting for JSON, JSONC, and Markdown.
 
 ## 🧭 How It Works
@@ -96,6 +97,8 @@ The config is a stack of flat config objects, applied by file type:
 
 The exact rules each layer sets are in [`src/index.js`](src/index.js).
 
+The package also ships a second entry point, `@leandromatos/eslint-config/import-boundaries`, which is opt-in and not part of the default export. See [Import boundaries](#import-boundaries).
+
 ## ⚙️ Configuration
 
 The config is an array; override or extend by appending your own flat config objects after it. Objects later in the array win:
@@ -113,6 +116,104 @@ export default [
   },
 ]
 ```
+
+### Import boundaries
+
+Some projects organize code by layer: a `services` folder holding `*.service.ts`, an `entities` folder holding `*.entity.ts`, and an `index.ts` barrel in each. Once that convention holds, the import rules that protect it are mechanical, and the `import-boundaries` entry point generates them from the folders on disk.
+
+The entry point ships the mechanism, never the vocabulary. There is no default `suffixToFolder` map, because any default would be one framework's naming imposed on every project that installs the package. You declare which suffixes and folders your project uses, and the rules are derived from that:
+
+```js
+import config from '@leandromatos/eslint-config'
+import importBoundaries from '@leandromatos/eslint-config/import-boundaries'
+
+export default [
+  ...config,
+  { ignores: ['coverage', 'dist'] },
+  // Reads `src` when ESLint loads the config, so the rules track the folders that exist.
+  ...importBoundaries({
+    suffixToFolder: { entity: 'entities', service: 'services' },
+  }),
+]
+```
+
+The base config has to come first: `import-boundaries` sets `import-x/no-cycle`, and the base config is what registers that plugin.
+
+#### A NestJS example
+
+NestJS projects are the case this was built for, because they are opinionated enough that the folder layout is already fixed. A module owns a folder per responsibility, and every file carries the suffix of the folder it lives in:
+
+```text
+src/
+  app.module.ts
+  authorizer/
+    tokens/
+      controllers/{index.ts,tokens.controller.ts}
+      entities/{index.ts,token.entity.ts,session.entity.ts}
+      services/{index.ts,tokens.service.ts}
+      __tests__/tokens.service.spec.ts
+      tokens.module.ts
+```
+
+Spell that out once and the boundaries follow:
+
+```js
+export default [
+  ...config,
+  { ignores: ['coverage', 'dist'] },
+  ...importBoundaries({
+    suffixToFolder: {
+      cache: 'caches',
+      controller: 'controllers',
+      decorator: 'decorators',
+      doc: 'docs',
+      dto: 'dtos',
+      entity: 'entities',
+      factory: 'factories',
+      guard: 'guards',
+      mock: 'mocks',
+      repository: 'repositories',
+      schema: 'schemas',
+      service: 'services',
+      spec: '__tests__',
+      type: 'types',
+      util: 'utils',
+    },
+    // Folders that mirror the layout without being layers: `roles/types/entities`
+    // holds `*.type.ts`, so it belongs to the `types` layer, not to `entities`.
+    mirrorFolders: ['types', '__tests__', '__mocks__'],
+    testFolder: '__tests__',
+  }),
+]
+```
+
+`tokens.module.ts` carries no layer suffix, so it reaches every layer through a barrel. `token.entity.ts` reaches `session.entity` directly and `@/authorizer/tokens/services` through its barrel. Nothing reaches `__tests__` except other tests.
+
+Three rules fall out of the layout. Barrels themselves are exempt from all of them, since re-exporting siblings is their job.
+
+| From                                 | Import                                        | Verdict                           |
+| ------------------------------------ | --------------------------------------------- | --------------------------------- |
+| `tokens.module.ts` (no layer suffix) | `@/authorizer/tokens/services`                | Allowed                           |
+| `tokens.module.ts`                   | `@/authorizer/tokens/services/tokens.service` | Use barrel imports                |
+| `entities/token.entity.ts`           | `@/authorizer/users/services`                 | Allowed                           |
+| `entities/token.entity.ts`           | `@/authorizer/users/services/users.service`   | Cross-layer requires barrel       |
+| `entities/token.entity.ts`           | `@/authorizer/tokens/entities/session.entity` | Allowed                           |
+| `entities/token.entity.ts`           | `@/authorizer/tokens/entities`                | Same layer requires direct import |
+
+That last row is the one that surprises people. A file cannot go through the barrel of the layer it lives in, because that barrel re-exports the file itself — `token.entity` → `index` → `token.entity` is a cycle. Siblings are reached directly instead, and only inside the caller's own layer directory: a direct `*.entity` import from a different directory is still blocked, which is the hole the barrel rule exists to close.
+
+Absolute imports are required over relative ones, so `./services` is an error too. With `testFolder` set, production code cannot import from it, while files in it can, since tests are never part of a production import graph.
+
+| Option           | Required | Default | Description                                                                                                                                     |
+| ---------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `suffixToFolder` | Yes      | —       | Map of layer suffix to the folder that holds it, such as `{ entity: 'entities' }`                                                               |
+| `root`           | No       | `'src'` | Source directory to walk, relative to the ESLint working directory                                                                              |
+| `alias`          | No       | `'@'`   | Path alias that maps to `root`                                                                                                                  |
+| `mirrorFolders`  | No       | none    | Folders that mirror the layer structure without being layers — with `types` listed, `roles/types/entities` holds `*.type.ts`, not `*.entity.ts` |
+| `testFolder`     | No       | none    | Folder holding tests; when set, production code cannot import from it and the matching layer is exempt                                          |
+| `noCycle`        | No       | `true`  | Whether to add `import-x/no-cycle`                                                                                                              |
+
+The walk happens when ESLint loads the config, not per file, so a folder added mid-session needs a restart. Both failure modes are explicit rather than silent: an empty `suffixToFolder` throws, and a `root` that does not exist throws with the resolved path instead of an `ENOENT` from inside the package.
 
 ## 🏷️ Versioning
 
