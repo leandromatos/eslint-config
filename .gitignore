@@ -138,5 +138,12 @@ docs/
 # NPM Config
 .npmrc
 
-# Generated type declarations
+# Generated type declarations. `clean:build` deletes every `src/*.d.ts`, so both belong
+# here — tracking one of the two left a generated file in the history.
 src/index.d.ts
+src/import-boundaries.d.ts
+
+# Lockfiles from another package manager. This repository resolves with pnpm, and a
+# second lockfile silently resolves the same ranges to different versions.
+yarn.lock
+package-lock.json

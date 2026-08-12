@@ -1,0 +1,3 @@
+# pnpm owns this file and rewrites it on every install, so formatting it only creates a
+# diff the next install undoes.
+pnpm-lock.yaml

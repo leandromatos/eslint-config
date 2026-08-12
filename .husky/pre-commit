@@ -1,8 +1,8 @@
 # run lint-staged to check for linting errors
-yarn lint-staged --verbose
+pnpm exec lint-staged --verbose
 
 # verify the lockfile is in sync with package.json
-yarn install --check-files
+pnpm install --frozen-lockfile
 
 # run the test suite before allowing the commit
-yarn test
+pnpm run test

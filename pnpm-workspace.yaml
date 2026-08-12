@@ -1,0 +1,9 @@
+# Native postinstall scripts pnpm blocks by default. `unrs-resolver` ships the native
+# binding `eslint-plugin-import-x` resolves with, and without its build the import rules
+# fall back to a slower JavaScript path.
+allowBuilds:
+  unrs-resolver: true
+
+# pnpm 11 holds newly published versions for 24 hours by default. Adopting a version on
+# the day it ships is worth more here than that delay.
+minimumReleaseAge: 0

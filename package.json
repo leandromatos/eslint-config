@@ -32,18 +32,21 @@
     "tag": "latest"
   },
   "scripts": {
-    "build": "yarn clean:build && yarn compile",
+    "build": "pnpm run clean:build && pnpm run compile",
     "clean:build": "rm -f src/*.d.ts",
-    "compile": "tsc --project tsconfig.json && prettier --write --log-level warn 'src/*.d.ts'",
-    "lint": "yarn lint:ts && yarn lint:js",
-    "lint:ts": "tsc --project tsconfig.json --noEmit",
+    "compile": "tsc --project tsconfig.build.json && prettier --write --log-level warn 'src/*.d.ts'",
+    "lint": "pnpm run lint:ts && pnpm run lint:js && pnpm run lint:md",
+    "lint:ts": "tsc --project tsconfig.json",
     "lint:js": "eslint .",
-    "lint:fix": "yarn lint:fix:js",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
+    "lint:fix": "pnpm run lint:fix:js && pnpm run lint:fix:md",
     "lint:fix:js": "eslint . --fix",
-    "test": "yarn test:js && yarn test:sh",
+    "lint:fix:md": "markdownlint-cli2 --fix \"**/*.md\" \"#node_modules\"",
+    "test": "pnpm run test:js && pnpm run test:sh",
     "test:js": "vitest run",
     "test:sh": "bats --recursive scripts/release/__tests__",
     "test:watch": "vitest watch",
+    "test:ui": "vitest --ui",
     "test:cov": "vitest run --coverage",
     "release:snapshot": "./scripts/release/snapshot.sh",
     "release:production": "./scripts/release/production.sh",
@@ -59,8 +62,8 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-simple-import-sort": "^14.0.0",
-    "globals": "^17.9.0",
-    "typescript-eslint": "^8.66.0"
+    "globals": "^17.10.0",
+    "typescript-eslint": "^8.67.0"
   },
   "peerDependencies": {
     "eslint": ">=10",
@@ -69,10 +72,11 @@
   "engines": {
     "node": ">=22.12.0"
   },
+  "packageManager": "pnpm@11.21.0",
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
-    "@leandromatos/commitlint-config": "^1.0.1",
-    "@leandromatos/prettier-config": "^2.0.1",
+    "@leandromatos/commitlint-config": "^1.1.1",
+    "@leandromatos/prettier-config": "^2.1.1",
     "@types/eslint-plugin-jsx-a11y": "^6.10.1",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
@@ -82,6 +86,7 @@
     "eslint": "^10.8.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
+    "markdownlint-cli2": "^0.23.2",
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
