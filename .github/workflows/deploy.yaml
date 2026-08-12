@@ -12,6 +12,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       id-token: write
       contents: write
@@ -22,21 +23,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Reads the version from `packageManager` in package.json, so the runner and a
+      # workstation resolve with the same pnpm.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: yarn
+          cache: pnpm
           registry-url: "https://registry.npmjs.org"
 
       - name: Update npm
         run: npm install -g npm@latest
 
       - name: Install Dependencies
-        run: yarn
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: yarn build
+        run: pnpm run build
 
       - name: Ensure Tag is on Latest Commit from 'main'
         run: |
@@ -57,7 +63,7 @@ jobs:
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           TAG_COMMIT=$(git rev-list -n 1 "$TAG_NAME")
           COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s" "$TAG_COMMIT")
-          echo "$COMMIT_MESSAGE" | yarn commitlint --verbose
+          echo "$COMMIT_MESSAGE" | pnpm exec commitlint --verbose
 
       - name: Publish to NPM
         run: |
