@@ -1,9 +1,14 @@
 {
+  // Type-checks everything the repository owns, including `eslint.config.mts`. ESLint's
+  // type-aware layer resolves a file through the nearest project, so a config file that
+  // no project covers fails to parse rather than being linted.
+  //
+  // This repository's config is also the one place the package consumes itself the way a
+  // downstream project does, so a break in the public API surfaces here first.
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
+    "noEmit": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "esnext",
@@ -11,5 +16,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/index.js", "src/import-boundaries.js"]
+  "include": ["eslint.config.mts", "src/index.js", "src/import-boundaries.js"]
 }

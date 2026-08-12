@@ -1,12 +1,15 @@
-import config from './src/index.js'
+import config, { type Config } from './src/index.js'
 
 /**
  * ESLint configuration for this repository, consuming the package's own config.
  *
+ * Annotated with the package's own exported `Config`, so the type a consumer is told to
+ * use is the type this repository lints itself with. A `Config` that stopped being
+ * exported, or stopped describing what the config actually contains, fails here.
+ *
  * @see {@link https://eslint.org/docs/latest/use/configure/configuration-files ESLint Configuration}
- * @type {import('eslint').Linter.Config[]}
  */
-export default [
+const eslintConfig: Config[] = [
   ...config,
   {
     // Generated declarations, plus fixture trees the spec suite lints on its own terms:
@@ -15,7 +18,7 @@ export default [
     ignores: ['coverage', 'src/*.d.ts', 'fixtures/invalid', 'fixtures/boundaries'],
   },
   {
-    files: ['eslint.config.mjs'],
+    files: ['eslint.config.mts'],
     rules: {
       'import-x/no-relative-parent-imports': 'off',
       'no-restricted-imports': 'off',
@@ -44,3 +47,5 @@ export default [
     },
   },
 ]
+
+export default eslintConfig
