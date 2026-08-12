@@ -7,31 +7,33 @@ This repository follows conventional commits, dogfoods its own ESLint config, an
 ```bash
 git clone git@github.com:leandromatos/eslint-config.git
 cd eslint-config
-yarn install
+pnpm install
 ```
 
-`yarn install` sets up [Husky](https://typicode.github.io/husky), which wires two git hooks:
+The repository resolves with pnpm, pinned by `packageManager` in `package.json`. Corepack reads that field, so the version you get is the version CI gets.
+
+`pnpm install` sets up [Husky](https://typicode.github.io/husky), which wires two git hooks:
 
 - **`pre-commit`** runs, in order:
   1. [`lint-staged`](https://github.com/lint-staged/lint-staged) — formats with Prettier and fixes with ESLint on the staged files.
-  2. `yarn install --check-files` — fails if the lockfile has drifted from `package.json`.
-  3. `yarn test` — the Vitest suite.
+  2. `pnpm install --frozen-lockfile` — fails if the lockfile has drifted from `package.json`.
+  3. `pnpm run test` — the Vitest suite.
 - **`commit-msg`** runs [commitlint](https://commitlint.js.org) on the message.
 
 Any failure aborts the commit, so nothing lands until all of it passes.
 
 ## Available scripts
 
-| Script            | Purpose                                     |
-| ----------------- | ------------------------------------------- |
-| `yarn build`      | Emit `src/index.d.ts` from the JSDoc.       |
-| `yarn lint`       | Type-check and run ESLint.                  |
-| `yarn lint:fix`   | Run ESLint with `--fix`.                    |
-| `yarn test`       | Run both suites.                            |
-| `yarn test:js`    | Run the Vitest suite once.                  |
-| `yarn test:sh`    | Run the bats suite for the release scripts. |
-| `yarn test:watch` | Run the suite in watch mode.                |
-| `yarn test:cov`   | Run the suite with a coverage report.       |
+| Script                | Purpose                                        |
+| --------------------- | ---------------------------------------------- |
+| `pnpm run build`      | Emit the `src/*.d.ts` declarations from JSDoc. |
+| `pnpm run lint`       | Type-check and lint the repository.            |
+| `pnpm run lint:fix`   | Lint the repository with `--fix`.              |
+| `pnpm run test`       | Run both suites.                               |
+| `pnpm run test:js`    | Run the Vitest suite once.                     |
+| `pnpm run test:sh`    | Run the bats suite for the release scripts.    |
+| `pnpm run test:watch` | Run the suite in watch mode.                   |
+| `pnpm run test:cov`   | Run the suite with a coverage report.          |
 
 ## Releases
 
@@ -39,7 +41,7 @@ This repository is trunk-based on `main` and does not use pull requests; the hoo
 
 ### Cutting one
 
-Run `yarn release:snapshot` for a pre-release or `yarn release:production` for a stable one. Both take an optional bump:
+Run `pnpm run release:snapshot` for a pre-release or `pnpm run release:production` for a stable one. Both take an optional bump:
 
 | Argument | Behavior                                                           |
 | -------- | ------------------------------------------------------------------ |
@@ -51,7 +53,7 @@ Run `yarn release:snapshot` for a pre-release or `yarn release:production` for a
 
 `auto` reads the log because there are no pull requests to carry labels, and commitlint already guarantees the log's shape: a `!` or a `BREAKING CHANGE:` footer means major, a `feat` means minor, anything else is a patch. On `0.x` an inferred major is capped to minor, since a caret there locks the minor rather than the major; graduating to `1.0.0` stays an explicit `major`.
 
-Each script prints a plan and waits for confirmation before creating anything. The release scripts are covered by a bats suite under `scripts/release/__tests__`, run by `yarn test`. Both refuse to run on a dirty working tree, off the default branch, out of sync with `origin`, with a release commit already at HEAD, or when the tag exists. On abort, the local tag is removed.
+Each script prints a plan and waits for confirmation before creating anything. The release scripts are covered by a bats suite under `scripts/release/__tests__`, run by `pnpm run test`. Both refuse to run on a dirty working tree, off the default branch, out of sync with `origin`, with a release commit already at HEAD, or when the tag exists. On abort, the local tag is removed.
 
 ### Where the version comes from
 
