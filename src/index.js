@@ -14,6 +14,20 @@ import tseslint from 'typescript-eslint'
 // filesystem walk happens when the factory is called.
 export { importBoundaries } from './import-boundaries.js'
 
+/**
+ * One entry of a flat configuration assembled from this package: either an entry of the
+ * default export, or one produced by {@link importBoundaries}.
+ *
+ * A consumer annotates its own array with `Config[]`. Without the annotation TypeScript
+ * infers the array's type from `typescript-eslint`, `eslint` and `@eslint/core`, and a
+ * project that cannot name those packages fails with TS2883 — "the inferred type of
+ * 'default' cannot be named". That is any project on pnpm, where a transitive dependency
+ * lives under `.pnpm/` and has no name the consumer can write. Re-exporting the union
+ * from here gives the annotation a name every consumer already has.
+ *
+ * @typedef {import('typescript-eslint').ConfigArray[number] | import('eslint').Linter.Config} Config
+ */
+
 const jsFiles = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}']
 const tsFiles = ['**/*.{ts,tsx,mts,cts}']
 const tsxFiles = ['**/*.tsx']

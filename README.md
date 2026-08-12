@@ -97,7 +97,12 @@ The config is a stack of flat config objects, applied by file type:
 
 The exact rules each layer sets are in [`src/index.js`](src/index.js).
 
-The package also exports `importBoundaries`, an opt-in layer that is not part of the default export. See [Import boundaries](#import-boundaries).
+Beyond the default export, the package exposes two named exports:
+
+| Export             | What it is                                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `importBoundaries` | An opt-in layer that derives barrel-crossing rules from your folder structure. See [Import boundaries](#import-boundaries).  |
+| `Config`           | The type of one flat config entry, for annotating your own array. See [A TypeScript config file](#a-typescript-config-file). |
 
 ## ⚙️ Configuration
 
@@ -116,6 +121,28 @@ export default [
   },
 ]
 ```
+
+### A TypeScript config file
+
+An `eslint.config.mts` that spreads the array and exports it directly can fail to type-check with TS2883, _the inferred type of 'default' cannot be named_. TypeScript infers that array from `typescript-eslint`, `eslint` and `@eslint/core`, and it will only write a type the project can name. Under pnpm those packages sit in `node_modules/.pnpm/<name>@<version>_<hash>/`, which has no name a consumer can write, so the inference has nowhere to land.
+
+Annotate the array instead. The `Config` type is the union of what the default export and `importBoundaries` produce, and it comes from this package, which the project already names:
+
+```ts
+import config, { importBoundaries, type Config } from '@leandromatos/eslint-config'
+
+const eslintConfig: Config[] = [
+  ...config,
+  { ignores: ['coverage', 'dist'] },
+  ...importBoundaries({
+    suffixToFolder: { entity: 'entities', service: 'services' },
+  }),
+]
+
+export default eslintConfig
+```
+
+The annotation is harmless everywhere else, so a project that uses `.mts` can write it from the start rather than waiting for the error.
 
 ### Import boundaries
 
