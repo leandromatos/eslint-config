@@ -1,18 +1,12 @@
 {
-  // Emits the `src/*.d.ts` declarations from the JSDoc, and nothing else. Kept apart from
-  // `tsconfig.json` because that one also covers `eslint.config.mts`, and a tooling
-  // config file has no business producing a declaration that ships in the package.
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "target": "esnext",
-    "strict": true,
-    "skipLibCheck": true,
-    "types": ["node"]
+    // Basic Options
+    "types": ["node"],
+
+    // Emit Options
+    "rootDir": "./src",
+    "sourceMap": false
   },
-  "include": ["src/index.js", "src/import-boundaries.js"]
+  "exclude": ["**/*.spec.ts", "dist", "eslint.config.mts", "fixtures", "node_modules", "src/**/__tests__"]
 }

@@ -1,20 +1,43 @@
 {
-  // Type-checks everything the repository owns, including `eslint.config.mts`. ESLint's
-  // type-aware layer resolves a file through the nearest project, so a config file that
-  // no project covers fails to parse rather than being linted.
-  //
-  // This repository's config is also the one place the package consumes itself the way a
-  // downstream project does, so a break in the public API surfaces here first.
+  // No `paths` here, unlike the other packages: ESLint loads this repository's own configuration, which imports the
+  // package's source, through a loader that resolves a specifier without a path mapper. An alias would make
+  // `eslint.config.mts` unloadable until `dist/` existed, and linting a clean checkout would need a build first.
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "noEmit": true,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "target": "esnext",
+    // Basic Options
+    "target": "ESNext",
+    "module": "NodeNext",
+    "lib": ["ESNext"],
+    "types": ["node"],
+
+    // Module Resolution Options
+    "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Emit Options
+    "rootDir": "./",
+    "outDir": "./dist",
+    "declaration": true,
+    "sourceMap": true,
+
+    // Strict Type-Checking Options
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Additional Checks
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
-    "types": ["node"]
+
+    // Deprecations
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["eslint.config.mts", "src/index.js", "src/import-boundaries.js"]
+  "include": ["eslint.config.mts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "fixtures", "src/**/__tests__/fixtures"]
 }

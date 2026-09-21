@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/index.ts!", "src/**/*.spec.ts", "src/plugins/index.ts"],
+  "project": ["src/**/*.ts"],
+  "ignore": ["src/**/__tests__/fixtures/**"],
+  "ignoreExportsUsedInFile": false,
+  "rules": {
+    "duplicates": "off"
+  },
+  "ignoreDependencies": ["@types/react", "bats"],
+  "ignoreBinaries": ["bats"]
+}

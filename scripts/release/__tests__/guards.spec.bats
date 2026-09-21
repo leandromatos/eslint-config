@@ -107,11 +107,21 @@ teardown() {
 }
 
 @test "confirm_or_abort fails with a usable message when no terminal is reachable" {
-  # 'env -u' is load-bearing. RELEASE_ASSUME_YES is exported by whoever runs a
-  # release, so it reaches this suite through the pre-commit hook and sends the
-  # function down the assume-yes path. Without unsetting it, the test passes in a
-  # clean shell and fails during an actual release — the one moment it matters.
-  run env -u RELEASE_ASSUME_YES bash -c "source '$BATS_TEST_DIRNAME/../guards.sh'; confirm_or_abort" </dev/null
+  # Two things are load-bearing here.
+  #
+  # 'env -u' unsets RELEASE_ASSUME_YES, which whoever runs a release exports, so it
+  # reaches this suite through the pre-commit hook and sends the function down the
+  # assume-yes path. Without unsetting it, the test passes in a clean shell and
+  # fails during an actual release — the one moment it matters.
+  #
+  # The new session drops the controlling terminal. Redirecting stdin is not
+  # enough: the function opens /dev/tty, which a terminal session answers whatever
+  # stdin is, so the suite would prompt and wait for a person when run by hand.
+  run env -u RELEASE_ASSUME_YES python3 -c "
+import os
+os.setsid()
+os.execvp('bash', ['bash', '-c', \"source '$BATS_TEST_DIRNAME/../guards.sh'; confirm_or_abort\"])
+" </dev/null
   [ "$status" -eq 1 ]
   [[ "$output" == *"no terminal available to confirm"* ]]
   [[ "$output" == *"RELEASE_ASSUME_YES=1"* ]]

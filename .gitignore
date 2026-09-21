@@ -129,11 +129,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Lib
-lib/
-
-# Docs
-docs/
+# Report a CLI proxy writes beside the run, not something this repository configures
+.vitest/
 
 # NPM Config
 .npmrc
