@@ -63,5 +63,4 @@ export const NESTJS_NAMING: NamingOptions = {
   ...DEFAULT_NAMING,
   resourceSuffixes: ['cache', 'controller', 'repository', 'service'],
   /* What the mocking library of this package returns, which names the value after what it mocks. */
-  genericNames: { ...DEFAULT_NAMING.genericNames, DeepMocked: '' },
 }

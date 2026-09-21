@@ -4,7 +4,7 @@ A variable holding what a call produced opens with the participle of the verb th
 
 The input and the output of a producing verb are two values sharing a scope, and often a type; the
 participle is what tells them apart and says which one is the result. A verb that only looks
-something up produces nothing new, so its result is named by its type alone.
+something up produces nothing new, so nothing marks what it answers.
 
 ## Rule details
 
@@ -22,7 +22,7 @@ const password = await hashPassword(password, saltOrRounds)
 const transformedActivityEntity = this.activitiesTransformer.toActivityEntity(activity)
 const createdToken = await this.credentialTokensRepository.createToken(input)
 const hashedPassword = await hashPassword(password, saltOrRounds)
-const userEntity = await this.usersService.findOneUser(params) // find produces nothing new
+const user = await this.usersService.findOneUser(params) // find produces nothing new
 export const activityEntity = build() // an export is named by its file
 const { user } = await this.load() // a shorthand key is the reader's contract
 ```

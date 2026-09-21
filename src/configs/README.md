@@ -102,7 +102,7 @@ retyping it, and never mutates one: every project in an ESLint process shares th
 | ---------------------- | ------------------------------------------------------------------------------------- |
 | `SUFFIX_TO_FOLDER`     | the one place a folder name is written, which every default below reads               |
 | `DEFAULT_ARCHITECTURE` | the folders, the mirror folders, the test kinds, the ordered layers                   |
-| `DEFAULT_NAMING`       | the participles, the generic types, the names no declaration carries                  |
+| `DEFAULT_NAMING`       | the participles, the roles a spec names by, the names no declaration carries          |
 | `DEFAULT_TESTING`      | the test kinds, and the client an end-to-end spec sends requests with                 |
 | `DEFAULT_TEXT`         | the shapes the package gives a Swagger description, an exception title and a log line |
 | `DEFAULT_TSDOC`        | the column a comment is wrapped at                                                    |

@@ -15,6 +15,7 @@ const options: [NamingOptions] = [
 ]
 const source = sourceFile('users', 'services', 'user.service.ts')
 const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
+const component = sourceFile('users', 'components', 'user-card.tsx')
 
 ruleTester.run('result-by-verb', resultByVerb, {
   valid: [
@@ -25,6 +26,14 @@ ruleTester.run('result-by-verb', resultByVerb, {
     { code: 'const hashedPassword = 1\nconst password = hashPassword(raw)', filename: source, options },
     // A name that leaves as a shorthand property is fixed by the key, which is the reader's contract.
     { code: 'const password = hashPassword(raw)\n\nexport const built = { password }', filename: source, options },
+    // A name the render opens an element with keeps its case: JSX reads a lowercase one as a tag of the language.
+    {
+      code: 'const ThemeContext = createContext(null)\n\nexport const Provider = () => <ThemeContext value={1} />',
+      filename: component,
+      options,
+    },
+    // A name a list at the end of the file carries out of the module is the module's, not this file's.
+    { code: 'const password = hashPassword(raw)\nexport { password }', filename: source, options },
     // A verb the options do not list produces nothing new.
     { code: 'const userEntity = readUser(id)', filename: source, options },
 

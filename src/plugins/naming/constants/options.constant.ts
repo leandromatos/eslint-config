@@ -10,8 +10,6 @@ import type { JSONSchema4 } from '@typescript-eslint/utils/json-schema'
 export const OPTIONS_SCHEMA: JSONSchema4 = {
   type: 'object',
   properties: {
-    genericNames: { type: 'object', additionalProperties: { type: 'string' } },
-    shapelessTypes: { type: 'array', items: { type: 'string' } },
     roleNames: { type: 'array', items: { type: 'string' } },
     forbiddenNames: { type: 'array', items: { type: 'string' } },
     verbParticiples: { type: 'object', additionalProperties: { type: 'string' } },
@@ -35,8 +33,6 @@ export const OPTIONS_SCHEMA: JSONSchema4 = {
     testFolder: { type: 'string' },
   },
   required: [
-    'genericNames',
-    'shapelessTypes',
     'roleNames',
     'forbiddenNames',
     'verbParticiples',

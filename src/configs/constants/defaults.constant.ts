@@ -61,27 +61,6 @@ const COMMENT_WIDTH = 120
  * classes passes an empty list, which turns the rule off.
  */
 export const DEFAULT_NAMING: NamingOptions = {
-  genericNames: { Mocked: '', Partial: 'partial', Readonly: '' },
-  /*
-   * What the runtime and the language call a shape rather than a subject.
-   *
-   * Each is the top type of its own world, the way `object` is of the language: a name built on one reads worse
-   * than the one the author chose, and `popupHTMLElement` says nothing `popup` did not.
-   */
-  shapelessTypes: [
-    'Date',
-    'DOMRect',
-    'Element',
-    'Error',
-    'Event',
-    'HTMLElement',
-    'KeyboardEvent',
-    'MouseEvent',
-    'Node',
-    'PointerEvent',
-    'Promise',
-    'RegExp',
-  ],
   roleNames: ['result', 'expected'],
   /* A name that says what the value is made of rather than what it is: the container, never the content. */
   forbiddenNames: ['data'],

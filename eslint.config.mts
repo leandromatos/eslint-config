@@ -40,7 +40,6 @@ const eslintConfig: Config[] = [
      * package writes the name its own API imposes.
      */
     naming: {
-      genericNames: {},
       verbParticiples: {},
       valueCases: [],
       resourceSuffixes: [],

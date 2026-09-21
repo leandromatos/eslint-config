@@ -4,19 +4,6 @@ import type { ValueCase } from './rules/index.js'
 /** What the `naming` rules judge against. What a value, a method and a spec fixture are called. */
 export interface NamingOptions {
   /**
-   * Generic types of one argument, and the word each puts before the argument's name: `PaginatedEntity` as `paginated`,
-   * `DeepMocked` as nothing.
-   */
-  genericNames: Record<string, string>
-  /**
-   * The types a name is not asked to carry: the ones that describe a shape rather than a subject.
-   *
-   * `HTMLElement` is to the DOM what `object` is to the language, and a name built on it reads worse than the one
-   * the author chose: `popupHTMLElement` over `popup`. A type of the domain says what the value is, and that one
-   * the name carries.
-   */
-  shapelessTypes: string[]
-  /**
    * Names a test gives by role, not by type: `result` for what the subject answered, `expected*` for what it is
    * compared to.
    */

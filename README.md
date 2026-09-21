@@ -173,7 +173,7 @@ One plugin, [`eslint-plugin-leandromatos`](src/plugins/README.md), holding every
 | Subject        | Rules | Judges                                                       | Reads                          |
 | -------------- | ----- | ------------------------------------------------------------ | ------------------------------ |
 | `typescript`   | 1     | the constructs of the language: how a vocabulary is declared | the suffix of a type file      |
-| `naming`       | 6     | what a value, a method and a fixture are called              | word lists                     |
+| `naming`       | 5     | what a value, a method and a fixture are called              | word lists                     |
 | `tsdoc`        | 4     | the comments of a file: form, presence, tags                 | a column, the test folder      |
 | `architecture` | 12    | where a file lives, what it is called, what a layer exposes  | the project's vocabulary       |
 | `testing`      | 4     | how a spec is written and where it sits                      | the test folder and its kinds  |
@@ -265,7 +265,7 @@ export default [
   {
     files: ['src/**/*.ts'],
     plugins: { leandromatos: plugin },
-    rules: { 'leandromatos/naming-value-by-type': ['error', namingOptions] },
+    rules: { 'leandromatos/naming-value-case': ['error', namingOptions] },
   },
 ]
 ```

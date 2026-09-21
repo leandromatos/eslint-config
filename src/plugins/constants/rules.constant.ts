@@ -12,14 +12,7 @@ import {
   typesFolder,
   typeSuffix,
 } from '../architecture/rules/index.js'
-import {
-  expectedPrefix,
-  forbiddenName,
-  methodResource,
-  resultByVerb,
-  valueCase,
-  variableByType,
-} from '../naming/rules/index.js'
+import { expectedPrefix, forbiddenName, methodResource, resultByVerb, valueCase } from '../naming/rules/index.js'
 import { describesSource, e2eOverHttp, specBlocks, typedFixture } from '../testing/rules/index.js'
 import { stringPattern } from '../text/rules/index.js'
 import { commentForm, linkSymbols, publicSurface, throwsTag } from '../tsdoc/rules/index.js'
@@ -50,7 +43,6 @@ export const RULES = {
   'method-resource': { rule: methodResource, group: 'naming' },
   'result-by-verb': { rule: resultByVerb, group: 'naming' },
   'value-case': { rule: valueCase, group: 'naming' },
-  'variable-by-type': { rule: variableByType, group: 'naming' },
   'comment-form': { rule: commentForm, group: 'tsdoc' },
   'link-symbols': { rule: linkSymbols, group: 'tsdoc' },
   'public-surface': { rule: publicSurface, group: 'tsdoc' },

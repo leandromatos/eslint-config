@@ -41,7 +41,8 @@ export const resultByVerb: NamingRule<ResultNamedByVerbMessageId> = {
     const verbs = Object.keys(verbParticiples).sort((left, right) => right.length - left.length)
     const listener: TSESLint.RuleListener = {
       VariableDeclarator: node => {
-        if (node.id.type !== AST_NODE_TYPES.Identifier || isExported(node) || isNamedByRole(node.id.name)) return
+        if (node.id.type !== AST_NODE_TYPES.Identifier || isExported(node, context.sourceCode)) return
+        if (isNamedByRole(node.id.name) || isRendered(node, context.sourceCode)) return
         const callee = calleeNameOf(node.init)
         const verb = callee && verbs.find(each => opensWith(callee, each))
         if (!verb) return
@@ -82,11 +83,39 @@ const withoutParticiple = (name: string, participles: string[]): string => {
 /**
  * Whether the declaration is what a module exports, which the file names instead.
  *
+ * A module exports a name in two spellings: on the declaration itself, and in a list at the end of the file. Both
+ * carry the name out of the module, so a rename would reach every caller rather than this file alone.
+ *
  * @param declarator - The declaration the rule judges.
+ * @param sourceCode - The file, for the references the name carries.
  * @returns Whether the module exports it.
  */
-const isExported = (declarator: TSESTree.VariableDeclarator): boolean =>
-  declarator.parent.parent.type === AST_NODE_TYPES.ExportNamedDeclaration
+const isExported = (declarator: TSESTree.VariableDeclarator, sourceCode: TSESLint.SourceCode): boolean => {
+  if (declarator.parent.parent.type === AST_NODE_TYPES.ExportNamedDeclaration) return true
+
+  return sourceCode
+    .getDeclaredVariables(declarator)
+    .some(variable =>
+      variable.references.some(reference => reference.identifier.parent?.type === AST_NODE_TYPES.ExportSpecifier),
+    )
+}
+
+/**
+ * Whether the value is written as a JSX element, which is what a component is.
+ *
+ * JSX reads a lowercase name as a tag of the language and an uppercase one as the component in scope, so a name the
+ * render uses is the one thing renaming cannot reach: a context renamed to `createdThemeContext` stops being a
+ * component and starts being an element the runtime does not know.
+ *
+ * @param declarator - The declaration the rule judges.
+ * @param sourceCode - The source, to read what the declaration's references are.
+ * @returns Whether a reference opens a JSX element.
+ */
+const isRendered = (declarator: TSESTree.VariableDeclarator, sourceCode: TSESLint.SourceCode): boolean =>
+  sourceCode
+    .getDeclaredVariables(declarator)
+    .flatMap(variable => variable.references)
+    .some(reference => reference.identifier.parent?.type === AST_NODE_TYPES.JSXOpeningElement)
 
 /**
  * Whether the variable leaves as a shorthand property, `{ verifier }`: the key is the contract of

@@ -205,9 +205,6 @@ importers:
       globals:
         specifier: ^17.12.0
         version: 17.12.0
-      ts-api-utils:
-        specifier: ^2.5.0
-        version: 2.5.0(typescript@6.0.3)
       typescript-eslint:
         specifier: ^8.70.0
         version: 8.70.0(eslint@10.11.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)

@@ -36,14 +36,13 @@ where a file lives, what it is called, and what a layer exposes.
 
 what a value, a method and a spec fixture are called.
 
-| Rule                                                               | Description                                                                        | 💼  | 🔧  | 💭  |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | --- | --- | --- |
-| [`naming/expected-prefix`](naming/docs/rules/expected-prefix.md)   | A variable an assertion compares against is named expected*.                       | ✅  | 🔧  |     |
-| [`naming/forbidden-name`](naming/docs/rules/forbidden-name.md)     | A name the conventions forbid is never declared.                                   | ✅  |     |     |
-| [`naming/method-resource`](naming/docs/rules/method-resource.md)   | A public method of a layer class carries the resource of its file in its name.     | ✅  |     |     |
-| [`naming/result-by-verb`](naming/docs/rules/result-by-verb.md)     | A variable holding what a producing verb returned opens with its participle.       | ✅  | 🔧  |     |
-| [`naming/value-case`](naming/docs/rules/value-case.md)             | A string value declared under a governed name keeps the casing that name promises. | ✅  |     |     |
-| [`naming/variable-by-type`](naming/docs/rules/variable-by-type.md) | A variable or parameter of a named type ends with the name of the type.            | ✅  | 🔧  | 💭  |
+| Rule                                                             | Description                                                                        | 💼  | 🔧  | 💭  |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --- | --- | --- |
+| [`naming/expected-prefix`](naming/docs/rules/expected-prefix.md) | A variable an assertion compares against is named expected*.                       | ✅  | 🔧  |     |
+| [`naming/forbidden-name`](naming/docs/rules/forbidden-name.md)   | A name the conventions forbid is never declared.                                   | ✅  |     |     |
+| [`naming/method-resource`](naming/docs/rules/method-resource.md) | A public method of a layer class carries the resource of its file in its name.     | ✅  |     |     |
+| [`naming/result-by-verb`](naming/docs/rules/result-by-verb.md)   | A variable holding what a producing verb returned opens with its participle.       | ✅  | 🔧  |     |
+| [`naming/value-case`](naming/docs/rules/value-case.md)           | A string value declared under a governed name keeps the casing that name promises. | ✅  |     |     |
 
 ### testing
 
