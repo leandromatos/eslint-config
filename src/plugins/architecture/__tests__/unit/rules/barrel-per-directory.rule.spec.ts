@@ -26,6 +26,13 @@ ruleTester.run('barrel-per-directory', barrelPerDirectory, {
 
     { code: 'export * from "./user.service.js"', filename: sourceFile('users', 'services', 'index.ts'), options },
     { code: 'export class UserService {}', filename: sourceFile('users', 'services', 'user.service.ts'), options },
+
+    // A mirror at the source root holds the types of the files beside it, so its barrel is not a module root's.
+    {
+      code: 'export type * from "./garmin-strategy.type.js"',
+      filename: sourceFile('types', 'index.ts'),
+      options: [{ ...EMPTY_OPTIONS, mirrorFolders: ['types'], testFolder: '__tests__' }] as [ArchitectureOptions],
+    },
   ],
   invalid: [
     {

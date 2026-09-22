@@ -23,12 +23,14 @@ export const barrelPerDirectory = fileRule(
   },
   (
     { file, segments, module },
-    { rootContexts, testFolder, executedFolders, moduleContainers, barrelledContainers },
+    { rootContexts, testFolder, executedFolders, moduleContainers, barrelledContainers, mirrorFolders },
     context,
   ) => {
     if (segments.length === 0 || rootContexts.includes(module)) return []
     /* A container holds modules rather than sources, so it carries no barrel of its own. */
     if (segments.length === 1 && moduleContainers.includes(module)) return []
+    /* A mirror at the source root holds the types of the files beside it, so it is a context rather than a module. */
+    if (mirrorFolders.includes(module)) return []
     if (segments.includes(testFolder) || segments.some(segment => executedFolders.includes(segment))) return []
     const directory = path.join(context.cwd, 'src', ...segments)
     if (file !== firstSourceOf(directory)) return []
