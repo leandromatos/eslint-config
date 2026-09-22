@@ -1,6 +1,7 @@
 export * from './as-list.util.js'
 export * from './camel-case.util.js'
 export * from './class-members.util.js'
+export * from './context-root.util.js'
 export * from './declaration-name.util.js'
 export * from './file-rule.util.js'
 export * from './first-source.util.js'

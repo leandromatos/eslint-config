@@ -1,15 +1,20 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { fileRuleTester, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { knownSuffix } from '../../../rules/known-suffix.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'known-suffix')
+const ruleTester = fileRuleTester(root)
 
 const options: [ArchitectureOptions] = [
   {
     ...EMPTY_OPTIONS,
-    suffixToFolder: { service: 'services', repository: 'repositories', type: 'types' },
+    suffixToFolder: { service: 'services', repository: 'repositories', type: 'types', config: 'configs' },
     folderlessSuffixes: ['module'],
+    mirrorFolders: ['types'],
   },
 ]
 
@@ -22,6 +27,13 @@ ruleTester.run('known-suffix', knownSuffix, {
     { code: 'export class UserModule {}', filename: sourceFile('users', 'user.module.ts'), options },
     { code: 'export * from "./services/index.js"', filename: sourceFile('users', 'index.ts'), options },
     { code: 'export const main = () => 1', filename: sourceFile('main.ts'), options },
+
+    // The root file of a context: named after the directory, which carries responsibilities of its own.
+    {
+      code: 'export const databaseConfig = () => 1',
+      filename: sourceFile('config', 'database', 'database.config.ts'),
+      options,
+    },
   ],
   invalid: [
     {
@@ -39,6 +51,13 @@ ruleTester.run('known-suffix', knownSuffix, {
     {
       code: 'export class UserService {}',
       filename: sourceFile('users', 'repositories', 'user.service.ts'),
+      options,
+      errors: [{ messageId: 'wrongFolder' }],
+    },
+    // The name matches the directory, and the directory carries nothing, so the file belongs in the layer.
+    {
+      code: 'export const looseConfig = () => 1',
+      filename: sourceFile('config', 'loose', 'loose.config.ts'),
       options,
       errors: [{ messageId: 'wrongFolder' }],
     },
