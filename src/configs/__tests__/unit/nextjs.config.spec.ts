@@ -39,7 +39,10 @@ describe('nextjs', () => {
 
   it('lets a project differ from the tier, group by group', () => {
     const suffixToFolder = { ...NEXTJS_ARCHITECTURE.suffixToFolder, widget: 'widgets' }
-    const architectureOptions = architectureOf(nextjs({ architecture: { ...NEXTJS_ARCHITECTURE, suffixToFolder } }))
+    const suffixDictionary = { widget: 'widgets' }
+    const architectureOptions = architectureOf(
+      nextjs({ architecture: { ...NEXTJS_ARCHITECTURE, suffixToFolder, suffixDictionary } }),
+    )
 
     expect(architectureOptions.suffixToFolder).toMatchObject({ widget: 'widgets', screen: 'screens' })
   })

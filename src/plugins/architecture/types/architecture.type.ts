@@ -6,14 +6,16 @@ import type { WholeArgument } from './rules/index.js'
  * what a layer exposes.
  */
 export interface ArchitectureOptions {
-  /** Layer suffix to the folder that holds it, the same map `importBoundaries` takes. */
   /** Folders whose files carry no suffix, because the folder already says what they are, such as `components`. */
   suffixFreeFolders: string[]
   /** Suffixes whose types are declared beside what they type rather than in the types folder. */
   coLocatedTypeSuffixes: string[]
   /** The path alias that reaches the source root, as the code writes it. */
   alias: string
+  /** Layer suffix to the folder that holds it, the same map `importBoundaries` takes. */
   suffixToFolder: Record<string, string>
+  /** What this project adds to the shared dictionary: a suffix it writes, and the folder that holds it. */
+  suffixDictionary?: Record<string, string>
   /** Suffixes with no folder of their own, such as `module`. */
   folderlessSuffixes: string[]
   /** The hooks that synchronize with something outside React, which only a hook file calls. */

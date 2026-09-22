@@ -23,7 +23,7 @@ export const configs = {
  * factory is called.
  */
 
-/* The default vocabulary, to spread and extend rather than retype. */
+/* The default vocabulary, to spread and extend rather than retype, and the dictionary that spells its folders. */
 export {
   DEFAULT_ARCHITECTURE,
   DEFAULT_NAMING,
@@ -33,6 +33,7 @@ export {
   DEFAULT_TYPESCRIPT,
   NO_PERIOD,
   PERIOD,
+  SUFFIX_DICTIONARY,
   SUFFIX_TO_FOLDER,
 } from './configs/index.js'
 

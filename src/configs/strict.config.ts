@@ -12,6 +12,7 @@ import {
 } from './constants/index.js'
 import { recommended } from './recommended.config.js'
 import type { Config, StrictOptions } from './types/index.js'
+import { assertKnownFolders } from './utils/index.js'
 
 /** The files a project's rules judge when it names none. */
 const DEFAULT_FILES = ['src/**/*.ts']
@@ -31,6 +32,7 @@ export const strict = (strictOptions: StrictOptions = {}): Config[] => {
   const namingOptions = { ...DEFAULT_NAMING, ...strictOptions.naming }
   const tsdocOptions = { ...DEFAULT_TSDOC, ...strictOptions.tsdoc }
   const architectureOptions = { ...DEFAULT_ARCHITECTURE, ...strictOptions.architecture }
+  assertKnownFolders(architectureOptions.suffixToFolder, architectureOptions.suffixDictionary)
   const testingOptions = { ...DEFAULT_TESTING, ...strictOptions.testing }
   const textOptions = { ...DEFAULT_TEXT, ...strictOptions.text }
   const typescriptOptions = { ...DEFAULT_TYPESCRIPT, ...strictOptions.typescript }

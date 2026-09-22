@@ -40,7 +40,8 @@ describe('strict', () => {
 
   it('hands the default vocabulary out whole, so a project extends it rather than restating it', () => {
     const suffixToFolder = { ...DEFAULT_ARCHITECTURE.suffixToFolder, widget: 'widgets' }
-    const entries = strict({ architecture: { ...DEFAULT_ARCHITECTURE, suffixToFolder } })
+    const suffixDictionary = { widget: 'widgets' }
+    const entries = strict({ architecture: { ...DEFAULT_ARCHITECTURE, suffixToFolder, suffixDictionary } })
     const [ownEntry] = entries.filter(entry => entry.name === 'leandromatos/recommended')
     const [, options] = ownEntry?.rules?.['leandromatos/architecture-known-suffix'] as [
       string,

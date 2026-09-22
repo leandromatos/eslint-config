@@ -5,49 +5,51 @@ import type { TextOptions } from '../../plugins/text/types/index.js'
 import type { TsdocOptions } from '../../plugins/tsdoc/types/index.js'
 import type { TypescriptOptions } from '../../plugins/typescript/types/index.js'
 import type { DefaultLayerSuffix } from '../types/constants/index.js'
+import { readFolders } from './suffix-dictionary.constant.js'
 
 /**
  * Every folder of a module, by the suffix the files inside it carry.
  *
- * The one place a folder name is written. Every default below that names a folder reads it from here, so a folder is
- * renamed in one line and no two rules can end up judging different trees. A project that organizes its code
- * differently passes a map of its own, which is what `architecture.suffixToFolder` is for.
+ * The suffixes a project on no framework writes, cut from the dictionary, which is where a folder is spelled. Every
+ * default below that names a folder reads it from here, so no two rules can end up judging different trees. A project
+ * that writes other layers passes a map of its own, which is what `architecture.suffixToFolder` is for, and the
+ * dictionary is what checks it.
  */
-export const SUFFIX_TO_FOLDER = {
-  adapter: 'adapters',
-  cache: 'caches',
-  client: 'clients',
-  config: 'configs',
-  constant: 'constants',
-  controller: 'controllers',
-  decorator: 'decorators',
-  doc: 'docs',
-  dto: 'dtos',
-  entity: 'entities',
-  error: 'errors',
-  example: 'examples',
-  factory: 'factories',
-  fixture: 'fixtures',
-  guard: 'guards',
-  key: 'keys',
-  locale: 'locales',
-  mock: 'mocks',
-  notification: 'notifications',
-  parser: 'parsers',
-  query: 'queries',
-  repository: 'repositories',
-  rule: 'rules',
-  schema: 'schemas',
-  script: 'scripts',
-  service: 'services',
-  spec: '__tests__',
-  specification: 'specifications',
-  store: 'stores',
-  template: 'templates',
-  transformer: 'transformers',
-  type: 'types',
-  util: 'utils',
-} as const
+export const SUFFIX_TO_FOLDER = readFolders([
+  'adapter',
+  'cache',
+  'client',
+  'config',
+  'constant',
+  'controller',
+  'decorator',
+  'doc',
+  'dto',
+  'entity',
+  'error',
+  'example',
+  'factory',
+  'fixture',
+  'guard',
+  'key',
+  'locale',
+  'mock',
+  'notification',
+  'parser',
+  'query',
+  'repository',
+  'rule',
+  'schema',
+  'script',
+  'service',
+  'spec',
+  'specification',
+  'store',
+  'template',
+  'transformer',
+  'type',
+  'util',
+])
 
 /** The column the formatter wraps code at, and so the column a comment is wrapped at. */
 const COMMENT_WIDTH = 120
