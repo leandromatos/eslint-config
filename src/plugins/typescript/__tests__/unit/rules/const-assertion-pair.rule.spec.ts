@@ -11,6 +11,8 @@ const pair = ['export const OAuthScope = {', "  OPENID: 'openid',", "  EMAIL: 'e
 
 ruleTester.run('const-assertion-pair', constAssertionPair, {
   valid: [
+    // A constant of one word shouts the way a longer one does, and a name that shouts is a value rather than a type.
+    { code: "const STYLES = { default: 'plain' } as const", filename: vocabulary, options },
     // A destructured declaration, and an alias named as a value, are not the pair this rule reads.
     { code: 'const { OAuthScope } = vocabularies', filename: vocabulary, options },
     {

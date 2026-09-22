@@ -31,6 +31,7 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
     const listener: TSESLint.RuleListener = {
       'Program:exit': program => {
         const moduleFunctions = readModuleFunctions(program, context.sourceCode)
+        const evaluatedAtImport = readImportTimeNames(program, context.sourceCode)
         const position = new Map(moduleFunctions.map((moduleFunction, index) => [moduleFunction.name, index]))
         const byName = new Map(moduleFunctions.map(moduleFunction => [moduleFunction.name, moduleFunction]))
         for (const moduleFunction of moduleFunctions) {
@@ -41,6 +42,7 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
             const target = byName.get(callee)
             /* v8 ignore next -- both names come from the map the positions were built from */
             if (!target || (position.get(callee) ?? 0) > (position.get(moduleFunction.name) ?? 0)) continue
+            if (!target.hoisted && evaluatedAtImport.has(callee)) continue
             context.report({
               node: target.node,
               messageId: 'calleeBeforeCaller',
@@ -133,6 +135,7 @@ const readModuleFunctions = (program: TSESTree.Program, sourceCode: TSESLint.Sou
         name: declaration.id.name,
         node: statement,
         calls: referencedNames(declaration, sourceCode),
+        hoisted: true,
       })
     }
     if (declaration.type !== AST_NODE_TYPES.VariableDeclaration) continue
@@ -142,11 +145,37 @@ const readModuleFunctions = (program: TSESTree.Program, sourceCode: TSESLint.Sou
         name: declarator.id.name,
         node: statement,
         calls: referencedNames(declarator.init, sourceCode),
+        hoisted: false,
       })
     }
   }
 
   return moduleFunctions
+}
+
+/**
+ * The names a module reaches while it is being imported, rather than when something calls it.
+ *
+ * A value declared at the top level runs its initializer on import, so every function that initializer reaches has
+ * to be declared above it. Moving one down puts the call inside the callee's temporal dead zone, and the module
+ * throws the moment it loads.
+ *
+ * @param program - The module, as it was parsed.
+ * @param sourceCode - The source, for the scope analysis the parser did.
+ * @returns The names an initializer reaches.
+ */
+const readImportTimeNames = (program: TSESTree.Program, sourceCode: TSESLint.SourceCode): Set<string> => {
+  const names = new Set<string>()
+  for (const statement of program.body) {
+    const declaration = unwrapExport(statement)
+    if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) continue
+    for (const declarator of declaration.declarations) {
+      if (!declarator.init || isFunctionExpression(declarator.init)) continue
+      for (const name of referencedNames(declarator.init, sourceCode)) names.add(name)
+    }
+  }
+
+  return names
 }
 
 const unwrapExport = (statement: TSESTree.ProgramStatement): TSESTree.Node | null => {

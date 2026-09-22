@@ -10,6 +10,13 @@ const util = sourceFile('users', 'utils', 'read-user.util.ts')
 
 ruleTester.run('stepdown-order', stepdownOrder, {
   valid: [
+    // A helper an initializer reaches runs while the module loads, so moving it down puts the call in its dead zone.
+    {
+      code: 'const dp = (value: string): number => Number(value)\n\nconst SIZES = { small: dp("4") }\n\nconst read = () => dp("8") + SIZES.small',
+      filename: util,
+      options,
+    },
+
     // A function declaration is read the same way an arrow is.
     {
       code: 'export function readUser() {\n  return nameOf(1)\n}\n\nfunction nameOf(id) {\n  return id\n}',

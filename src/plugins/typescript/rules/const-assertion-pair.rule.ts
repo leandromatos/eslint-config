@@ -5,8 +5,13 @@ import { locate } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ConstAssertionPairMessageId, TypescriptRule } from '../types/index.js'
 
-/** What a name written as a vocabulary looks like: `OAuthScope`, never `OAUTH_SCOPE` and never `oauthScope`. */
-const VOCABULARY_NAME_REG_EXP = /^[A-Z][a-zA-Z0-9]*$/
+/**
+ * What a name written as a vocabulary looks like: `OAuthScope`, never `OAUTH_SCOPE` and never `oauthScope`.
+ *
+ * The lowercase letter is what tells Pascal case from a constant of one word: `STYLES` shouts the way `OAUTH_SCOPE`
+ * does, and a name with no underscore to separate its words is otherwise indistinguishable from `Styles`.
+ */
+const VOCABULARY_NAME_REG_EXP = /^[A-Z][a-zA-Z0-9]*[a-z][a-zA-Z0-9]*$/
 
 /**
  * A closed set of values is an object `as const` and the type derived from it, under one name.
