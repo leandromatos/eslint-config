@@ -54,13 +54,13 @@ mechanism and a rule of the plugin would say the same thing twice.
 
 In this order. The last entry to match a file wins, which is what lets a project append its own.
 
-| Entry                   | What it is                                                                                                  |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `recommended`           | every layer of it, with whatever the project added to `ignores`                                             |
-| the plugin              | every rule of `eslint-plugin-leandromatos`, each reading the group of its own subject                       |
-| the documentation rules | what `eslint-plugin-jsdoc` holds and this package does not                                                  |
-| the comment rule        | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches |
-| the cycle rule          | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design                    |
+| Entry                   | What it is                                                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `recommended`           | every layer of it, with whatever the project added to `ignores`                                                       |
+| the plugin              | every rule of `eslint-plugin-leandromatos`, each reading the group of its own subject                                 |
+| the documentation rules | what `eslint-plugin-jsdoc` holds and this package does not                                                            |
+| the comment rule        | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches           |
+| the cycle rule          | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only |
 
 ### The framework tiers
 

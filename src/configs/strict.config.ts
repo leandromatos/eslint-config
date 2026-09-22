@@ -107,11 +107,15 @@ const notes = (tsdocOptions: TsdocOptions): Config => ({
  *
  * A barrel re-exports its siblings, so it sits in a cycle by design and is left out.
  *
+ * `ignoreExternal` keeps the walk inside the project. A cycle between two files of a dependency is
+ * not the project's to break, and reaching one means parsing what the dependency ships: React
+ * Native's entry point is Flow, which the parser answers with the whole file on the terminal.
+ *
  * @param files - The files the rule judges.
  * @returns The configuration entry.
  */
 const cycles = (files: string[]): Config => ({
   files,
   ignores: ['**/index.{ts,tsx}'],
-  rules: { 'import-x/no-cycle': ['error', { maxDepth: 2 }] },
+  rules: { 'import-x/no-cycle': ['error', { maxDepth: 2, ignoreExternal: true }] },
 })

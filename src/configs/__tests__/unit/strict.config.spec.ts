@@ -31,6 +31,13 @@ describe('strict', () => {
     expect(cycles?.ignores).toEqual(['**/index.{ts,tsx}'])
   })
 
+  it('keeps the cycle walk inside the project, which is the only graph it can act on', () => {
+    const [cycles] = strict().filter(entry => entry.rules?.['import-x/no-cycle'])
+    const [, options] = cycles?.rules?.['import-x/no-cycle'] as [string, { ignoreExternal: boolean }]
+
+    expect(options.ignoreExternal).toBe(true)
+  })
+
   it('hands the default vocabulary out whole, so a project extends it rather than restating it', () => {
     const suffixToFolder = { ...DEFAULT_ARCHITECTURE.suffixToFolder, widget: 'widgets' }
     const entries = strict({ architecture: { ...DEFAULT_ARCHITECTURE, suffixToFolder } })

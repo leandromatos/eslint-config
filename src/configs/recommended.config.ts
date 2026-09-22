@@ -4,7 +4,8 @@ import stylistic from '@stylistic/eslint-plugin'
 import type { Linter } from 'eslint'
 import { defineConfig } from 'eslint/config'
 import prettier from 'eslint-config-prettier'
-import importX from 'eslint-plugin-import-x'
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'
+import importX, { createNodeResolver } from 'eslint-plugin-import-x'
 import jsonc from 'eslint-plugin-jsonc'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import react from 'eslint-plugin-react'
@@ -113,6 +114,19 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
         'import-x': importX,
         'simple-import-sort': simpleImportSort,
       },
+      /*
+       * What an import spelling resolves to, and what the plugin may open once it has.
+       *
+       * Both halves are needed and neither is the default. Node's own resolution answers a bare package and a
+       * relative path carrying an extension, and nothing else: an alias is a TypeScript setting and an extensionless
+       * import is a TypeScript convention. And a plugin that resolves a path still reads only the extensions it
+       * knows, which out of the box are the JavaScript ones, so a walk of the import graph stops at the first
+       * TypeScript file it reaches. Without both, the rules that follow imports see no edge inside a project.
+       */
+      settings: {
+        ...importX.flatConfigs.typescript.settings,
+        'import-x/resolver-next': [createTypeScriptImportResolver(), createNodeResolver()],
+      },
       rules: {
         ...js.configs.recommended.rules,
         curly: ['error', 'multi'],
@@ -120,7 +134,14 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
         'import-x/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
         'import-x/no-extraneous-dependencies': 'off',
         'import-x/no-relative-packages': 'error',
-        'import-x/no-relative-parent-imports': 'error',
+        /*
+         * Off: it reads an alias as a parent import.
+         *
+         * The rule resolves the spelling and reports whatever lands above the importing file, which every `@/`
+         * alias does. `leandromatos/architecture-import-boundaries` asks the same question of the spelling the
+         * author wrote, which is the one a reader sees.
+         */
+        'import-x/no-relative-parent-imports': 'off',
         // The type-checker reports an import that resolves to nothing, as TS2307, over the same files.
         'import-x/no-unresolved': 'off',
         /*

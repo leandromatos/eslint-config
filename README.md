@@ -137,7 +137,7 @@ What `configs.strict` emits, in order:
 | `architecture`, `naming`, `testing`, `text`, `tsdoc`, `typescript` | every rule of this package, with the default vocabulary                                                                        |
 | the documentation rules                                            | what `eslint-plugin-jsdoc` holds and this package does not: every parameter listed, `@returns` only where something comes back |
 | the comment rule                                                   | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches                    |
-| the cycle rule                                                     | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design                                       |
+| the cycle rule                                                     | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only          |
 
 [`src/configs`](src/configs/README.md) is the reference for what each tier emits and what each one takes. To see what a tier resolves to in your project, rather than reading this page, run [`@eslint/config-inspector`](https://github.com/eslint/config-inspector):
 
@@ -370,7 +370,9 @@ A barrel answers to none of it, since re-exporting its siblings is its job. `.ts
 
 The rule reads `suffixToFolder`, `alias` and `testFolder` from the `architecture` group, so the folder rules and the import rules cannot end up with different vocabularies. Its own page is [`architecture-import-boundaries`](src/plugins/architecture/docs/rules/import-boundaries.md).
 
-Cycles are a separate question: `configs.strict` sets `import-x/no-cycle` on everything but a barrel.
+Cycles are a separate question: `configs.strict` sets `import-x/no-cycle` on everything but a barrel, and the walk stops at the edge of the project. A cycle between two files of a dependency is not the project's to break.
+
+Both halves of the import graph are configured by `recommended`, and neither is a default: the resolver, so an alias and an extensionless import resolve at all, and the extensions the plugin may open, so the walk does not stop at the first TypeScript file it reaches.
 
 ## 🏷️ Versioning
 
