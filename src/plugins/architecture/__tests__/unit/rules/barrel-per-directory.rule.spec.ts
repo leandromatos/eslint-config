@@ -70,3 +70,21 @@ ruleTester.run('barrel-per-directory, under a module container', barrelPerDirect
   ],
   invalid: [],
 })
+
+const publishedRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'barrel-per-directory-published',
+)
+const publishedRuleTester = fileRuleTester(publishedRoot)
+
+publishedRuleTester.run('barrel-per-directory, in a package that publishes its directories', barrelPerDirectory, {
+  valid: [
+    // The manifest points at this barrel, so it is the entrypoint rather than a module root.
+    { code: 'export * from "./services/index.js"', filename: sourceFile('users', 'index.ts'), options },
+    { code: 'export * from "./user.service.js"', filename: sourceFile('users', 'services', 'index.ts'), options },
+  ],
+  invalid: [],
+})

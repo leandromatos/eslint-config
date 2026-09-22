@@ -1,13 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { fileRule, firstSourceOf, moduleDepthOf } from '../../shared/utils/index.js'
+import { fileRule, firstSourceOf, moduleDepthOf, publishedDirectoriesOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 
 /**
  * A directory that holds source files has a barrel, and a module root has none. Reported once
  * per directory. The root of `src/`, the root contexts, the test tree and the folders the options
  * name as executed directly are left out: nothing imports those by name.
+ *
+ * A directory the package publishes is left out too. Its barrel is the entrypoint the manifest
+ * points at, so the rule reads `exports` rather than asking a project to name them again.
  */
 export const barrelPerDirectory = fileRule(
   'A directory of source files has an index.ts; a module root has none.',
@@ -33,6 +36,8 @@ export const barrelPerDirectory = fileRule(
     /* A module of a barrelled container is imported whole, so its root is where its barrel belongs. */
     if (barrelledContainers.includes(module)) return []
     const isModuleRoot = segments.length === moduleDepthOf(segments, moduleContainers)
+    /* A directory the package publishes is an entrypoint, and the barrel at its root is what that entrypoint names. */
+    if (isModuleRoot && publishedDirectoriesOf(context.cwd).includes(module)) return []
     if (isModuleRoot && hasBarrel) return [{ messageId: 'barrelAtRoot', data: { module: segments.join('/') } }]
     if (!isModuleRoot && !hasBarrel) return [{ messageId: 'missingBarrel', data: { directory: segments.join('/') } }]
 
