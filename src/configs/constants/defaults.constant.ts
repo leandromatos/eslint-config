@@ -17,7 +17,7 @@ export const SUFFIX_TO_FOLDER = {
   adapter: 'adapters',
   cache: 'caches',
   client: 'clients',
-  config: 'config',
+  config: 'configs',
   constant: 'constants',
   controller: 'controllers',
   decorator: 'decorators',
