@@ -30,8 +30,10 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
   create: context => {
     const listener: TSESLint.RuleListener = {
       'Program:exit': program => {
+        const [{ definitionTimeDirectives }] = context.options
         const moduleFunctions = readModuleFunctions(program, context.sourceCode)
         const evaluatedAtImport = readImportTimeNames(program, context.sourceCode)
+        const capturedAtDefinition = readDefinitionTimeNames(program, context.sourceCode, definitionTimeDirectives)
         const position = new Map(moduleFunctions.map((moduleFunction, index) => [moduleFunction.name, index]))
         const byName = new Map(moduleFunctions.map(moduleFunction => [moduleFunction.name, moduleFunction]))
         for (const moduleFunction of moduleFunctions) {
@@ -43,6 +45,7 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
             /* v8 ignore next -- both names come from the map the positions were built from */
             if (!target || (position.get(callee) ?? 0) > (position.get(moduleFunction.name) ?? 0)) continue
             if (!target.hoisted && evaluatedAtImport.has(callee)) continue
+            if (capturedAtDefinition.has(callee)) continue
             context.report({
               node: target.node,
               messageId: 'calleeBeforeCaller',
@@ -178,10 +181,79 @@ const readImportTimeNames = (program: TSESTree.Program, sourceCode: TSESLint.Sou
   return names
 }
 
+/**
+ * The names a function reaches where it is declared, because a directive hands its closure over there.
+ *
+ * The runtime behind such a directive rewrites the function into a factory called at its declaration, a function
+ * declaration included, so what it calls is read at that moment and has to be declared above it, hoisting or not.
+ *
+ * @param program - The module, as it was parsed.
+ * @param sourceCode - The source, for the scope analysis the parser did.
+ * @param definitionTimeDirectives - The directives that make a function read its closure where it is declared.
+ * @returns The names such a function reaches.
+ */
+const readDefinitionTimeNames = (
+  program: TSESTree.Program,
+  sourceCode: TSESLint.SourceCode,
+  definitionTimeDirectives: string[],
+): Set<string> => {
+  const names = new Set<string>()
+  for (const statement of program.body) {
+    const declaration = unwrapExport(statement)
+    const functions = readDeclaredFunctions(declaration)
+    for (const declaredFunction of functions) {
+      if (!opensWith(declaredFunction, definitionTimeDirectives)) continue
+      for (const name of referencedNames(declaredFunction, sourceCode)) names.add(name)
+    }
+  }
+
+  return names
+}
+
 const unwrapExport = (statement: TSESTree.ProgramStatement): TSESTree.Node | null => {
   if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration) return statement.declaration
 
   return statement
+}
+
+/**
+ * The functions a top-level statement declares, by declaration or by initializer.
+ *
+ * @param declaration - The statement, with its export taken off.
+ * @returns The functions, none when it declares no function.
+ */
+const readDeclaredFunctions = (
+  declaration: TSESTree.Node | null,
+): (TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression)[] => {
+  if (declaration?.type === AST_NODE_TYPES.FunctionDeclaration) return [declaration]
+  if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) return []
+
+  return declaration.declarations
+    .map(declarator => declarator.init)
+    .filter((init): init is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
+      isFunctionExpression(init),
+    )
+}
+
+/**
+ * Whether a function body opens with one of the directives, in its prologue.
+ *
+ * @param node - The function.
+ * @param directives - The directives to look for.
+ * @returns Whether the prologue names one of them.
+ */
+const opensWith = (
+  node: TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression,
+  directives: string[],
+): boolean => {
+  if (node.body.type !== AST_NODE_TYPES.BlockStatement) return false
+
+  return node.body.body.some(
+    statement =>
+      statement.type === AST_NODE_TYPES.ExpressionStatement &&
+      typeof statement.directive === 'string' &&
+      directives.includes(statement.directive),
+  )
 }
 
 /**

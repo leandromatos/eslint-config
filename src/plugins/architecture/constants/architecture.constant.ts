@@ -8,6 +8,7 @@ export const EMPTY_OPTIONS: ArchitectureOptions = {
   suffixToFolder: {},
   folderlessSuffixes: [],
   effectHooks: [],
+  definitionTimeDirectives: [],
   moduleContainers: [],
   barrelledContainers: [],
   mirrorFolders: [],

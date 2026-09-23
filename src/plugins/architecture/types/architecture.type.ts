@@ -20,6 +20,11 @@ export interface ArchitectureOptions {
   folderlessSuffixes: string[]
   /** The hooks that synchronize with something outside React, which only a hook file calls. */
   effectHooks: string[]
+  /**
+   * The directives that make a function read what it calls when it is defined rather than when it runs, such as the
+   * `'worklet'` of React Native Worklets.
+   */
+  definitionTimeDirectives: string[]
   /** Directories that hold modules rather than layers, such as `features`: the layer starts one segment later. */
   moduleContainers: string[]
   /** Containers whose modules are reached whole rather than by layer, so each carries a barrel of its own. */

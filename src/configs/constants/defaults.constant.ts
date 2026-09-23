@@ -110,6 +110,8 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
    * and names none of these; a Bulletproof tree groups them, and the layer starts one segment later.
    */
   effectHooks: [],
+  /* A function reads what it calls when it runs, unless a runtime says otherwise; a project on one names it. */
+  definitionTimeDirectives: [],
   moduleContainers: [],
   barrelledContainers: [],
   mirrorFolders: [SUFFIX_TO_FOLDER.type, SUFFIX_TO_FOLDER.spec],

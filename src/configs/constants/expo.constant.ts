@@ -40,6 +40,11 @@ export const EXPO_ARCHITECTURE: ArchitectureOptions = {
   suffixFreeFolders: ['app', 'components'],
   /* A story is a web idea: React Native renders its catalogue as an application rather than as a page. */
   folderlessSuffixes: [...NEXTJS_ARCHITECTURE.folderlessSuffixes].filter(suffix => suffix !== 'stories'),
+  /*
+   * The Worklets Babel plugin turns a `'worklet'` function into a factory called where the function is declared, with
+   * the closure it reads handed over then: whatever a worklet calls is read at that moment, so it is declared above it.
+   */
+  definitionTimeDirectives: ['worklet'],
 }
 
 /**

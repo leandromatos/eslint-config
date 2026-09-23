@@ -33,7 +33,30 @@ const wrap = (paragraph: string): string => paragraph
 
 ## Options
 
-None.
+Read from the `architecture` group of the options.
+
+| Option                     | Type       | What it decides                                                             |
+| -------------------------- | ---------- | --------------------------------------------------------------------------- |
+| `definitionTimeDirectives` | `string[]` | the directives that make a function read what it calls where it is declared |
+
+A function whose body opens with one of these directives captures its closure where it is declared,
+so what it calls has to be declared above it, the same as what an initializer calls. The `expo`
+tier names `'worklet'`: the React Native Worklets Babel plugin turns such a function into a factory
+called at its declaration, with the closure handed over then.
+
+```typescript
+const clamp = (value: number): number => {
+  'worklet'
+
+  return Math.max(0, value)
+}
+
+export const resize = (value: number): number => {
+  'worklet'
+
+  return clamp(value)
+}
+```
 
 ## Fixable
 
