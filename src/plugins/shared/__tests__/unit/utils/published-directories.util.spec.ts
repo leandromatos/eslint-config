@@ -51,6 +51,16 @@ describe('publishedDirectoriesOf', () => {
     expect(publishedDirectoriesOf(cwd)).toEqual([])
   })
 
+  it('reads the manifest once per directory, and answers the next call from what it read', () => {
+    write({ exports: { './cache': {} } })
+    const expectedAnswer = publishedDirectoriesOf(cwd)
+    write({ exports: { './database': {} } })
+
+    const secondAnswer = publishedDirectoriesOf(cwd)
+
+    expect(secondAnswer).toBe(expectedAnswer)
+  })
+
   it('answers with nothing where there is no manifest to read', () => {
     expect(publishedDirectoriesOf(path.join(cwd, 'elsewhere'))).toEqual([])
   })
