@@ -123,8 +123,21 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
   orderedSuffixes: [],
   wholeArguments: [],
   testFolder: SUFFIX_TO_FOLDER.spec,
-  testKinds: ['unit', 'e2e', 'conformance'],
-  mirroringTestKinds: ['unit'],
+  /*
+   * The kinds a project may write, each a folder under the test folder. A project writes the ones it needs, and a kind
+   * listed here and never written costs nothing.
+   *
+   * - `unit`: one source file, with what it calls replaced.
+   * - `integration`: one source file, with what it calls running for real.
+   * - `contract`: the shape of an interface another party relies on.
+   * - `e2e`: the application booted and driven from outside.
+   * - `conformance`: a property of the whole codebase.
+   * - `smoke`: a deployed application that answers at all.
+   * - `performance`: how fast, or how much, under a load.
+   */
+  testKinds: ['unit', 'integration', 'contract', 'e2e', 'conformance', 'smoke', 'performance'],
+  /* The two kinds that exercise one source file, so each spec mirrors the file it covers. */
+  mirroringTestKinds: ['unit', 'integration'],
 }
 
 /** How a spec is written: the kinds, and the client an end-to-end spec sends requests with. */

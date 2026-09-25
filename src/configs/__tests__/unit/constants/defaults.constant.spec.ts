@@ -30,6 +30,18 @@ describe('SUFFIX_TO_FOLDER', () => {
     expect(named.filter(suffix => !suffixes.has(suffix))).toEqual([])
   })
 
+  it('mirrors a source only in a kind it knows, so a mirroring kind cannot name a folder no rule accepts', () => {
+    const known = new Set(DEFAULT_ARCHITECTURE.testKinds)
+
+    expect(DEFAULT_ARCHITECTURE.mirroringTestKinds.filter(kind => !known.has(kind))).toEqual([])
+  })
+
+  it('mirrors the kinds that exercise one source file, and no kind that asserts a property of the whole', () => {
+    expect(DEFAULT_ARCHITECTURE.mirroringTestKinds).toEqual(['unit', 'integration'])
+    expect(DEFAULT_TESTING.testKinds).toEqual(DEFAULT_ARCHITECTURE.testKinds)
+    expect(DEFAULT_TESTING.mirroringTestKinds).toEqual(DEFAULT_ARCHITECTURE.mirroringTestKinds)
+  })
+
   it('holds the folder the specs live in, which every plugin that treats a spec apart reads', () => {
     expect(SUFFIX_TO_FOLDER.spec).toBe('__tests__')
     expect(DEFAULT_ARCHITECTURE.testFolder).toBe(SUFFIX_TO_FOLDER.spec)
