@@ -67,6 +67,10 @@ users.map(user => user.id) // a function written as an argument is not a declara
 | `testFolder`       | `string`   | The folder the rule leaves alone, because a spec documents nothing for a caller |
 | `frameworkSymbols` | `string[]` | The names a framework calls, which its own documentation describes              |
 
+A default export answers to `default` in `frameworkSymbols`, whether the function is declared in the
+export or bound first and exported by name: the App Router and Expo Router reach both the same way.
+Where `default` is not listed, a default export is documented like any other function.
+
 ## Fixable
 
 No. The text is the author's, and a generated summary would be the restatement the rule reports.

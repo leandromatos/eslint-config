@@ -26,16 +26,16 @@ const FILLER = new Set([
 ])
 
 /**
- * Every method and every function a module declares carries a documentation comment, and the
- * comment says what the name cannot. The visibility decides nothing: a private method is read by
- * the next person to edit the class exactly as a public one is read at its call site, and whether
- * a name "already answers" is a judgment two authors make differently, so the presence is not left
- * to it. What is left to the author is the text, and a text that only rewrites the name into a
- * sentence is reported, because it costs a read and goes stale on the next rename. A method an
- * interface or a base class declares is documented there, so it is not asked for again. A name a
- * framework calls rather than a caller imports is left out through `frameworkSymbols`: the
- * framework's own documentation says what it is, and the same sentence written once per page says
- * nothing. A function written inline as an argument is not a declaration and is left alone.
+ * Every method and every function a module declares carries a documentation comment, and the comment says what the name
+ * cannot. The visibility decides nothing: a private method is read by the next person to edit the class exactly as a
+ * public one is read at its call site, and whether a name "already answers" is a judgment two authors make differently,
+ * so the presence is not left to it. What is left to the author is the text, and a text that only rewrites the name
+ * into a sentence is reported, because it costs a read and goes stale on the next rename. A method an interface or a
+ * base class declares is documented there, so it is not asked for again. A name a framework calls rather than a caller
+ * imports is left out through `frameworkSymbols`: the framework's own documentation says what it is, and the same
+ * sentence written once per page says nothing. A default export answers to `default` there, whether it is declared in
+ * the export or bound first and exported by name, because the framework reaches both the same way. A function written
+ * inline as an argument is not a declaration and is left alone.
  */
 export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
   meta: {
@@ -60,8 +60,10 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
     const { sourceCode } = context
     const parserServicesWithTypeInformation = ESLintUtils.getParserServices(context)
     const typeChecker = parserServicesWithTypeInformation.program.getTypeChecker()
+    const defaultExportName = defaultExportNameOf(sourceCode.ast)
     const judge = (documented: TSESTree.Node, name: string): void => {
       if (frameworkSymbols.includes(name)) return
+      if (name === defaultExportName && frameworkSymbols.includes('default')) return
       const comment = sourceCode.getCommentsBefore(documented).at(-1)
       if (!comment || comment.type !== AST_TOKEN_TYPES.Block || !comment.value.startsWith('*')) {
         context.report({ node: documented, messageId: 'undocumented', data: { name } })
@@ -72,7 +74,12 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
         context.report({ node: comment, messageId: 'restatesName', data: { name } })
     }
     const judgeFunctionsOf = (statement: TSESTree.Node, documented: TSESTree.Node): void => {
-      if (statement.type === AST_NODE_TYPES.FunctionDeclaration && statement.id) judge(documented, statement.id.name)
+      if (statement.type === AST_NODE_TYPES.FunctionDeclaration) judge(documented, statement.id?.name ?? 'default')
+      if (
+        statement.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+        statement.type === AST_NODE_TYPES.FunctionExpression
+      )
+        judge(documented, 'default')
       if (statement.type !== AST_NODE_TYPES.VariableDeclaration) return
       for (const declarator of statement.declarations) {
         if (declarator.id.type !== AST_NODE_TYPES.Identifier) continue
@@ -94,7 +101,13 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
         for (const statement of program.body) {
           if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && statement.declaration)
             judgeFunctionsOf(statement.declaration, statement)
-          if (statement.type !== AST_NODE_TYPES.ExportNamedDeclaration) judgeFunctionsOf(statement, statement)
+          if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration && !frameworkSymbols.includes('default'))
+            judgeFunctionsOf(statement.declaration, statement)
+          if (
+            statement.type !== AST_NODE_TYPES.ExportNamedDeclaration &&
+            statement.type !== AST_NODE_TYPES.ExportDefaultDeclaration
+          )
+            judgeFunctionsOf(statement, statement)
         }
       },
     }
@@ -208,3 +221,18 @@ const wordsOf = (text: string): string[] =>
  * @returns The word without its verb ending.
  */
 const stem = (word: string): string => word.replace(/(es|s)$/, '')
+
+/**
+ * Reads the name a module binds first and then exports as its default, as in `export default Page`.
+ *
+ * @param program - The module.
+ * @returns The name, or undefined when the default export is not a bare identifier.
+ */
+const defaultExportNameOf = (program: TSESTree.Program): string | undefined => {
+  for (const statement of program.body) {
+    if (statement.type !== AST_NODE_TYPES.ExportDefaultDeclaration) continue
+    if (statement.declaration.type === AST_NODE_TYPES.Identifier) return statement.declaration.name
+  }
+
+  return undefined
+}

@@ -8,6 +8,9 @@ import type { TsdocOptions } from '../../../types/index.js'
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'documented-function')
 const ruleTester = typedRuleTester(root)
 const options: [TsdocOptions] = [{ commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [] }]
+const defaultFrameworkOptions: [TsdocOptions] = [
+  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['default'] },
+]
 const frameworkOptions: [TsdocOptions] = [
   { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['generateMetadata'] },
 ]
@@ -16,6 +19,9 @@ const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
 
 ruleTester.run('documented-function', documentedFunction, {
   valid: [
+    // A framework that calls the default export exempts it, declared in the export or bound before it.
+    { code: 'export default function Page() {\n  return 1\n}', filename: source, options: defaultFrameworkOptions },
+    { code: 'const Page = () => 1\nexport default Page', filename: source, options: defaultFrameworkOptions },
     // A method of an object literal is no member of a class, so no contract declares it.
     {
       code: 'export const service = {\n  /** Reads one user, or nothing when the account is closed. */\n  findOneUser() {},\n}',
@@ -133,6 +139,20 @@ ruleTester.run('documented-function', documentedFunction, {
     },
     // A function the module keeps to itself is documented like one it exports.
     { code: 'const findOneUser = () => 1', filename: source, options, errors: [{ messageId: 'undocumented' }] },
+    // A default export is a declared function too, whichever way it is written.
+    {
+      code: 'export default function Page() {\n  return 1\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    { code: 'export default () => 1', filename: source, options, errors: [{ messageId: 'undocumented' }] },
+    {
+      code: 'const Page = () => 1\nexport default Page',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
     {
       code: 'function findOneUser() {\n  return 1\n}',
       filename: source,
