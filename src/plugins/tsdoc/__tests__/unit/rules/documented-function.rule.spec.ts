@@ -55,6 +55,12 @@ ruleTester.run('documented-function', documentedFunction, {
     // A summary that runs to no sentence end is read whole.
     { code: '/** Reads one user or nothing */\nexport const findOneUser = () => 1', filename: source, options },
 
+    // A method an abstract base class declares is documented there, without an override keyword.
+    {
+      code: 'abstract class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  protected abstract read(): void\n}\nclass UserService extends Base {\n  protected read() {}\n}',
+      filename: source,
+      options,
+    },
     // A method a base class declares is documented there.
     {
       code: 'class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  read() {}\n}\nclass UserService extends Base {\n  override read() {}\n}',
@@ -133,6 +139,13 @@ ruleTester.run('documented-function', documentedFunction, {
     },
     {
       code: 'class UserService {\n  protected read() {}\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    // Extending a class covers only what the class declares.
+    {
+      code: 'class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  read() {}\n}\nclass UserService extends Base {\n  write() {}\n}',
       filename: source,
       options,
       errors: [{ messageId: 'undocumented' }],

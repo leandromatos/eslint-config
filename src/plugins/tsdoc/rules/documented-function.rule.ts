@@ -136,18 +136,18 @@ const implementsContract = (
     /* v8 ignore next -- a method is declared in a class, which is what holds its body */
     return false
   const name = memberNameOf(node)
-  const heritage = [...classNode.implements, ...superClassesOf(classNode)]
+  const contracts = [
+    ...classNode.implements.map(clause => parserServicesWithTypeInformations.getTypeAtLocation(clause.expression)),
+    ...superClassesOf(classNode).flatMap(superClass =>
+      instanceTypesOf(parserServicesWithTypeInformations.getTypeAtLocation(superClass)),
+    ),
+  ]
 
-  return heritage.some(clause => {
-    const type = parserServicesWithTypeInformations.getTypeAtLocation(declaredTypeOf(clause))
-    const symbols = typeChecker.getPropertiesOfType(type)
-
-    return symbols.some(symbol => symbol.name === name)
-  })
+  return contracts.some(type => typeChecker.getPropertiesOfType(type).some(symbol => symbol.name === name))
 }
 
 /**
- * What the class extends, as a list, so an extended class and an implemented interface are read the same way.
+ * What the class extends, as a list, so a class extending nothing adds no contract.
  *
  * @param classNode - The class the member belongs to.
  * @returns The extended class, as a list of one, and none for a class extending nothing.
@@ -159,16 +159,14 @@ const superClassesOf = (classNode: TSESTree.ClassDeclaration | TSESTree.ClassExp
 }
 
 /**
- * The node the checker reads the clause's type from: what an implements clause names, or the clause itself.
+ * The types an extended class builds, which hold the methods its instances carry. The expression a
+ * class extends reads as its constructor, whose properties are only the static members.
  *
- * @param clause - One clause of the class's heritage.
- * @returns The node the type is read from.
+ * @param constructorType - The type of the expression the class extends.
+ * @returns The instance type of each way the constructor can be called.
  */
-const declaredTypeOf = (clause: TSESTree.TSClassImplements | TSESTree.Expression): TSESTree.Node => {
-  if (clause.type === AST_NODE_TYPES.TSClassImplements) return clause.expression
-
-  return clause
-}
+const instanceTypesOf = (constructorType: ts.Type): ts.Type[] =>
+  constructorType.getConstructSignatures().map(signature => signature.getReturnType())
 
 /**
  * The first sentence of a comment, without the asterisks.
