@@ -2,9 +2,9 @@ import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typ
 import { AST_NODE_TYPES, AST_TOKEN_TYPES, ESLintUtils } from '@typescript-eslint/utils'
 import type ts from 'typescript'
 
-import { isMethod, isPublic, locate, memberNameOf } from '../../shared/utils/index.js'
+import { isMethod, locate, memberNameOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { DocumentedPublicSurfaceMessageId, TsdocRule } from '../types/index.js'
+import type { DocumentedFunctionMessageId, TsdocRule } from '../types/index.js'
 
 /** Words a summary may spend without saying anything the name did not. */
 const FILLER = new Set([
@@ -26,25 +26,27 @@ const FILLER = new Set([
 ])
 
 /**
- * Every public method and every exported function carries a documentation comment, and the
- * comment says what the name cannot. Whether a name "already answers" is a judgment two authors
- * make differently, so the presence is not left to it; what is left to the author is the text,
- * and a text that only rewrites the name into a sentence is reported, because it costs a read
- * and goes stale on the next rename. A method an interface or a base class declares is documented
- * there, so it is not asked for again. A name a framework calls rather than a caller imports is left out through
- * `frameworkSymbols`: the framework's own documentation says what it is, and the same sentence written once per
- * page says nothing.
+ * Every method and every function a module declares carries a documentation comment, and the
+ * comment says what the name cannot. The visibility decides nothing: a private method is read by
+ * the next person to edit the class exactly as a public one is read at its call site, and whether
+ * a name "already answers" is a judgment two authors make differently, so the presence is not left
+ * to it. What is left to the author is the text, and a text that only rewrites the name into a
+ * sentence is reported, because it costs a read and goes stale on the next rename. A method an
+ * interface or a base class declares is documented there, so it is not asked for again. A name a
+ * framework calls rather than a caller imports is left out through `frameworkSymbols`: the
+ * framework's own documentation says what it is, and the same sentence written once per page says
+ * nothing. A function written inline as an argument is not a declaration and is left alone.
  */
-export const publicSurface: TsdocRule<DocumentedPublicSurfaceMessageId> = {
+export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'A public method or exported function carries a comment that says what its name cannot.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/public-surface.md',
+      description: 'A method or a function a module declares carries a comment that says what its name cannot.',
+      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/documented-function.md',
       dialects: ['TypeScript'],
     },
     messages: {
-      undocumented: '"{{name}}" is public and carries no documentation comment.',
+      undocumented: '"{{name}}" carries no documentation comment.',
       restatesName:
         'The summary of "{{name}}" rewrites its name. Say what the name cannot: a constraint, a reason, a consequence.',
     },
@@ -69,24 +71,30 @@ export const publicSurface: TsdocRule<DocumentedPublicSurfaceMessageId> = {
       if (restatesName(summaryOf(comment.value), name))
         context.report({ node: comment, messageId: 'restatesName', data: { name } })
     }
+    const judgeFunctionsOf = (statement: TSESTree.Node, documented: TSESTree.Node): void => {
+      if (statement.type === AST_NODE_TYPES.FunctionDeclaration && statement.id) judge(documented, statement.id.name)
+      if (statement.type !== AST_NODE_TYPES.VariableDeclaration) return
+      for (const declarator of statement.declarations) {
+        if (declarator.id.type !== AST_NODE_TYPES.Identifier) continue
+        if (
+          declarator.init?.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
+          declarator.init?.type !== AST_NODE_TYPES.FunctionExpression
+        )
+          continue
+        judge(documented, declarator.id.name)
+      }
+    }
     const listener: TSESLint.RuleListener = {
       MethodDefinition: node => {
-        if (!isMethod(node) || !isPublic(node) || node.override) return
+        if (!isMethod(node) || node.override) return
         if (implementsContract(node, parserServicesWithTypeInformation, typeChecker)) return
         judge(node, memberNameOf(node))
       },
-      ExportNamedDeclaration: node => {
-        const { declaration } = node
-        if (declaration?.type === AST_NODE_TYPES.FunctionDeclaration && declaration.id) judge(node, declaration.id.name)
-        if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) return
-        for (const declarator of declaration.declarations) {
-          if (declarator.id.type !== AST_NODE_TYPES.Identifier) continue
-          if (
-            declarator.init?.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
-            declarator.init?.type !== AST_NODE_TYPES.FunctionExpression
-          )
-            continue
-          judge(node, declarator.id.name)
+      Program: program => {
+        for (const statement of program.body) {
+          if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && statement.declaration)
+            judgeFunctionsOf(statement.declaration, statement)
+          if (statement.type !== AST_NODE_TYPES.ExportNamedDeclaration) judgeFunctionsOf(statement, statement)
         }
       },
     }

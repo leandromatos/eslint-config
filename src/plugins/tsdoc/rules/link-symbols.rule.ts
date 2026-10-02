@@ -111,6 +111,13 @@ const resolverFor = (
   return name => members.has(name) || isBound(scope ?? null, name)
 }
 
+/**
+ * Whether a node spans a position of the source, the position of a comment among them.
+ *
+ * @param node - The node.
+ * @param at - The position, as an offset of the source.
+ * @returns Whether the position falls inside the node.
+ */
 const encloses = (node: TSESTree.Node, at: number): boolean => node.range[0] <= at && at < node.range[1]
 
 /**
@@ -139,6 +146,13 @@ const memberNamesOf = (classBody: TSESTree.ClassBody): Set<string> => {
   return names
 }
 
+/**
+ * Whether a name is declared in a scope or in one around it, short of the global scope.
+ *
+ * @param scope - The scope the search starts from.
+ * @param name - The name.
+ * @returns Whether a scope declares it.
+ */
 const isBound = (scope: TSESLint.Scope.Scope | null, name: string): boolean => {
   for (let current = scope; current && current.type !== TSESLint.Scope.ScopeType.global; current = current.upper)
     if (current.set.has(name)) return true

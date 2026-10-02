@@ -97,6 +97,13 @@ const resolveCandidates = (mirrorShape: MirrorShape, architectureOptions: Archit
  */
 const withExtensions = (withoutExtension: string): string[] => [`${withoutExtension}.ts`, `${withoutExtension}.tsx`]
 
+/**
+ * The folders inside the test directory, without the one that names the kind of test.
+ *
+ * @param inner - The folders between the test directory and the spec.
+ * @param hasKind - Whether the first folder names the kind, as `unit` or `e2e`.
+ * @returns The folders the spec mirrors.
+ */
 const dropKind = (inner: string[], hasKind: boolean): string[] => {
   if (!hasKind) return inner
 

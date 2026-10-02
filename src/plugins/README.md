@@ -67,12 +67,12 @@ the strings the product ships.
 
 the comments of a file: their form, their presence and their tags.
 
-| Rule                                                         | Description                                                                            | 💼  | 🔧  | 💭  |
-| ------------------------------------------------------------ | -------------------------------------------------------------------------------------- | --- | --- | --- |
-| [`tsdoc/comment-form`](tsdoc/docs/rules/comment-form.md)     | A note that runs to a paragraph is a block comment, wrapped at the configured column.  | ✅  | 🔧  |     |
-| [`tsdoc/link-symbols`](tsdoc/docs/rules/link-symbols.md)     | A symbol in scope is linked with {@link}, never set in backticks; a link resolves.     | ✅  | 🔧  |     |
-| [`tsdoc/public-surface`](tsdoc/docs/rules/public-surface.md) | A public method or exported function carries a comment that says what its name cannot. | ✅  |     | 💭  |
-| [`tsdoc/throws-tag`](tsdoc/docs/rules/throws-tag.md)         | A documented function carries a @throws tag for every exception type it constructs.    | ✅  | 🔧  |     |
+| Rule                                                                   | Description                                                                                | 💼  | 🔧  | 💭  |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | --- | --- | --- |
+| [`tsdoc/comment-form`](tsdoc/docs/rules/comment-form.md)               | A note that runs to a paragraph is a block comment, wrapped at the configured column.      | ✅  | 🔧  |     |
+| [`tsdoc/link-symbols`](tsdoc/docs/rules/link-symbols.md)               | A symbol in scope is linked with {@link}, never set in backticks; a link resolves.         | ✅  | 🔧  |     |
+| [`tsdoc/documented-function`](tsdoc/docs/rules/documented-function.md) | A method or a function a module declares carries a comment that says what its name cannot. | ✅  |     | 💭  |
+| [`tsdoc/throws-tag`](tsdoc/docs/rules/throws-tag.md)                   | A documented function carries a @throws tag for every exception type it constructs.        | ✅  | 🔧  |     |
 
 ### typescript
 

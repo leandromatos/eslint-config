@@ -1,7 +1,6 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
+import { isMethod, isPublic, locate, memberNameOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ArchitectureRule, MethodOrderMessageId } from '../types/index.js'
 
@@ -46,7 +45,7 @@ export const methodOrder: ArchitectureRule<MethodOrderMessageId> = {
           context.report({
             node: member,
             messageId,
-            data: { method: nameOf(member), previous: nameOf(before) },
+            data: { method: memberNameOf(member), previous: memberNameOf(before) },
             fix: ruleFixer => swap(ruleFixer, context.sourceCode, before, member),
           })
         }
@@ -57,28 +56,24 @@ export const methodOrder: ArchitectureRule<MethodOrderMessageId> = {
   },
 }
 
+/**
+ * What is wrong with two methods declared one after the other, if anything.
+ *
+ * A public method comes before a private one, and methods of the same visibility follow the
+ * alphabet.
+ *
+ * @param before - The method declared first.
+ * @param after - The method declared next.
+ * @returns The message to report, or `null` when the order holds.
+ */
 const judge = (before: TSESTree.MethodDefinition, after: TSESTree.MethodDefinition): MethodOrderMessageId | null => {
   const wasPublic = isPublic(before)
   const isNowPublic = isPublic(after)
   if (!wasPublic && isNowPublic) return 'privateBeforePublic'
-  if (wasPublic === isNowPublic && nameOf(before).localeCompare(nameOf(after)) > 0) return 'outOfOrder'
+  if (wasPublic === isNowPublic && memberNameOf(before).localeCompare(memberNameOf(after)) > 0) return 'outOfOrder'
 
   return null
 }
-
-const isPublic = (member: TSESTree.MethodDefinition): boolean =>
-  member.accessibility !== 'private' && member.accessibility !== 'protected'
-
-const nameOf = (member: TSESTree.MethodDefinition): string => {
-  /* v8 ignore next -- a method under a computed key is read past before the name is asked for */
-  if (member.key.type === AST_NODE_TYPES.Identifier) return member.key.name
-
-  /* v8 ignore next -- a method under a computed key is read past before the name is asked for */
-  return ''
-}
-
-const isMethod = (member: TSESTree.ClassElement): member is TSESTree.MethodDefinition =>
-  member.type === AST_NODE_TYPES.MethodDefinition && member.kind === 'method'
 
 /**
  * Exchanges two adjacent members, each with its comments, and keeps whatever sits between them.

@@ -60,6 +60,12 @@ export const typeSuffix: ArchitectureRule<TypeSuffixByFolderMessageId> = {
   },
 }
 
+/**
+ * The name of the interface or the type an export declares.
+ *
+ * @param node - The export declaration.
+ * @returns The name, or `null` for an export that declares no type.
+ */
 const typeNameOf = (node: TSESTree.ExportNamedDeclaration): string | null => {
   const declaration = node.declaration
   if (declaration?.type === AST_NODE_TYPES.TSInterfaceDeclaration) return declaration.id.name
@@ -68,6 +74,13 @@ const typeNameOf = (node: TSESTree.ExportNamedDeclaration): string | null => {
   return null
 }
 
+/**
+ * The folder that owns a type suffix in the map the rule is configured with.
+ *
+ * @param suffix - The suffix the type name carries.
+ * @param typeSuffixes - The suffixes each folder allows.
+ * @returns The folder.
+ */
 const folderOf = (suffix: string, typeSuffixes: Record<string, string[]>): string =>
   /* v8 ignore next -- the suffix came from the map, so a folder owns it */
   /* v8 ignore start -- the suffix came from the map, so a folder owns it */

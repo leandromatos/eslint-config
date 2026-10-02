@@ -121,6 +121,12 @@ const thrownOf = (
   return found
 }
 
+/**
+ * Whether a node is a function, which is where a `throw` stops belonging to the function around it.
+ *
+ * @param node - The node.
+ * @returns Whether it declares a function.
+ */
 const isFunction = (node: TSESTree.Node): boolean =>
   node.type === AST_NODE_TYPES.FunctionExpression ||
   node.type === AST_NODE_TYPES.ArrowFunctionExpression ||

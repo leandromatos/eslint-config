@@ -86,5 +86,11 @@ const unwrapAssertion = (value: TSESTree.Expression): TSESTree.Expression => {
   return value
 }
 
+/**
+ * Whether a value is written as a string literal, the only kind of value whose case the rule reads.
+ *
+ * @param value - The value.
+ * @returns Whether it is a string literal.
+ */
 const isStringLiteral = (value: TSESTree.Expression): value is TSESTree.StringLiteral =>
   value.type === AST_NODE_TYPES.Literal && typeof value.value === 'string'

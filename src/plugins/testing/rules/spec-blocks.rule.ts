@@ -132,6 +132,12 @@ const isExpectCall = (expression: TSESTree.Expression): boolean => {
   return parent?.type === AST_NODE_TYPES.CallExpression && parent.callee === current
 }
 
+/**
+ * The expression an `await` waits for, so an awaited call is read as the call.
+ *
+ * @param expression - The expression, awaited or not.
+ * @returns The expression without the `await`.
+ */
 const unwrapAwait = (expression: TSESTree.Expression): TSESTree.Expression => {
   if (expression.type === AST_NODE_TYPES.AwaitExpression) return expression.argument
 

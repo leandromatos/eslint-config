@@ -210,6 +210,12 @@ const readDefinitionTimeNames = (
   return names
 }
 
+/**
+ * The declaration a top-level statement holds, looking past an `export` keyword.
+ *
+ * @param statement - The top-level statement.
+ * @returns The declaration, or `null` for an export that declares nothing.
+ */
 const unwrapExport = (statement: TSESTree.ProgramStatement): TSESTree.Node | null => {
   if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration) return statement.declaration
 
@@ -278,6 +284,13 @@ const referencedNames = (node: TSESTree.Node, sourceCode: TSESLint.SourceCode): 
   return [...new Set(references.map(reference => reference.identifier.name))]
 }
 
+/**
+ * Whether an initializer is a function written as an expression, which declares a function as much as a
+ * declaration does.
+ *
+ * @param node - The initializer, when there is one.
+ * @returns Whether it is an arrow function or a function expression.
+ */
 const isFunctionExpression = (
   node: TSESTree.Expression | null,
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>

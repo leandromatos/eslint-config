@@ -49,6 +49,12 @@ export const oneExportPerUtil: ArchitectureRule<OneExportPerUtilMessageId> = {
   },
 }
 
+/**
+ * The names an export declaration publishes, by declaration or by variable.
+ *
+ * @param node - The export declaration.
+ * @returns The names, and none for an export that declares nothing named.
+ */
 const exportedNamesOf = (node: TSESTree.ExportNamedDeclaration): string[] => {
   const declaration = node.declaration
   if (!declaration) return []
@@ -62,4 +68,10 @@ const exportedNamesOf = (node: TSESTree.ExportNamedDeclaration): string[] => {
   })
 }
 
+/**
+ * Writes a camel-case name the way a file name spells it, as `removeExtension` for `remove-extension`.
+ *
+ * @param name - The name in camel case.
+ * @returns The name in kebab case.
+ */
 const toKebabCase = (name: string): string => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()

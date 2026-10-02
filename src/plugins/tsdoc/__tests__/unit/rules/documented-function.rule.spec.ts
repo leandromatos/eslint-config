@@ -2,10 +2,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
-import { publicSurface } from '../../../rules/public-surface.rule.js'
+import { documentedFunction } from '../../../rules/documented-function.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'public-surface')
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'documented-function')
 const ruleTester = typedRuleTester(root)
 const options: [TsdocOptions] = [{ commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [] }]
 const frameworkOptions: [TsdocOptions] = [
@@ -14,7 +14,7 @@ const frameworkOptions: [TsdocOptions] = [
 const source = sourceFile('users', 'services', 'user.service.ts')
 const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
 
-ruleTester.run('public-surface', publicSurface, {
+ruleTester.run('documented-function', documentedFunction, {
   valid: [
     // A method of an object literal is no member of a class, so no contract declares it.
     {
@@ -69,9 +69,19 @@ ruleTester.run('public-surface', publicSurface, {
       filename: source,
       options,
     },
-    { code: 'const findOneUser = () => 1', filename: source, options },
     { code: 'export const findOneUser = () => 1', filename: spec, options },
-    { code: 'class UserService {\n  private read() {}\n}', filename: source, options },
+    {
+      code: '/** Reads one user, or nothing when the account is closed. */\nconst findOneUser = () => 1',
+      filename: source,
+      options,
+    },
+    {
+      code: 'class UserService {\n  /** Reads the row the cache missed, signed with the key of the account. */\n  private read() {}\n}',
+      filename: source,
+      options,
+    },
+    // A function written inline as an argument is no declaration of the module.
+    { code: '/** Lists the users. */\nexport const users = [1, 2].map(user => user * 2)', filename: source, options },
     {
       code: 'interface Reader {\n  read(): void\n}\nclass UserService implements Reader {\n  read() {}\n}',
       filename: source,
@@ -107,6 +117,33 @@ ruleTester.run('public-surface', publicSurface, {
       filename: source,
       options,
       errors: [{ messageId: 'undocumented' }],
+    },
+    // The visibility decides nothing: a private or protected method is read by whoever edits the class.
+    {
+      code: 'class UserService {\n  private read() {}\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    {
+      code: 'class UserService {\n  protected read() {}\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    // A function the module keeps to itself is documented like one it exports.
+    { code: 'const findOneUser = () => 1', filename: source, options, errors: [{ messageId: 'undocumented' }] },
+    {
+      code: 'function findOneUser() {\n  return 1\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    {
+      code: '/** Finds one user. */\nconst findOneUser = () => 1',
+      filename: source,
+      options,
+      errors: [{ messageId: 'restatesName' }],
     },
   ],
 })
