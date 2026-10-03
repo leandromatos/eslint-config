@@ -55,6 +55,7 @@ export const SUFFIX_DICTIONARY = {
   plugin: 'plugins',
   processor: 'processors',
   provider: 'providers',
+  publisher: 'publishers',
   query: 'queries',
   refinement: 'refinements',
   registry: 'registries',
