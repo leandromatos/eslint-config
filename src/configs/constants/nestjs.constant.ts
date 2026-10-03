@@ -17,6 +17,7 @@ const NESTJS_SUFFIX_TO_FOLDER = {
   channel: 'channels',
   interceptor: 'interceptors',
   processor: 'processors',
+  publisher: 'publishers',
   strategy: 'strategies',
   transport: 'transports',
 } as const
