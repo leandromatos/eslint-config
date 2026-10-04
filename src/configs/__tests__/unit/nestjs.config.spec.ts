@@ -29,6 +29,7 @@ describe('nestjs', () => {
     expect(suffixToFolder['interceptor']).toBe('interceptors')
     expect(suffixToFolder['processor']).toBe('processors')
     expect(suffixToFolder['repository']).toBe('repositories')
+    expect(suffixToFolder['worker']).toBe('workers')
   })
 
   it('walks a class down the layers, outermost first', () => {
