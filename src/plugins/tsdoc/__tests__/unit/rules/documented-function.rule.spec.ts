@@ -159,6 +159,12 @@ ruleTester.run('documented-function', documentedFunction, {
       options,
       errors: [{ messageId: 'undocumented' }],
     },
+    {
+      code: 'export default function () {\n  return 1\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'default' } }],
+    },
     { code: 'export default () => 1', filename: source, options, errors: [{ messageId: 'undocumented' }] },
     {
       code: 'const Page = () => 1\nexport default Page',
