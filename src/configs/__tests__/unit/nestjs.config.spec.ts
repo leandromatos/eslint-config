@@ -30,6 +30,7 @@ describe('nestjs', () => {
     expect(suffixToFolder['processor']).toBe('processors')
     expect(suffixToFolder['repository']).toBe('repositories')
     expect(suffixToFolder['worker']).toBe('workers')
+    expect(suffixToFolder['workflow']).toBe('workflows')
   })
 
   it('walks a class down the layers, outermost first', () => {

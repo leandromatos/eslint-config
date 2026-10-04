@@ -78,6 +78,7 @@ export const SUFFIX_DICTIONARY = {
   type: 'types',
   util: 'utils',
   worker: 'workers',
+  workflow: 'workflows',
 } as const
 
 /**

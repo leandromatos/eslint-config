@@ -21,6 +21,7 @@ const NESTJS_SUFFIX_TO_FOLDER = {
   strategy: 'strategies',
   transport: 'transports',
   worker: 'workers',
+  workflow: 'workflows',
 } as const
 
 /** The layers a class walks down, outermost first: what `method-order` and the step-down rule read. */
