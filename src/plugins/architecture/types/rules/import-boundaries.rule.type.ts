@@ -1,6 +1,11 @@
 /** The messages `import-boundaries` reports. */
 export type ImportBoundariesMessageId =
-  'crossLayerNeedsBarrel' | 'layerNeedsBarrel' | 'relativeImport' | 'sameLayerNeedsDirect' | 'testFromProduction'
+  | 'crossLayerNeedsBarrel'
+  | 'layerNeedsBarrel'
+  | 'relativeImport'
+  | 'sameLayerNeedsDirect'
+  | 'testFromProduction'
+  | 'testingFromProduction'
 
 /** What the rule needs to judge one specifier. */
 export interface Judgement {
@@ -16,6 +21,10 @@ export interface Judgement {
   layer: string | null
   /** Whether the file doing the importing sits in the test tree. */
   isTestTree: boolean
+  /** Whether the file doing the importing is test code: in the test tree, a spec, or in a testing folder. */
+  isTestCode: boolean
   /** The folder holding tests. */
   testFolder: string
+  /** The folder holding what tests are built from. */
+  testingFolder: string
 }

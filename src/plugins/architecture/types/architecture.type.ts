@@ -43,6 +43,8 @@ export interface ArchitectureOptions {
   wholeArguments: WholeArgument[]
   /** The mirror folder that holds tests. */
   testFolder: string
+  /** The folder, local or the subpath of a package, that holds what tests are built from, such as `testing`. */
+  testingFolder: string
   /** The kinds of test, as folders directly under the test folder. */
   testKinds: string[]
   /** The kinds whose specs mirror one source file; the others assert a property of the whole. */

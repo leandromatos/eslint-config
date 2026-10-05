@@ -129,6 +129,81 @@ ruleTester.run('import-boundaries, on a file the map does not place', importBoun
   ],
 })
 
+const testingOptions: [ArchitectureOptions] = [
+  {
+    ...EMPTY_OPTIONS,
+    alias: '@',
+    suffixToFolder: { entity: 'entities', service: 'services', spec: '__tests__', type: 'types' },
+    testFolder: '__tests__',
+    testingFolder: 'testing',
+  },
+]
+const doc = sourceFile('activities', 'docs', 'find-all-activities.doc.ts')
+
+ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
+  valid: [
+    // A spec builds its fixtures out of a package's testing entry.
+    {
+      code: "import { buildPaginatedEntity } from '@graphabits/nestjs/database/testing'",
+      filename: spec,
+      options: testingOptions,
+    },
+
+    // A spec written outside the test tree is still test code.
+    {
+      code: "import { buildRecord } from '@/database/testing'",
+      filename: sourceFile('database', 'records.spec.ts'),
+      options: testingOptions,
+    },
+
+    // A testing folder is built out of other testing folders.
+    {
+      code: "import { buildRecord } from '@graphabits/nestjs/database/testing'",
+      filename: sourceFile('database', 'testing', 'utils', 'mock-transaction.util.ts'),
+      options: testingOptions,
+    },
+
+    // A package named after testing is a package, not a testing entry of one.
+    { code: "import { Test } from '@nestjs/testing'", filename: doc, options: testingOptions },
+
+    // The runtime entry of the same package.
+    {
+      code: "import { buildPaginatedEntity } from '@graphabits/nestjs/database'",
+      filename: doc,
+      options: testingOptions,
+    },
+
+    // With no testing folder named, the rule judges none.
+    { code: "import { x } from 'some-package/testing'", filename: doc, options },
+  ],
+  invalid: [
+    {
+      code: "import { buildPaginatedEntity } from '@graphabits/nestjs/database/testing'",
+      filename: doc,
+      options: testingOptions,
+      errors: [{ messageId: 'testingFromProduction' }],
+    },
+    {
+      code: "import { render } from 'some-package/testing'",
+      filename: doc,
+      options: testingOptions,
+      errors: [{ messageId: 'testingFromProduction' }],
+    },
+    {
+      code: "import { buildRecord } from '@/database/testing'",
+      filename: doc,
+      options: testingOptions,
+      errors: [{ messageId: 'testingFromProduction' }],
+    },
+    {
+      code: "export * from '@/database/testing/records.table'",
+      filename: doc,
+      options: testingOptions,
+      errors: [{ messageId: 'testingFromProduction' }],
+    },
+  ],
+})
+
 ruleTester.run('import-boundaries, from the test tree', importBoundaries, {
   valid: [
     // A spec names the file it covers: the barrel re-exports what the spec is isolating.

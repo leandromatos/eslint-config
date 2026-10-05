@@ -12,6 +12,9 @@ import type { ArchitectureRule, ImportBoundariesMessageId, Judgement } from '../
  * decides what it exposes. Inside a layer the rule turns around: the barrel re-exports the file
  * asking for it, so going through it is a cycle, and a sibling is reached by name.
  *
+ * Production code reaches neither the test tree nor a testing folder, local or a package's entry: what
+ * tests are built from depends on what a production install leaves out.
+ *
  * A barrel is exempt from all of it, because re-exporting its siblings is what it is for.
  */
 export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
@@ -30,21 +33,36 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
       sameLayerNeedsDirect:
         '"{{specifier}}" is the barrel of this file\'s own layer, which re-exports this file. Name the sibling instead.',
       testFromProduction: '"{{specifier}}" is a test file, and production code is never part of a test import graph.',
+      testingFromProduction:
+        '"{{specifier}}" is a testing entry, which depends on what a production install leaves out. Import a runtime entry.',
     },
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
     const where = locate(context)
-    const [{ suffixToFolder, testFolder, alias }] = context.options
+    const [{ suffixToFolder, testFolder, testingFolder, alias }] = context.options
     if (!where || where.stem === 'index') return {}
     const suffixes = Object.keys(suffixToFolder)
     if (suffixes.length === 0) return {}
     const folder = where.suffix ? suffixToFolder[where.suffix] : undefined
     const layer = folder ? layerDirectoryOf(where.segments, folder) : null
     const isTestTree = where.segments.includes(testFolder)
+    const testSuffix = suffixes.find(key => suffixToFolder[key] === testFolder)
+    const isTestCode =
+      isTestTree || where.suffix === testSuffix || (testingFolder !== '' && where.segments.includes(testingFolder))
     const report = (node: TSESTree.Node, specifier: string): void => {
-      const messageId = judge({ specifier, alias, suffixes, suffix: where.suffix, layer, isTestTree, testFolder })
+      const messageId = judge({
+        specifier,
+        alias,
+        suffixes,
+        suffix: where.suffix,
+        layer,
+        isTestTree,
+        isTestCode,
+        testFolder,
+        testingFolder,
+      })
       if (!messageId) return
       context.report({ node, messageId, data: { specifier, barrel: barrelOf(specifier) } })
     }
@@ -90,14 +108,19 @@ const judge = ({
   suffix,
   layer,
   isTestTree,
+  isTestCode,
   testFolder,
+  testingFolder,
 }: Judgement): ImportBoundariesMessageId | null => {
   if (specifier.startsWith('.')) return 'relativeImport'
+  const reachesTesting = (segments: string[]): boolean =>
+    !isTestCode && testingFolder !== '' && segments.includes(testingFolder)
   const prefix = `${alias}/`
-  if (!specifier.startsWith(prefix)) return null
+  if (!specifier.startsWith(prefix)) return reachesTesting(subpathOf(specifier)) ? 'testingFromProduction' : null
   const target = specifier.slice(prefix.length)
   const segments = target.split('/')
   if (segments.includes(testFolder)) return isTestTree ? null : 'testFromProduction'
+  if (reachesTesting(segments)) return 'testingFromProduction'
   /*
    * A spec names the file it covers. The barrel of that layer re-exports what the spec is isolating, and a test is
    * never part of a production import graph, so what the barrel protects is not at stake here.
@@ -112,6 +135,15 @@ const judge = ({
 
   return target.startsWith(`${layer}/`) ? null : 'crossLayerNeedsBarrel'
 }
+
+/**
+ * The segments of a package specifier after the package's own name: `['database', 'testing']` for
+ * `@graphabits/nestjs/database/testing`, and none for `@nestjs/testing`.
+ *
+ * @param specifier - The specifier as the code writes it.
+ * @returns The segments of the subpath.
+ */
+const subpathOf = (specifier: string): string[] => specifier.split('/').slice(specifier.startsWith('@') ? 2 : 1)
 
 /**
  * The suffix a specifier's last segment carries: `service` for `users.service`.
