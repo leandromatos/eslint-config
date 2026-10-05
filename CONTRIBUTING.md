@@ -10,7 +10,7 @@ cd eslint-config
 pnpm install
 ```
 
-The repository resolves with pnpm, pinned by `packageManager` in `package.json`. Corepack reads that field, so the version you get is the version CI gets.
+The repository resolves with pnpm, pinned by `packageManager` in `package.json`. Any pnpm you run here reads that field and switches to the version it names, and `pnpm/action-setup` reads it in CI, so the version you get is the version CI gets, with no Corepack involved.
 
 `pnpm install` sets up [Husky](https://typicode.github.io/husky), which wires two git hooks:
 
