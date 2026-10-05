@@ -13,7 +13,8 @@ import type { ArchitectureRule, ImportBoundariesMessageId, Judgement } from '../
  * asking for it, so going through it is a cycle, and a sibling is reached by name.
  *
  * Production code reaches neither the test tree nor a testing folder, local or a package's entry: what
- * tests are built from depends on what a production install leaves out.
+ * tests are built from depends on what a production install leaves out. A file only a development tool
+ * loads, such as a story, is test code here.
  *
  * A barrel is exempt from all of it, because re-exporting its siblings is what it is for.
  */
@@ -41,7 +42,7 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
   },
   create: context => {
     const where = locate(context)
-    const [{ suffixToFolder, testFolder, testingFolder, alias }] = context.options
+    const [{ suffixToFolder, testFolder, testingFolder, developmentSuffixes, alias }] = context.options
     if (!where || where.stem === 'index') return {}
     const suffixes = Object.keys(suffixToFolder)
     if (suffixes.length === 0) return {}
@@ -49,8 +50,12 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
     const layer = folder ? layerDirectoryOf(where.segments, folder) : null
     const isTestTree = where.segments.includes(testFolder)
     const testSuffix = suffixes.find(key => suffixToFolder[key] === testFolder)
+    const isDevelopmentFile = where.suffix !== null && developmentSuffixes.includes(where.suffix)
     const isTestCode =
-      isTestTree || where.suffix === testSuffix || (testingFolder !== '' && where.segments.includes(testingFolder))
+      isTestTree ||
+      where.suffix === testSuffix ||
+      isDevelopmentFile ||
+      (testingFolder !== '' && where.segments.includes(testingFolder))
     const report = (node: TSESTree.Node, specifier: string): void => {
       const messageId = judge({
         specifier,

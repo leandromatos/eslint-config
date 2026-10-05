@@ -45,6 +45,8 @@ export interface ArchitectureOptions {
   testFolder: string
   /** The folder, local or the subpath of a package, that holds what tests are built from, such as `testing`. */
   testingFolder: string
+  /** The suffixes of files only a development tool loads, such as `stories`: test code, to the rules that ask. */
+  developmentSuffixes: string[]
   /** The kinds of test, as folders directly under the test folder. */
   testKinds: string[]
   /** The kinds whose specs mirror one source file; the others assert a property of the whole. */

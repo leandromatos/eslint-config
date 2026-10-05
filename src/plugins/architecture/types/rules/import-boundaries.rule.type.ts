@@ -21,7 +21,7 @@ export interface Judgement {
   layer: string | null
   /** Whether the file doing the importing sits in the test tree. */
   isTestTree: boolean
-  /** Whether the file doing the importing is test code: in the test tree, a spec, or in a testing folder. */
+  /** Whether the file doing the importing is test code: in the test tree, a spec, a story, or in a testing folder. */
   isTestCode: boolean
   /** The folder holding tests. */
   testFolder: string

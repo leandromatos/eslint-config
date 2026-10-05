@@ -136,6 +136,7 @@ const testingOptions: [ArchitectureOptions] = [
     suffixToFolder: { entity: 'entities', service: 'services', spec: '__tests__', type: 'types' },
     testFolder: '__tests__',
     testingFolder: 'testing',
+    developmentSuffixes: ['stories'],
   },
 ]
 const doc = sourceFile('activities', 'docs', 'find-all-activities.doc.ts')
@@ -163,6 +164,13 @@ ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
       options: testingOptions,
     },
 
+    // A story is loaded by the catalogue, never by the application.
+    {
+      code: "import { UserFactory } from '@graphabits/sdk/testing'",
+      filename: sourceFile('settings', 'components', 'language-section.stories.tsx'),
+      options: testingOptions,
+    },
+
     // A package named after testing is a package, not a testing entry of one.
     { code: "import { Test } from '@nestjs/testing'", filename: doc, options: testingOptions },
 
@@ -181,6 +189,13 @@ ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
       code: "import { buildPaginatedEntity } from '@graphabits/nestjs/database/testing'",
       filename: doc,
       options: testingOptions,
+      errors: [{ messageId: 'testingFromProduction' }],
+    },
+    // With no development suffix named, a story is production code.
+    {
+      code: "import { UserFactory } from '@graphabits/sdk/testing'",
+      filename: sourceFile('settings', 'components', 'language-section.stories.tsx'),
+      options: [{ ...testingOptions[0], developmentSuffixes: [] }],
       errors: [{ messageId: 'testingFromProduction' }],
     },
     {

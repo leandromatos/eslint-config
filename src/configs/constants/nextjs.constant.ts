@@ -93,6 +93,8 @@ export const NEXTJS_ARCHITECTURE: ArchitectureOptions = {
   folderlessSuffixes: [...DEFAULT_ARCHITECTURE.folderlessSuffixes, 'e2e', STORY_SUFFIX],
   /* What a component or a hook takes is read beside it. */
   coLocatedTypeSuffixes: ['component', 'hook', 'provider', 'screen', 'store'],
+  /* The catalogue loads a story and the application never does, so a story may build its props from a testing entry. */
+  developmentSuffixes: [STORY_SUFFIX],
 }
 
 /**

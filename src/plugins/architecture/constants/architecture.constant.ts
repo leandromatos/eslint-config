@@ -19,6 +19,7 @@ export const EMPTY_OPTIONS: ArchitectureOptions = {
   wholeArguments: [],
   testFolder: '',
   testingFolder: '',
+  developmentSuffixes: [],
   testKinds: [],
   mirroringTestKinds: [],
 }

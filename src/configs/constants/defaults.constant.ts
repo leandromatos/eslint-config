@@ -125,6 +125,8 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
   testFolder: SUFFIX_TO_FOLDER.spec,
   /* What a package ships for its consumers' tests, and what a project keeps for its own: never part of production. */
   testingFolder: 'testing',
+  /* A project on no framework runs no catalogue, so every file it writes outside the tests is production code. */
+  developmentSuffixes: [],
   /*
    * The kinds a project may write, each a folder under the test folder. A project writes the ones it needs, and a kind
    * listed here and never written costs nothing.
