@@ -7,17 +7,18 @@ import type { ArchitectureOptions, MirrorShape } from '../types/index.js'
 
 /**
  * A file under a mirror folder mirrors a file in the tree beside that folder, and a mirror
- * folder inside the test folder mirrors the test folder's own tree. Two files mirror nothing
- * by design: a module's own vocabulary, named after the module, and a test of a kind the
- * options leave out of `mirroringTestKinds`.
+ * folder inside the test folder mirrors the test folder's own tree. Three files mirror nothing
+ * by design: a module's own vocabulary, named after the module, a test of a kind the options
+ * leave out of `mirroringTestKinds`, and a stand-in in the mock folder, which the test runner
+ * pairs with its module by name.
  */
 export const mirroredSource = fileRule(
   'A file under a mirror folder mirrors an existing file.',
   'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/mirrored-source.md',
   { noSource: '"{{file}}" mirrors no source: expected {{expected}}. Create it, or move the file.' },
   ({ file, suffix, segments, module, stem }, architectureOptions, context) => {
-    const { suffixToFolder, mirrorFolders, testFolder, testKinds, mirroringTestKinds } = architectureOptions
-    if (!suffix) return []
+    const { suffixToFolder, mirrorFolders, testFolder, testKinds, mirroringTestKinds, mockFolder } = architectureOptions
+    if (!suffix || segments.includes(mockFolder)) return []
     const mirror = suffixToFolder[suffix]
     if (!mirror || !mirrorFolders.includes(mirror)) return []
     const at = segments.indexOf(mirror)

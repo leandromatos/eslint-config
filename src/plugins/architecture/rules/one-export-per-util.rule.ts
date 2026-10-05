@@ -30,7 +30,7 @@ export const oneExportPerUtil: ArchitectureRule<OneExportPerUtilMessageId> = {
     const where = locate(context)
     const [options] = context.options
     if (!where || where.suffix !== 'util' || options.rootContexts.includes(where.module)) return {}
-    if (where.segments.includes(options.testFolder)) return {}
+    if (where.segments.includes(options.testFolder) || where.segments.includes(options.mockFolder)) return {}
     const exported: string[] = []
     const listener: TSESLint.RuleListener = {
       ExportNamedDeclaration: node => {

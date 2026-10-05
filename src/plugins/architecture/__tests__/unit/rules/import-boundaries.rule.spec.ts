@@ -230,3 +230,44 @@ ruleTester.run('import-boundaries, from the test tree', importBoundaries, {
   ],
   invalid: [],
 })
+
+const mockOptions: [ArchitectureOptions] = [{ ...testingOptions[0], mockFolder: '__mocks__' }]
+const mock = sourceFile('authorizer', 'tokens', 'services', '__mocks__', 'tokens.service.ts')
+
+ruleTester.run('import-boundaries, on a mock folder', importBoundaries, {
+  valid: [
+    // A stand-in takes its types from the module of another layer it replaces, by name, as a spec does.
+    {
+      code: "import type { UsersService } from '@/authorizer/users/services/users.service'",
+      filename: mock,
+      options: mockOptions,
+    },
+
+    // A stand-in is built from what a test is built from.
+    { code: "import { buildRecord } from '@graphabits/nestjs/database/testing'", filename: mock, options: mockOptions },
+    { code: "import { build } from '@/authorizer/tokens/__tests__/factories'", filename: mock, options: mockOptions },
+
+    // A spec reaches a stand-in, which is what the test tree is made of.
+    {
+      code: "import { TokensService } from '@/authorizer/tokens/services/__mocks__/tokens.service'",
+      filename: spec,
+      options: mockOptions,
+    },
+  ],
+  invalid: [
+    // Production code reaches the module, and the test runner decides when the stand-in replaces it.
+    {
+      code: "import { TokensService } from '@/authorizer/tokens/services/__mocks__/tokens.service'",
+      filename: entity,
+      options: mockOptions,
+      errors: [{ messageId: 'testFromProduction' }],
+    },
+    // With no mock folder named, the stand-in is production code.
+    {
+      code: "import { UsersService } from '@/authorizer/users/services/users.service'",
+      filename: mock,
+      options: testingOptions,
+      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
+    },
+  ],
+})

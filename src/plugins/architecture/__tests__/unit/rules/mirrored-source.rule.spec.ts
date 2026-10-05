@@ -77,6 +77,12 @@ ruleTester.run('mirrored-source', mirroredSource, {
       filename: sourceFile('users', 'types', 'screens', 'user.screen.type.ts'),
       options,
     },
+    // A stand-in in the mock folder is paired with its module by name, by the test runner, so it mirrors nothing.
+    {
+      code: 'export interface FindOneUserParams {\n  userId: string\n}',
+      filename: sourceFile('users', 'types', 'services', '__mocks__', 'user.service.type.ts'),
+      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+    },
   ],
   invalid: [
     // A mirror folder inside the test tree, naming a kind, mirrors a spec of that kind.

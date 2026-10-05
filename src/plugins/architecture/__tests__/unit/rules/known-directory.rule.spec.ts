@@ -29,8 +29,22 @@ ruleTester.run('known-directory', knownDirectory, {
 
     { code: 'export class UserService {}', filename: sourceFile('users', 'services', 'user.service.ts'), options },
     { code: 'export class UserHelper {}', filename: sourceFile('config', 'helpers', 'user.helper.ts'), options },
+
+    // The mock folder sits beside the module it stands in for, wherever that module is.
+    {
+      code: 'export class UserService {}',
+      filename: sourceFile('users', 'services', '__mocks__', 'user.service.ts'),
+      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+    },
   ],
   invalid: [
+    // With no mock folder named, the stand-in's directory is one the list does not carry.
+    {
+      code: 'export class UserService {}',
+      filename: sourceFile('users', 'services', '__mocks__', 'user.service.ts'),
+      options,
+      errors: [{ messageId: 'unknownDirectory', data: { directory: '__mocks__' } }],
+    },
     {
       code: 'export class OtherHelper {}',
       filename: sourceFile('users', 'helpers', 'other.helper.ts'),

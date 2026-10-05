@@ -31,6 +31,12 @@ ruleTester.run('one-export-per-util', oneExportPerUtil, {
       filename: sourceFile('users', '__tests__', 'utils', 'hash-password.util.ts'),
       options,
     },
+    // A stand-in in the mock folder exports what its module exports, under the module's own name.
+    {
+      code: 'export const hashPassword = () => 1\nexport const comparePassword = () => 1',
+      filename: sourceFile('users', 'utils', '__mocks__', 'hash-password.util.ts'),
+      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+    },
 
     { code: 'export const hashPassword = () => 1', filename: util, options },
     {

@@ -17,6 +17,7 @@ import { SessionEntity } from '@/authorizer/tokens/entities' // its own barrel, 
 import { SessionEntity } from './session.entity' // relative
 import { build } from '@/authorizer/tokens/__tests__/factories' // a test file, from production code
 import { buildRecord } from '@/authorizer/tokens/testing' // a testing folder, from production code
+import { TokensService } from '@/authorizer/tokens/services/__mocks__/tokens.service' // a stand-in, from production code
 import { buildGuardContext } from '@graphabits/nestjs/authorization/testing' // a package's testing entry
 ```
 
@@ -39,7 +40,8 @@ production install leaves out, so the import passes every check that installs th
 dependencies and the application fails at boot. Test code is exempt: a file in the test tree, a
 spec anywhere, a file inside a testing folder, which is built out of other ones, and a file only a
 development tool loads, such as a story, which the catalogue renders and the application never
-imports. A test setup sits in the test tree or outside `src/`, which the rule does not read.
+imports. The mock folder is part of the test tree: a stand-in there may name any file a spec may,
+and production code imports the module it replaces, never the stand-in. A test setup sits in the test tree or outside `src/`, which the rule does not read.
 
 Direct imports of a file that shares the caller's suffix are allowed only inside the caller's own
 layer directory. Matching on the suffix alone would let one `*.entity.ts` reach any other in the
@@ -56,6 +58,7 @@ Read from the `architecture` group of the options.
 | `testFolder`          | `string`                 | the folder holding tests, which production code never imports from        |
 | `testingFolder`       | `string`                 | the folder, local or a package subpath, holding what tests are built from |
 | `developmentSuffixes` | `string[]`               | the suffixes of files only a development tool loads, read as test code    |
+| `mockFolder`          | `string`                 | the folder beside a module holding its stand-in, part of the test tree    |
 
 ## Fixable
 

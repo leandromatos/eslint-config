@@ -36,6 +36,7 @@ export const readExtension = (name: string): string => {}
 | -------------- | ---------- | -------------------------------------------------- |
 | `rootContexts` | `string[]` | The directories under `src/` the rule leaves alone |
 | `testFolder`   | `string`   | The tree the rule leaves alone                     |
+| `mockFolder`   | `string`   | The stand-ins the rule leaves alone                |
 
 ## Fixable
 

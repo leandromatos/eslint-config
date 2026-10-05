@@ -45,6 +45,11 @@ export interface ArchitectureOptions {
   testFolder: string
   /** The folder, local or the subpath of a package, that holds what tests are built from, such as `testing`. */
   testingFolder: string
+  /**
+   * The folder beside a module that holds its stand-in under the same file name, such as `__mocks__`: the test tree,
+   * to the rules that ask.
+   */
+  mockFolder: string
   /** The suffixes of files only a development tool loads, such as `stories`: test code, to the rules that ask. */
   developmentSuffixes: string[]
   /** The kinds of test, as folders directly under the test folder. */

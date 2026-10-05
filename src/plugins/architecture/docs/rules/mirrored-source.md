@@ -23,6 +23,7 @@ src/users/types/services/users.service.type.ts
 src/users/__tests__/unit/services/users.service.spec.ts
 src/users/types/users.type.ts                            ← the module's own vocabulary
 src/users/__tests__/e2e/users.spec.ts                    ← a kind that mirrors nothing by design
+src/users/types/__mocks__/users.type.ts                  ← a stand-in, paired with its module by name
 ```
 
 ## Options
@@ -33,6 +34,7 @@ src/users/__tests__/e2e/users.spec.ts                    ← a kind that mirrors
 | `mirrorFolders`           | `string[]`               | The folders that mirror the tree                                                   |
 | `testFolder`, `testKinds` | `string`, `string[]`     | Where tests live and which kinds exist                                             |
 | `mirroringTestKinds`      | `string[]`               | The kinds whose specs mirror one source; the others assert a property of the whole |
+| `mockFolder`              | `string`                 | The folder of stand-ins, which mirror nothing                                      |
 
 ## Fixable
 

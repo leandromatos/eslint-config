@@ -5,7 +5,8 @@ import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 
 /**
  * Every directory under a module is on the closed list. A directory is reported once, on its
- * barrel or on its first file, rather than on every file inside it.
+ * barrel or on its first file, rather than on every file inside it. The mock folder is on the list
+ * wherever it sits: the test runner and the catalogue name it, beside the module it stands in for.
  */
 export const knownDirectory = fileRule(
   'A module holds only the directories the options name.',
@@ -16,11 +17,11 @@ export const knownDirectory = fileRule(
   },
   (
     { file, segments, module },
-    { suffixToFolder, mirrorFolders, testKinds, rootContexts, moduleContainers },
+    { suffixToFolder, mirrorFolders, testKinds, mockFolder, rootContexts, moduleContainers },
     context,
   ) => {
     if (rootContexts.includes(module)) return []
-    const known = new Set([...Object.values(suffixToFolder), ...mirrorFolders, ...testKinds])
+    const known = new Set([...Object.values(suffixToFolder), ...mirrorFolders, ...testKinds, mockFolder])
     const offending = segments
       .slice(moduleDepthOf(segments, moduleContainers))
       .filter(directory => !known.has(directory))

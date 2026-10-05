@@ -19,7 +19,7 @@ export interface Judgement {
   suffix: string | null
   /** The directory of that file's own layer, and null when it belongs to none. */
   layer: string | null
-  /** Whether the file doing the importing sits in the test tree. */
+  /** Whether the file doing the importing sits in the test tree, the mock folder included. */
   isTestTree: boolean
   /** Whether the file doing the importing is test code: in the test tree, a spec, a story, or in a testing folder. */
   isTestCode: boolean
@@ -27,4 +27,6 @@ export interface Judgement {
   testFolder: string
   /** The folder holding what tests are built from. */
   testingFolder: string
+  /** The folder holding the stand-in of a module, which belongs to the test tree. */
+  mockFolder: string
 }

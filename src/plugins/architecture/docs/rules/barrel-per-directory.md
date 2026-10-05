@@ -23,6 +23,7 @@ src/users/services/users.service.ts
 src/users/services/index.ts
 src/users/users.module.ts             ← reached by its own path
 src/database/scripts/migration.script.ts ← an executed folder, imported by nobody
+src/users/services/__mocks__/users.service.ts ← a stand-in, read by the test runner
 ```
 
 ## Options
@@ -32,6 +33,7 @@ src/database/scripts/migration.script.ts ← an executed folder, imported by nob
 | `rootContexts`    | `string[]` | Directories under `src/` that are contexts of their own              |
 | `executedFolders` | `string[]` | Folders a runtime executes directly, so nothing imports them by name |
 | `testFolder`      | `string`   | The tree that needs no barrel                                        |
+| `mockFolder`      | `string`   | The folder of stand-ins, which the test runner reads by module name  |
 
 ## Fixable
 

@@ -14,7 +14,7 @@ import type { ArchitectureRule, ImportBoundariesMessageId, Judgement } from '../
  *
  * Production code reaches neither the test tree nor a testing folder, local or a package's entry: what
  * tests are built from depends on what a production install leaves out. A file only a development tool
- * loads, such as a story, is test code here.
+ * loads, such as a story, is test code here, and the mock folder is part of the test tree.
  *
  * A barrel is exempt from all of it, because re-exporting its siblings is what it is for.
  */
@@ -42,13 +42,13 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
   },
   create: context => {
     const where = locate(context)
-    const [{ suffixToFolder, testFolder, testingFolder, developmentSuffixes, alias }] = context.options
+    const [{ suffixToFolder, testFolder, testingFolder, mockFolder, developmentSuffixes, alias }] = context.options
     if (!where || where.stem === 'index') return {}
     const suffixes = Object.keys(suffixToFolder)
     if (suffixes.length === 0) return {}
     const folder = where.suffix ? suffixToFolder[where.suffix] : undefined
     const layer = folder ? layerDirectoryOf(where.segments, folder) : null
-    const isTestTree = where.segments.includes(testFolder)
+    const isTestTree = where.segments.includes(testFolder) || where.segments.includes(mockFolder)
     const testSuffix = suffixes.find(key => suffixToFolder[key] === testFolder)
     const isDevelopmentFile = where.suffix !== null && developmentSuffixes.includes(where.suffix)
     const isTestCode =
@@ -67,6 +67,7 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
         isTestCode,
         testFolder,
         testingFolder,
+        mockFolder,
       })
       if (!messageId) return
       context.report({ node, messageId, data: { specifier, barrel: barrelOf(specifier) } })
@@ -116,6 +117,7 @@ const judge = ({
   isTestCode,
   testFolder,
   testingFolder,
+  mockFolder,
 }: Judgement): ImportBoundariesMessageId | null => {
   if (specifier.startsWith('.')) return 'relativeImport'
   const reachesTesting = (segments: string[]): boolean =>
@@ -124,7 +126,7 @@ const judge = ({
   if (!specifier.startsWith(prefix)) return reachesTesting(subpathOf(specifier)) ? 'testingFromProduction' : null
   const target = specifier.slice(prefix.length)
   const segments = target.split('/')
-  if (segments.includes(testFolder)) return isTestTree ? null : 'testFromProduction'
+  if (segments.includes(testFolder) || segments.includes(mockFolder)) return isTestTree ? null : 'testFromProduction'
   if (reachesTesting(segments)) return 'testingFromProduction'
   /*
    * A spec names the file it covers. The barrel of that layer re-exports what the spec is isolating, and a test is

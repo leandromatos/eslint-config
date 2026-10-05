@@ -6,8 +6,8 @@ import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 
 /**
  * A directory that holds source files has a barrel, and a module root has none. Reported once
- * per directory. The root of `src/`, the root contexts, the test tree and the folders the options
- * name as executed directly are left out: nothing imports those by name.
+ * per directory. The root of `src/`, the root contexts, the test tree, the mock folder and the
+ * folders the options name as executed directly are left out: nothing imports those by name.
  *
  * A directory the package publishes is left out too. Its barrel is the entrypoint the manifest
  * points at, so the rule reads `exports` rather than asking a project to name them again.
@@ -23,7 +23,7 @@ export const barrelPerDirectory = fileRule(
   },
   (
     { file, segments, module },
-    { rootContexts, testFolder, executedFolders, moduleContainers, barrelledContainers, mirrorFolders },
+    { rootContexts, testFolder, mockFolder, executedFolders, moduleContainers, barrelledContainers, mirrorFolders },
     context,
   ) => {
     if (segments.length === 0 || rootContexts.includes(module)) return []
@@ -31,7 +31,8 @@ export const barrelPerDirectory = fileRule(
     if (segments.length === 1 && moduleContainers.includes(module)) return []
     /* A mirror at the source root holds the types of the files beside it, so it is a context rather than a module. */
     if (mirrorFolders.includes(module)) return []
-    if (segments.includes(testFolder) || segments.some(segment => executedFolders.includes(segment))) return []
+    if (segments.includes(testFolder) || segments.includes(mockFolder)) return []
+    if (segments.some(segment => executedFolders.includes(segment))) return []
     const directory = path.join(context.cwd, 'src', ...segments)
     if (file !== firstSourceOf(directory)) return []
     const hasBarrel = fs.existsSync(path.join(directory, 'index.ts'))

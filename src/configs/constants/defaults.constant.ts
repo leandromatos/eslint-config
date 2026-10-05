@@ -125,6 +125,11 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
   testFolder: SUFFIX_TO_FOLDER.spec,
   /* What a package ships for its consumers' tests, and what a project keeps for its own: never part of production. */
   testingFolder: 'testing',
+  /*
+   * Vitest, Jest and Storybook all read the stand-in of a module from this folder beside it, under the same file name.
+   * A test loads it and the application never does, so it answers to the rules as the test tree does.
+   */
+  mockFolder: '__mocks__',
   /* A project on no framework runs no catalogue, so every file it writes outside the tests is production code. */
   developmentSuffixes: [],
   /*

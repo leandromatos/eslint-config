@@ -35,6 +35,7 @@ src/users/
 | `mirrorFolders`  | `string[]`               | The folders that mirror the tree instead of being a layer                |
 | `rootContexts`   | `string[]`               | The directories under `src/` that are contexts of their own, not modules |
 | `testKinds`      | `string[]`               | The folders a test tree may hold                                         |
+| `mockFolder`     | `string`                 | The folder beside a module that holds its stand-in, known anywhere       |
 
 ## Fixable
 

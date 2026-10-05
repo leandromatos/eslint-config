@@ -23,6 +23,12 @@ ruleTester.run('barrel-per-directory', barrelPerDirectory, {
       options,
     },
     { code: 'export const boot = () => 1', filename: sourceFile('users', '__tests__', 'boot.util.ts'), options },
+    // The mock folder is read by the test runner and the catalogue, which name the module rather than the folder.
+    {
+      code: 'export class UserService {}',
+      filename: sourceFile('users', 'services', '__mocks__', 'user.service.ts'),
+      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+    },
 
     { code: 'export * from "./user.service.js"', filename: sourceFile('users', 'services', 'index.ts'), options },
     { code: 'export class UserService {}', filename: sourceFile('users', 'services', 'user.service.ts'), options },
@@ -44,6 +50,13 @@ ruleTester.run('barrel-per-directory', barrelPerDirectory, {
     {
       code: 'export class AccountRepository {}',
       filename: sourceFile('accounts', 'repositories', 'account.repository.ts'),
+      options,
+      errors: [{ messageId: 'missingBarrel' }],
+    },
+    // With no mock folder named, the stand-in's directory is a directory of sources like any other.
+    {
+      code: 'export class UserService {}',
+      filename: sourceFile('users', 'services', '__mocks__', 'user.service.ts'),
       options,
       errors: [{ messageId: 'missingBarrel' }],
     },
