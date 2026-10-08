@@ -26,6 +26,9 @@ src/users/__tests__/e2e/users.spec.ts                    ← a kind that mirrors
 src/users/types/__mocks__/users.type.ts                  ← a stand-in, paired with its module by name
 ```
 
+The vocabulary of the tests of a module, shared by its specs and mirroring no file, sits at the
+root of the test tree's `types/` and is named after the module: `users/__tests__/types/users.type.ts`.
+
 A module split by platform, as `toggle.ios.tsx` and `toggle.android.tsx`, is imported as
 `./toggle`, so `types/toggle.type.ts` mirrors either file.
 

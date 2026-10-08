@@ -28,10 +28,11 @@ export const mirroredSource = fileRule(
     if (at < 0) return []
     /*
      * The vocabulary of whatever holds the mirror folder, named after it: `naming.type.ts` under `naming/types/`. The
-     * owner is the directory the mirror sits in, which is the module itself when the mirror sits at its root.
+     * owner is the directory the mirror sits in, which is the module itself when the mirror sits at its root, and the
+     * module whose tests they are when it sits in the test tree.
      */
     /* v8 ignore next -- the mirror is a segment of the path, so the module is what sits before it */
-    const owner = segments[at - 1] ?? module
+    const owner = ownerOf(segments, at, testFolder) ?? module
     const isVocabulary = file === `${owner}.${suffix}.ts` && at === segments.length - 1
     if (isVocabulary) return []
     const inner = segments.slice(at + 1)
@@ -122,4 +123,21 @@ const dropKind = (inner: string[], hasKind: boolean): string[] => {
   if (!hasKind) return inner
 
   return inner.slice(1)
+}
+
+/**
+ * Whose vocabulary a mirror at the root of its folder holds: the directory the mirror sits in, and, for the mirror of
+ * a test tree, the module the test tree belongs to, so `users/__tests__/types/users.type.ts` is the vocabulary of the
+ * tests of `users`.
+ *
+ * @param segments - The directories between the source root and the file.
+ * @param at - Where the mirror folder sits among them.
+ * @param testFolder - The folder that holds the tests.
+ * @returns The name of the owner, and nothing when the mirror sits at the source root.
+ */
+const ownerOf = (segments: string[], at: number, testFolder: string): string | undefined => {
+  const holder = segments[at - 1]
+  if (holder === testFolder) return segments[at - 2]
+
+  return holder
 }

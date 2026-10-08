@@ -216,3 +216,22 @@ ruleTester.run('mirrored-source, over a module split by platform', mirroredSourc
     },
   ],
 })
+
+ruleTester.run('mirrored-source, in the types of a test tree', mirroredSource, {
+  valid: [
+    // The vocabulary of the tests of a module, shared by its specs, is named after the module and mirrors nothing.
+    {
+      code: 'export interface AccountAttributes {\n  id: string\n}',
+      filename: sourceFile('users', '__tests__', 'types', 'users.type.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'export interface AccountAttributes {\n  id: string\n}',
+      filename: sourceFile('users', '__tests__', 'types', 'accounts.type.ts'),
+      options,
+      errors: [{ messageId: 'noSource' }],
+    },
+  ],
+})
