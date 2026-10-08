@@ -174,7 +174,7 @@ One plugin, [`eslint-plugin-leandromatos`](src/plugins/README.md), holding every
 | -------------- | ----- | ------------------------------------------------------------ | --------------------------------------------------------------- |
 | `typescript`   | 1     | the constructs of the language: how a vocabulary is declared | the suffix of a type file                                       |
 | `naming`       | 5     | what a value, a method and a fixture are called              | word lists                                                      |
-| `tsdoc`        | 8     | the comments of a file: form, presence, tags                 | a column, the test folder, the kinds of function asked for tags |
+| `tsdoc`        | 9     | the comments of a file: form, presence, tags                 | a column, the test folder, the kinds of function asked for tags |
 | `architecture` | 12    | where a file lives, what it is called, what a layer exposes  | the project's vocabulary                                        |
 | `testing`      | 4     | how a spec is written and where it sits                      | the test folder and its kinds                                   |
 | `text`         | 1     | the strings the product ships                                | the patterns the brand decided                                  |

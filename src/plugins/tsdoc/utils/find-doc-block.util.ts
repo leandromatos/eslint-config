@@ -3,6 +3,13 @@ import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
 
 import type { DocumentedNode } from '../types/index.js'
 
+/** The expressions a comment documents through what holds them: a function or a class written as a value. */
+const VALUES = new Set<string>([
+  AST_NODE_TYPES.ArrowFunctionExpression,
+  AST_NODE_TYPES.FunctionExpression,
+  AST_NODE_TYPES.ClassExpression,
+])
+
 /** The calls a function handed as an argument is part of, which leave the comment to the function itself. */
 const CALLS = new Set<string>([AST_NODE_TYPES.CallExpression, AST_NODE_TYPES.NewExpression])
 
@@ -20,19 +27,18 @@ const HOLDERS = new Set<string>([
 /**
  * Finds the documentation comment of a function, an interface method or a class.
  *
- * A declaration carries its comment above it, or above the export around it. A function written as a value carries
- * it above what holds it: the variable, the statement, the member, the return or the default export. Between the
- * function and what holds it there may be any expression, as long as none of them carries a comment of its own, and a
- * function handed straight to a call carries its comment right before it. The comment opens with exactly two
+ * A declaration carries its comment above it, or above the export around it. A function or a class written as a value
+ * carries it above what holds it: the variable, the statement, the member, the return or the default export. Between
+ * the function and what holds it there may be any expression, as long as none of them carries a comment of its own, and
+ * a function handed straight to a call carries its comment right before it. The comment opens with exactly two
  * asterisks, and nothing but other comments stands between it and the node, each on the line right after the one
  * before.
- *
  * @param sourceCode - The source of the file.
  * @param node - What the comment documents.
  * @returns The comment, and null when none documents the node.
  */
 export const findDocBlock = (sourceCode: TSESLint.SourceCode, node: DocumentedNode): TSESTree.Comment | null => {
-  const anchor = anchorOf(sourceCode, node)
+  const anchor = decoratorBefore(anchorOf(sourceCode, node), node)
   let nextLine = anchor.loc.start.line
   for (const comment of sourceCode.getCommentsBefore(anchor).reverse()) {
     if (nextLine - comment.loc.end.line > 1) return null
@@ -44,6 +50,21 @@ export const findDocBlock = (sourceCode: TSESLint.SourceCode, node: DocumentedNo
 }
 
 /**
+ * The first decorator of a class when it is written before the export, which is then where the comment sits.
+ *
+ * @param anchor - The node the comment would sit above without decorators.
+ * @param node - What the comment documents.
+ * @returns The decorator, or the anchor when no decorator comes before it.
+ */
+const decoratorBefore = (anchor: TSESTree.Node, node: DocumentedNode): TSESTree.Node => {
+  if (node.type !== AST_NODE_TYPES.ClassDeclaration) return anchor
+  const [firstDecorator] = node.decorators
+  if (!firstDecorator || firstDecorator.range[0] >= anchor.range[0]) return anchor
+
+  return firstDecorator
+}
+
+/**
  * The node a comment above documents the given one through.
  *
  * @param sourceCode - The source of the file.
@@ -51,8 +72,7 @@ export const findDocBlock = (sourceCode: TSESLint.SourceCode, node: DocumentedNo
  * @returns The node the comment sits right above.
  */
 const anchorOf = (sourceCode: TSESLint.SourceCode, node: DocumentedNode): TSESTree.Node => {
-  if (node.type !== AST_NODE_TYPES.ArrowFunctionExpression && node.type !== AST_NODE_TYPES.FunctionExpression)
-    return exportOf(node)
+  if (!VALUES.has(node.type)) return exportOf(node)
   if (CALLS.has(node.parent.type)) return node
   let holder: TSESTree.Node = node.parent
   while (holder.type !== AST_NODE_TYPES.Program && isPassedThrough(sourceCode, holder)) holder = holder.parent

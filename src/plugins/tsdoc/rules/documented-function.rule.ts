@@ -5,25 +5,7 @@ import type ts from 'typescript'
 import { isMethod, locate, memberNameOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { DocumentedFunctionMessageId, TsdocRule } from '../types/index.js'
-
-/** Words a summary may spend without saying anything the name did not. */
-const FILLER = new Set([
-  'a',
-  'an',
-  'the',
-  'of',
-  'to',
-  'for',
-  'and',
-  'or',
-  'by',
-  'with',
-  'in',
-  'on',
-  'from',
-  'one',
-  'all',
-])
+import { restatesName } from '../utils/index.js'
 
 /**
  * Every method and every function a module declares carries a documentation comment, and the comment says what the name
@@ -70,7 +52,7 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
 
         return
       }
-      if (restatesName(summaryOf(comment.value), name))
+      if (restatesName(comment.value, name))
         context.report({ node: comment, messageId: 'restatesName', data: { name } })
     }
     const judgeFunctionsOf = (statement: TSESTree.Node, documented: TSESTree.Node): void => {
@@ -167,58 +149,6 @@ const superClassesOf = (classNode: TSESTree.ClassDeclaration | TSESTree.ClassExp
  */
 const instanceTypesOf = (constructorType: ts.Type): ts.Type[] =>
   constructorType.getConstructSignatures().map(signature => signature.getReturnType())
-
-/**
- * The first sentence of a comment, without the asterisks.
- *
- * @param value - The comment as the parser read it.
- * @returns The summary.
- */
-const summaryOf = (value: string): string => {
-  const text = value
-    .split('\n')
-    .map(line => line.replace(/^\s*\*+\s?/, ''))
-    .join(' ')
-    .trim()
-  const end = text.search(/[.!?](\s|$)/)
-  if (end < 0) return text
-
-  return text.slice(0, end)
-}
-
-/**
- * Whether every word of the summary is a word of the name, once the filler is dropped.
- *
- * @param summary - The first sentence of the comment.
- * @param name - The name it documents.
- * @returns Whether the summary only rewrites the name.
- */
-const restatesName = (summary: string, name: string): boolean => {
-  const nameWords = new Set(wordsOf(name))
-  const said = wordsOf(summary).filter(word => !FILLER.has(word))
-
-  return said.length > 0 && said.every(word => nameWords.has(word) || nameWords.has(stem(word)))
-}
-
-/**
- * The lowercase words of a camel-case name or a sentence.
- *
- * @param text - The name or the sentence.
- * @returns The words.
- */
-const wordsOf = (text: string): string[] =>
-  /* v8 ignore start -- a name is made of words, so the pattern always matches one */
-  /* v8 ignore next -- a name is made of words, so the pattern always matches one */
-  (text.match(/[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+/g) ?? []).map(word => word.toLowerCase())
-/* v8 ignore stop */
-
-/**
- * `find` for `finds`, `create` for `creates`, `delete` for `deletes`, `retrieve` for `retrieves`.
- *
- * @param word - The word as the summary spells it.
- * @returns The word without its verb ending.
- */
-const stem = (word: string): string => word.replace(/(es|s)$/, '')
 
 /**
  * Reads the name a module binds first and then exports as its default, as in `export default Page`.
