@@ -36,6 +36,8 @@ const ORDERED_SUFFIXES = ['controller', 'service', 'repository', 'cache', 'trans
 export const NESTJS_ARCHITECTURE: ArchitectureOptions = {
   ...DEFAULT_ARCHITECTURE,
   suffixToFolder: NESTJS_SUFFIX_TO_FOLDER,
+  /* A package's capability holds the base classes every driver shares in `core/`, beside the layers. */
+  baseFolders: ['core'],
   /* `migrations` and `seeds` hold no layer: a runtime executes them rather than a caller importing one. */
   executedFolders: [SUFFIX_TO_FOLDER.script, 'migrations', 'seeds'],
   orderedSuffixes: ORDERED_SUFFIXES,

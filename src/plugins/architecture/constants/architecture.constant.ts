@@ -9,6 +9,7 @@ export const EMPTY_OPTIONS: ArchitectureOptions = {
   folderlessSuffixes: [],
   effectHooks: [],
   definitionTimeDirectives: [],
+  baseFolders: [],
   moduleContainers: [],
   barrelledContainers: [],
   mirrorFolders: [],

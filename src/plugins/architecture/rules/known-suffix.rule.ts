@@ -1,4 +1,4 @@
-import { fileRule, isContextRoot } from '../../shared/utils/index.js'
+import { fileRule, isContextRoot, moduleDepthOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 
 /** Every file carries a known suffix, and sits under the folder that suffix names. */
@@ -12,11 +12,13 @@ export const knownSuffix = fileRule(
   },
   (
     { sourceRoot, file, stem, suffix, segments },
-    { suffixToFolder, folderlessSuffixes, suffixFreeFolders, mirrorFolders },
+    { suffixToFolder, folderlessSuffixes, suffixFreeFolders, mirrorFolders, baseFolders, moduleContainers },
   ) => {
     if (file === 'index.ts' || file.endsWith('.d.ts') || segments.length === 0) return []
     /* A folder can say what its files are, which is how a React tree names a component after the function in it. */
     if (segments.some(segment => suffixFreeFolders.includes(segment))) return []
+    /* A base folder at the root of a module holds base classes, which are named for what they are. */
+    if (baseFolders.includes(segments[moduleDepthOf(segments, moduleContainers)] ?? '')) return []
     if (!suffix) return [{ messageId: 'noSuffix', data: { file } }]
     if (folderlessSuffixes.includes(suffix)) return []
     const folder = suffixToFolder[suffix]

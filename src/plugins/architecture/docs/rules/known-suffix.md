@@ -27,10 +27,11 @@ src/users/services/index.ts            ← a barrel carries no suffix
 
 ## Options
 
-| Option               | Type                     | What it decides                                        |
-| -------------------- | ------------------------ | ------------------------------------------------------ |
-| `suffixToFolder`     | `Record<string, string>` | Suffix to the folder that holds it                     |
-| `folderlessSuffixes` | `string[]`               | Suffixes with no folder of their own, such as `module` |
+| Option               | Type                     | What it decides                                                                                |
+| -------------------- | ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `suffixToFolder`     | `Record<string, string>` | Suffix to the folder that holds it                                                             |
+| `folderlessSuffixes` | `string[]`               | Suffixes with no folder of their own, such as `module`                                         |
+| `baseFolders`        | `string[]`               | Folders at a module root whose files are base classes, named for what they are, such as `core` |
 
 ## Fixable
 

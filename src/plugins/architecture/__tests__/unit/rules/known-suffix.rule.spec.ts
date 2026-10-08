@@ -124,3 +124,23 @@ monorepoRuleTester.run('known-suffix, in a repository of several packages', know
     },
   ],
 })
+
+ruleTester.run('known-suffix, under a base folder', knownSuffix, {
+  valid: [
+    // A base class at the root of a capability is named for what it is.
+    {
+      code: 'export abstract class DomainEvent {}',
+      filename: sourceFile('events', 'core', 'domain-event.ts'),
+      options: [{ ...options[0], baseFolders: ['core'] }] as [ArchitectureOptions],
+    },
+  ],
+  invalid: [
+    // Anywhere else the folder says nothing about its files.
+    {
+      code: 'export abstract class DomainEvent {}',
+      filename: sourceFile('events', 'services', 'core', 'domain-event.ts'),
+      options: [{ ...options[0], baseFolders: ['core'] }] as [ArchitectureOptions],
+      errors: [{ messageId: 'noSuffix' }],
+    },
+  ],
+})

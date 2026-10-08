@@ -114,3 +114,25 @@ monorepoRuleTester.run('known-directory, in a repository of several packages', k
     },
   ],
 })
+
+const baseOptions: [ArchitectureOptions] = [{ ...options[0], baseFolders: ['core'] }]
+
+ruleTester.run('known-directory, with a base folder', knownDirectory, {
+  valid: [
+    // The root of a capability holds the base classes every driver shares.
+    {
+      code: 'export abstract class DomainEvent {}',
+      filename: sourceFile('events', 'core', 'domain-event.ts'),
+      options: baseOptions,
+    },
+  ],
+  invalid: [
+    // Below a layer, the folder is not the module's base, and the list does not carry it there.
+    {
+      code: 'export abstract class DomainEvent {}',
+      filename: sourceFile('events', 'services', 'core', 'domain-event.ts'),
+      options: baseOptions,
+      errors: [{ messageId: 'unknownDirectory', data: { directory: 'core' } }],
+    },
+  ],
+})

@@ -36,6 +36,7 @@ src/users/
 | `rootContexts`   | `string[]`               | The directories under the source root that are contexts of their own, not modules |
 | `testKinds`      | `string[]`               | The folders a test tree may hold                                                  |
 | `mockFolder`     | `string`                 | The folder beside a module that holds its stand-in, known anywhere                |
+| `baseFolders`    | `string[]`               | The folders a module holds at its root for its base classes, such as `core`       |
 | `testingFolder`  | `string`                 | The folder that holds what a package publishes for tests, known anywhere          |
 
 ## Fixable

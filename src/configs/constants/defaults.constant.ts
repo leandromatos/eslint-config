@@ -104,13 +104,15 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
   coLocatedTypeSuffixes: [],
   suffixToFolder: SUFFIX_TO_FOLDER,
   folderlessSuffixes: ['module', 'setup'],
+  effectHooks: [],
+  /* A function reads what it calls when it runs, unless a runtime says otherwise; a project on one names it. */
+  definitionTimeDirectives: [],
+  /* A project names no base folder: the base classes of a capability are a package's. */
+  baseFolders: [],
   /*
    * The directories that hold modules rather than layers. A NestJS tree puts its modules at the root of the sources
    * and names none of these; a Bulletproof tree groups them, and the layer starts one segment later.
    */
-  effectHooks: [],
-  /* A function reads what it calls when it runs, unless a runtime says otherwise; a project on one names it. */
-  definitionTimeDirectives: [],
   moduleContainers: [],
   barrelledContainers: [],
   mirrorFolders: [SUFFIX_TO_FOLDER.type, SUFFIX_TO_FOLDER.spec],

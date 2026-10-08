@@ -25,6 +25,11 @@ export interface ArchitectureOptions {
    * `'worklet'` of React Native Worklets.
    */
   definitionTimeDirectives: string[]
+  /**
+   * Folders a module holds at its root for the base classes it is built on, such as `core` in a package: known there,
+   * and their files named for what they do rather than by a suffix.
+   */
+  baseFolders: string[]
   /** Directories that hold modules rather than layers, such as `features`: the layer starts one segment later. */
   moduleContainers: string[]
   /** Containers whose modules are reached whole rather than by layer, so each carries a barrel of its own. */
