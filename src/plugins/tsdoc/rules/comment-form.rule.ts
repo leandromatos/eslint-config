@@ -15,6 +15,9 @@ const DIRECTIVE_REG_EXP = /^\s*(\/|eslint|@ts-|prettier-|v8 ignore|c8 ignore|ist
 /** What opens a tag paragraph, which never folds into the sentence above it. */
 const TAG_REG_EXP = /^@\w+/
 
+/** What opens or closes a fenced code block inside a comment, where a line that opens with `@` is code. */
+const FENCE_REG_EXP = /^```/
+
 /** The characters a line of a block comment spends before its text: the indentation, then `* `. */
 const BLOCK_PREFIX_WIDTH = 3
 
@@ -24,6 +27,9 @@ const BLOCK_PREFIX_WIDTH = 3
  * next person to add a sentence has to repeat the marker to keep it together. Either form is
  * wrapped at the column the formatter wraps code at, which the formatter itself will not do to a
  * comment.
+ *
+ * In a documentation comment, a blank line separates the summary from the first tag, so the text a
+ * reader looks for and the tags a tool reads open paragraphs of their own.
  */
 export const commentForm: TsdocRule<CommentFormMessageId> = {
   meta: {
@@ -37,6 +43,7 @@ export const commentForm: TsdocRule<CommentFormMessageId> = {
     messages: {
       lineRun: 'This note takes {{count}} lines. A note that runs to a paragraph is written as a block comment.',
       pastWidth: 'This comment runs past column {{width}}. Wrap it there, where the formatter wraps code.',
+      tagAgainstSummary: 'The first tag follows the summary with no blank line between them. Leave one.',
     },
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
@@ -73,6 +80,15 @@ export const commentForm: TsdocRule<CommentFormMessageId> = {
             messageId: 'pastWidth',
             data: { width: String(commentWidth) },
             fix: ruleFixer => ruleFixer.replaceText(comment, rewrapped(comment, commentWidth)),
+          })
+        }
+        for (const comment of blockCommentsOf(sourceCode)) {
+          const line = lineOfFirstTag(comment)
+          if (line === null) continue
+          context.report({
+            node: comment,
+            messageId: 'tagAgainstSummary',
+            fix: ruleFixer => ruleFixer.replaceText(comment, withBlankBefore(comment, line)),
           })
         }
       },
@@ -122,6 +138,45 @@ const blockCommentsOf = (sourceCode: TSESLint.SourceCode): TSESTree.Comment[] =>
   sourceCode
     .getAllComments()
     .filter(comment => comment.type === AST_TOKEN_TYPES.Block && !DIRECTIVE_REG_EXP.test(comment.value))
+
+/**
+ * The line of a documentation comment that holds its first tag, when the summary runs into it.
+ *
+ * A line inside a fenced code block is code, so a decorator there opens no tag.
+ *
+ * @param comment - The comment the rule reads.
+ * @returns The index of the line, and null where a blank line already separates the two or the comment holds no
+ * summary above a tag.
+ */
+const lineOfFirstTag = (comment: TSESTree.Comment): number | null => {
+  if (!comment.value.startsWith('*')) return null
+  const texts = comment.value.split('\n').map(stripMarker)
+  let isInFence = false
+  for (const [index, text] of texts.entries()) {
+    if (FENCE_REG_EXP.test(text)) isInFence = !isInFence
+    if (isInFence || !TAG_REG_EXP.test(text)) continue
+    if (index === 0 || texts[index - 1] === '') return null
+
+    return index
+  }
+
+  return null
+}
+
+/**
+ * The same comment with a blank line above the line of its first tag.
+ *
+ * @param comment - The comment being rewritten.
+ * @param line - The index of the line that holds the first tag.
+ * @returns The comment.
+ */
+const withBlankBefore = (comment: TSESTree.Comment, line: number): string => {
+  const lines = comment.value.split('\n')
+  const indent = ' '.repeat(comment.loc.start.column)
+  lines.splice(line, 0, `${indent} *`)
+
+  return `/*${lines.join('\n')}*/`
+}
 
 /**
  * Whether nothing but whitespace precedes the comment on its line.
@@ -206,7 +261,9 @@ const rewrapped = (comment: TSESTree.Comment, commentWidth: number): string => {
   const indent = ' '.repeat(comment.loc.start.column)
   const opening = openingOf(comment)
   const width = commentWidth - indent.length - BLOCK_PREFIX_WIDTH
-  const lines = paragraphsOf(comment).flatMap((paragraph, index) => wrappedParagraph(paragraph, index, width))
+  const lines = paragraphsOf(comment).flatMap((paragraph, index, paragraphs) =>
+    wrappedParagraph(paragraph, index, width, paragraphs[index - 1]),
+  )
 
   return [opening, ...lines.map(line => `${indent} *${spaced(line)}`), `${indent} */`].join('\n')
 }
@@ -249,19 +306,21 @@ const paragraphsOf = (comment: TSESTree.Comment): string[] => {
 /**
  * One paragraph as lines, with the blank line that opens it.
  *
- * The first paragraph opens the comment, and a tag opens a paragraph of its own without a blank line above it, so
- * neither carries one.
+ * The first paragraph opens the comment, so it carries none. A tag below another tag opens a paragraph of its own
+ * without one, and the first tag below the text keeps the blank line that separates it from the summary.
  *
  * @param paragraph - The paragraph's text.
  * @param index - Where it sits in the comment.
  * @param width - The column the text is wrapped at.
+ * @param previous - The paragraph above it, and nothing for the first one.
  * @returns The lines.
  */
-const wrappedParagraph = (paragraph: string, index: number, width: number): string[] => {
+const wrappedParagraph = (paragraph: string, index: number, width: number, previous: string | undefined): string[] => {
   /* A blank paragraph is the separator itself, and the paragraph below it opens with one; emitting both doubles it. */
   if (!paragraph) return []
   const wrapped = wrap(paragraph, width)
-  if (!index || TAG_REG_EXP.test(paragraph)) return wrapped
+  if (!index) return wrapped
+  if (TAG_REG_EXP.test(paragraph) && (!previous || TAG_REG_EXP.test(previous))) return wrapped
 
   return ['', ...wrapped]
 }

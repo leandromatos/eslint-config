@@ -7,6 +7,9 @@ A paragraph written as a stack of `//` lines reads as several notes and moves as
 person to add a sentence has to repeat the marker to keep it together. The formatter never rewraps
 a comment, so the column is the rule's to hold.
 
+In a documentation comment, a blank line separates the summary from the first tag. The text a
+reader looks for and the tags a tool reads each open a paragraph of their own.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:
@@ -17,6 +20,11 @@ a comment, so the column is the rule's to hold.
 const cursors = buildCursors()
 
 /** A summary that runs past the column the formatter wraps code at, and keeps going well beyond it into a second screen. */
+
+/**
+ * Reads one user.
+ * @param userId - The user to read.
+ */
 ```
 
 👍 Examples of **correct** code:
@@ -27,6 +35,12 @@ const cursors = buildCursors()
  * second, and a page boundary landing inside that group would skip a row.
  */
 const cursors = buildCursors()
+
+/**
+ * Reads one user.
+ *
+ * @param userId - The user to read.
+ */
 
 // One line, one note.
 const isCurrent = session.id === currentSessionId
@@ -45,7 +59,8 @@ console.log(message) // a directive is a line by contract
 
 Yes. The fix joins the lines into a block and rewraps it; inside a documentation comment a blank
 line and a tag each open a paragraph of their own, so a `@param` is never folded into the sentence
-above it. A code span in backticks moves to the next line whole, because TSDoc closes a span on the
+above it, and the first tag keeps a blank line above it. A first tag that runs into the summary gets
+that blank line. A code span in backticks moves to the next line whole, because TSDoc closes a span on the
 line it opens on.
 
 ## When not to use it

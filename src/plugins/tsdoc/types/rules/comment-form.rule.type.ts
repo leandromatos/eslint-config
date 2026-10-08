@@ -1,2 +1,2 @@
 /** The messages `comment-form` reports. */
-export type CommentFormMessageId = 'lineRun' | 'pastWidth'
+export type CommentFormMessageId = 'lineRun' | 'pastWidth' | 'tagAgainstSummary'

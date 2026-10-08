@@ -39,6 +39,7 @@ const HOLDERS = new Set<string>([
  * a function handed straight to a call carries its comment right before it. The comment opens with exactly two
  * asterisks, and nothing but other comments stands between it and the node, each on the line right after the one
  * before.
+ *
  * @param sourceCode - The source of the file.
  * @param node - What the comment documents.
  * @returns The comment, and null when none documents the node.

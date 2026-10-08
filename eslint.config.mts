@@ -26,6 +26,7 @@ const TEST_KINDS = ['unit']
  * The annotation is the package's own exported `Config`, so the type a consumer is told to use is the type this
  * repository lints itself with: one that stopped being exported, or stopped describing what the configuration contains,
  * fails here.
+ *
  * @see {@link https://eslint.org/docs/latest/use/configure/configuration-files ESLint Configuration}
  */
 const eslintConfig: Config[] = [

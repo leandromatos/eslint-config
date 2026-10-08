@@ -24,6 +24,7 @@ const DEFAULT_FILES = ['src/**/*.ts']
  * the six plugins that read no framework. A project states only where it differs: the folders of its own root, the
  * words it owns, the strings its product ships. What it never restates is the vocabulary itself, which is why the
  * import boundaries and the architecture rules cannot disagree here: both read the same map.
+ *
  * @param strictOptions - What this project says on top of the defaults.
  * @returns The configuration, to export from `eslint.config.mts`.
  */

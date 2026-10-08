@@ -46,12 +46,15 @@ ruleTester.run('comment-form', commentForm, {
       errors: [{ messageId: 'pastWidth' }],
       output: `/*\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n *\n * A second paragraph.\n */\nconst a = 1`,
     },
-    // A documentation comment keeps its second asterisk, and a tag opens a paragraph with no blank line above it.
+    /*
+     * A documentation comment keeps its second asterisk. The first tag keeps a blank line above it, and a tag below
+     * another tag carries none.
+     */
     {
-      code: `/**\n * ${WORDS}\n * @param value - The value.\n */\nconst read = value => value`,
+      code: `/**\n * ${WORDS}\n * @param value - The value.\n * @returns The value.\n */\nconst read = value => value`,
       options,
-      errors: [{ messageId: 'pastWidth' }],
-      output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n * @param value - The value.\n */\nconst read = value => value`,
+      errors: [{ messageId: 'pastWidth' }, { messageId: 'tagAgainstSummary' }],
+      output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n *\n * @param value - The value.\n * @returns The value.\n */\nconst read = value => value`,
     },
     // A code span stays on one line, so a span that does not fit moves whole to the next.
     {
@@ -91,4 +94,39 @@ ruleTester.run('comment-form, on a directive the compiler reads', commentForm, {
     },
   ],
   invalid: [],
+})
+
+ruleTester.run('comment-form, between the summary and the first tag', commentForm, {
+  valid: [
+    {
+      code: '/**\n * Reads one user.\n *\n * @param id - The user.\n * @returns The user.\n */\nconst read = id => id',
+      options,
+    },
+    // A comment that opens with a tag carries no summary to separate, and a note is no documentation comment.
+    { code: '/** @inheritDoc */\nconst read = id => id', options },
+    { code: '/**\n * @param id - The user.\n */\nconst read = id => id', options },
+    { code: '/*\n * Reads one user.\n * @see the route\n */\nconst read = id => id', options },
+    // A decorator in a fenced example is code, and the tag after the fence is separated.
+    {
+      code: '/**\n * Wires the module.\n * ```ts\n * @Module({})\n * ```\n *\n * @returns The module.\n */\nconst wire = () => 1',
+      options,
+    },
+    { code: '/** Reads one user. */\nconst read = id => id', options },
+  ],
+  invalid: [
+    {
+      code: '/**\n * Reads one user.\n * @param id - The user.\n * @returns The user.\n */\nconst read = id => id',
+      options,
+      errors: [{ messageId: 'tagAgainstSummary' }],
+      output:
+        '/**\n * Reads one user.\n *\n * @param id - The user.\n * @returns The user.\n */\nconst read = id => id',
+    },
+    // A summary on the opening line runs into the tag the same way, and the fix keeps the indentation.
+    {
+      code: 'class Reader {\n  /** Reads one user.\n   * @returns The user.\n   */\n  read() {}\n}',
+      options,
+      errors: [{ messageId: 'tagAgainstSummary' }],
+      output: 'class Reader {\n  /** Reads one user.\n   *\n   * @returns The user.\n   */\n  read() {}\n}',
+    },
+  ],
 })
