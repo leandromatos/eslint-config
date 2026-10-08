@@ -16,6 +16,8 @@ export const NESTJS_FILES = TS_SOURCES
 const NESTJS_SUFFIX_TO_FOLDER = {
   ...SUFFIX_TO_FOLDER,
   channel: 'channels',
+  /* What OpenTelemetry instruments a library with, one instrumentation per library it traces. */
+  instrumentation: 'instrumentations',
   interceptor: 'interceptors',
   processor: 'processors',
   publisher: 'publishers',

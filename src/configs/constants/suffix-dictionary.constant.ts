@@ -43,6 +43,7 @@ export const SUFFIX_DICTIONARY = {
   guard: 'guards',
   hook: 'hooks',
   indicator: 'indicators',
+  instrumentation: 'instrumentations',
   interceptor: 'interceptors',
   key: 'keys',
   locale: 'locales',
