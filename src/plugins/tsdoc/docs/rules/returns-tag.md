@@ -24,6 +24,15 @@ function log(message: string): void {
 }
 
 /**
+ * Saves the user.
+ *
+ * @returns Nothing.
+ */
+async function saveUser(user: UserEntity): Promise<void> {
+  await repository.save(user)
+}
+
+/**
  * Counts the users.
  *
  * @returns
@@ -42,20 +51,27 @@ const countUsers = (): number => users.length
 const countUsers = (): number => users.length
 
 /** Waits for the queue to drain. */
-const drain = (): Promise<void> =>
+const drain = async (): Promise<void> => {
+  await queue.drained()
+}
+
+/** Waits for the next tick. */
+const tick = (): Promise<void> =>
   new Promise(resolve => {
-    queue.once('drained', () => resolve())
+    setTimeout(() => resolve())
   })
 ```
 
-A function hands a value back when a `return` in its own body carries one, or when an arrow writes
-an expression for its body. A declared function or an interface method hands one back when its
-return type is not `void`, `undefined` or `never`. A promise a `return` builds in place hands back
-nothing when its executor resolves it empty.
+The type the signature hands back decides first. `void`, `undefined` and `never`, or a promise of
+one of them, hand back nothing, async or not, so a `@returns` there is reported. A generator hands
+back values when its own body yields one or returns one. Past the type, an arrow with an expression
+for its body hands a value back, and so does a function whose own `return` carries one. A promise a
+`return` builds in place hands back nothing when its executor resolves it empty.
 
 A constructor builds the instance, and a comment carrying `@inheritDoc` documents nothing here, so
-neither is asked. An async function or a generator hands back a promise or an iterator whatever its
-body returns, so a tag on one is never reported as unexpected.
+neither is asked. A second tag is always one too many.
+
+The rule reads types, so it runs where the parser has a project.
 
 ## Options
 

@@ -1,8 +1,9 @@
-import type { TSESTree } from '@typescript-eslint/utils'
+import type { ParserServicesWithTypeInformation, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
+import ts from 'typescript'
 
 import { childNodesOf } from '../../shared/utils/index.js'
-import type { ReturnArgumentJudge, ReturningNode } from '../types/index.js'
+import type { ReturningNode } from '../types/index.js'
 
 /** The functions a `return` belongs to on its own, so a return inside one says nothing about the function around it. */
 const FUNCTIONS = new Set<string>([
@@ -11,76 +12,97 @@ const FUNCTIONS = new Set<string>([
   AST_NODE_TYPES.ArrowFunctionExpression,
 ])
 
-/** The return types that say a signature without a body hands back nothing. */
-const NOTHING_TYPES = new Set<string>([
-  AST_NODE_TYPES.TSVoidKeyword,
-  AST_NODE_TYPES.TSUndefinedKeyword,
-  AST_NODE_TYPES.TSNeverKeyword,
-])
+/** The flags of the types that carry no value. */
+const NOTHING_FLAGS = ts.TypeFlags.Void | ts.TypeFlags.Undefined | ts.TypeFlags.Never
 
 /**
- * Whether a function hands anything back to its caller, which is what a `@returns` documents.
+ * Whether a function hands back a value a caller reads, which is what a `@returns` documents.
  *
- * A function with a body hands a value back when one of its own `return` statements carries an expression, and an arrow
- * with an expression for a body always does. The type the function declares is not read there: the body is what runs.
- * A signature without a body has only its declared type, which hands a value back unless it is `void`, `undefined` or
- * `never`.
- *
- * @param node - The function, or the signature without a body.
- * @returns Whether it hands anything back.
- */
-export const hasReturnValue = (node: ReturningNode): boolean => hasValue(node, () => true)
-
-/**
- * Whether a function hands back a value a caller reads, which is what a missing `@returns` is reported for.
- *
- * It reads the function as {@link hasReturnValue} does, except for a promise a `return` builds in place: that one hands
- * back a value only when its executor resolves it with an argument, or hands the resolver on to code that might.
+ * A generator hands back values when its own body yields one or returns one. Otherwise the type the signature hands
+ * back decides first: `void`, `undefined` and `never`, or a promise of one of them, hand back nothing, whether the
+ * function is async or not. Past that, a function with a body hands a value back when an arrow writes an expression for
+ * its body, or when one of its own `return` statements carries a value, which a promise built in place and resolved
+ * empty is not.
  *
  * @param node - The function, or the signature without a body.
+ * @param parserServices - What maps the node onto the program and its types.
  * @returns Whether it hands back a value to document.
  */
-export const hasValueToDocument = (node: ReturningNode): boolean =>
-  hasValue(node, argument => !isPromiseResolvedEmpty(argument))
-
-/**
- * Whether a function hands back a value, by its body or by its declared type.
- *
- * @param node - The function, or the signature without a body.
- * @param isValue - Whether the expression a `return` carries is a value.
- * @returns Whether it hands a value back.
- */
-const hasValue = (node: ReturningNode, isValue: ReturnArgumentJudge): boolean => {
-  if (node.type === AST_NODE_TYPES.TSDeclareFunction || node.type === AST_NODE_TYPES.TSMethodSignature)
-    return declaresValue(node.returnType)
+export const handsValueBack = (node: ReturningNode, parserServices: ParserServicesWithTypeInformation): boolean => {
+  if (isGenerator(node)) return producesValue(node.body)
+  if (typeSaysNothing(node, parserServices)) return false
+  if (node.type === AST_NODE_TYPES.TSDeclareFunction || node.type === AST_NODE_TYPES.TSMethodSignature) return true
   if (node.type === AST_NODE_TYPES.ArrowFunctionExpression && node.expression) return true
 
-  return returnsValue(node.body, isValue)
+  return returnsValue(node.body)
 }
 
 /**
- * Whether a declared return type names a value.
+ * Whether a node is a generator with a body, whose value is what its body yields.
  *
- * @param returnType - The annotation, when the signature carries one.
- * @returns Whether it names something other than nothing.
+ * @param node - The function, or the signature without a body.
+ * @returns Whether it is a generator.
  */
-const declaresValue = (returnType: TSESTree.TSTypeAnnotation | undefined): boolean => {
-  if (!returnType) return false
+const isGenerator = (node: ReturningNode): node is TSESTree.FunctionDeclaration | TSESTree.FunctionExpression =>
+  (node.type === AST_NODE_TYPES.FunctionDeclaration || node.type === AST_NODE_TYPES.FunctionExpression) &&
+  node.generator
 
-  return !NOTHING_TYPES.has(returnType.typeAnnotation.type)
+/**
+ * Whether a node of a generator yields a value or returns one, in the generator's own body. Delegating with `yield*`
+ * yields what the other iterator yields.
+ *
+ * @param node - The body, or a node inside it.
+ * @returns Whether the generator produces a value there.
+ */
+const producesValue = (node: TSESTree.Node): boolean => {
+  if (node.type === AST_NODE_TYPES.YieldExpression || node.type === AST_NODE_TYPES.ReturnStatement)
+    return node.argument !== null
+
+  return childNodesOf(node).some(child => !FUNCTIONS.has(child.type) && producesValue(child))
+}
+
+/**
+ * Whether the type a signature hands back, awaited, is nothing: `void`, `undefined`, `never`, or a union of them.
+ *
+ * @param node - The function, or the signature without a body.
+ * @param parserServices - What maps the node onto the program and its types.
+ * @returns Whether the type says nothing comes back.
+ */
+const typeSaysNothing = (node: ReturningNode, parserServices: ParserServicesWithTypeInformation): boolean => {
+  const typeChecker = parserServices.program.getTypeChecker()
+  const signature = typeChecker.getSignatureFromDeclaration(parserServices.esTreeNodeToTSNodeMap.get(node))
+  /* v8 ignore next -- every function and signature the rule reads declares one */
+  if (!signature) return false
+  const returnType = typeChecker.getReturnTypeOfSignature(signature)
+  /* v8 ignore next -- a return type always awaits to a type */
+  const awaitedType = typeChecker.getAwaitedType(returnType) ?? returnType
+
+  return isNothing(awaitedType)
+}
+
+/**
+ * Whether a type is one that carries no value.
+ *
+ * @param type - The type.
+ * @returns Whether it is `void`, `undefined`, `never`, or a union of them.
+ */
+const isNothing = (type: ts.Type): boolean => {
+  if (type.isUnion()) return type.types.every(isNothing)
+
+  return (type.flags & NOTHING_FLAGS) !== 0
 }
 
 /**
  * Whether a node holds a `return` with a value that belongs to the function being read.
  *
  * @param node - The body, or a node inside it.
- * @param isValue - Whether the expression a `return` carries is a value.
  * @returns Whether such a return is there.
  */
-const returnsValue = (node: TSESTree.Node, isValue: ReturnArgumentJudge): boolean => {
-  if (node.type === AST_NODE_TYPES.ReturnStatement) return node.argument !== null && isValue(node.argument)
+const returnsValue = (node: TSESTree.Node): boolean => {
+  if (node.type === AST_NODE_TYPES.ReturnStatement)
+    return node.argument !== null && !isPromiseResolvedEmpty(node.argument)
 
-  return childNodesOf(node).some(child => !FUNCTIONS.has(child.type) && returnsValue(child, isValue))
+  return childNodesOf(node).some(child => !FUNCTIONS.has(child.type) && returnsValue(child))
 }
 
 /**

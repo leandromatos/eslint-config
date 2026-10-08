@@ -1,11 +1,11 @@
 import type { TSESLint } from '@typescript-eslint/utils'
+import { ESLintUtils } from '@typescript-eslint/utils'
 
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { DescribedFunction, ReturningNode, ReturnsTagMessageId, TsdocRule } from '../types/index.js'
+import type { ReturningNode, ReturnsTagMessageId, TsdocRule } from '../types/index.js'
 import {
   findDocBlock,
-  hasReturnValue,
-  hasValueToDocument,
+  handsValueBack,
   inheritsDoc,
   isConstructor,
   isDescribedFunction,
@@ -19,8 +19,8 @@ import {
  *
  * The tag is asked for in the kinds of function `requiredTagContexts` names. A constructor builds the instance, and a
  * comment that inherits its documentation documents nothing here, so neither is asked. A tag on a function that hands
- * nothing back is reported, except on an async function or a generator, whose value is a promise or an iterator either
- * way. A second tag is always one too many.
+ * back `void`, `undefined` or `never`, or a promise of one, is reported, async or not, and so is one on a generator
+ * that yields nothing. A second tag is always one too many.
  */
 export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
   meta: {
@@ -43,13 +43,14 @@ export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
   create: context => {
     const [{ requiredTagContexts }] = context.options
     const { sourceCode } = context
+    const parserServices = ESLintUtils.getParserServices(context)
     const judge = (node: ReturningNode): void => {
       const comment = findDocBlock(sourceCode, node)
       if (!comment) return
       const docBlock = parseDocBlock(comment)
       const returnsTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === 'returns')
       const isRequired = requiredTagContexts.includes(node.type) && !isConstructor(node) && !inheritsDoc(docBlock)
-      const isChecked = isDescribedFunction(node) && !isConstructor(node) && !yieldsLater(node)
+      const isChecked = !isConstructor(node)
       if (isDescribedFunction(node))
         for (const returnsTag of returnsTags.filter(docBlockTag => docBlockTag.description === ''))
           context.report({ loc: lineLocationOf(returnsTag.line), messageId: 'missingReturnsDescription' })
@@ -58,9 +59,9 @@ export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
 
         return
       }
-      if (returnsTags.length === 0 && isRequired && hasValueToDocument(node))
+      if (returnsTags.length === 0 && isRequired && handsValueBack(node, parserServices))
         context.report({ loc: comment.loc, messageId: 'missingReturns' })
-      if (returnsTags.length === 1 && isChecked && !hasReturnValue(node))
+      if (returnsTags.length === 1 && isChecked && !handsValueBack(node, parserServices))
         context.report({ loc: comment.loc, messageId: 'unexpectedReturns' })
     }
     const listener: TSESLint.RuleListener = {
@@ -72,11 +73,3 @@ export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
     return listener
   },
 }
-
-/**
- * Whether a function hands back a promise or an iterator whatever its body returns: an async function or a generator.
- *
- * @param node - The function.
- * @returns Whether its value comes later.
- */
-const yieldsLater = (node: DescribedFunction): boolean => node.async || node.generator
