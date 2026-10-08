@@ -33,20 +33,24 @@ export const methodOrder: ArchitectureRule<MethodOrderMessageId> = {
     if (!where?.suffix || !orderedSuffixes.includes(where.suffix)) return {}
     const listener: TSESLint.RuleListener = {
       ClassBody: classBody => {
-        let previous: TSESTree.MethodDefinition | null = null
-        for (const member of classBody.body) {
-          /* A method under a computed key has no name to sort by, so it is read past rather than placed. */
-          if (!isMethod(member) || member.computed) continue
-          const before = previous
-          previous = member
+        /* A method under a computed key has no name to sort by, so it is read past rather than placed. */
+        const methods = classBody.body.filter(
+          (member): member is TSESTree.MethodDefinition => isMethod(member) && !member.computed,
+        )
+        let isFixOffered = false
+        for (const [index, method] of methods.entries()) {
+          const before = methods[index - 1]
           if (!before) continue
-          const messageId = judge(before, member)
+          const messageId = judge(before, method)
           if (!messageId) continue
+          /* One fix sorts the whole class, so it rides on the first report and the rest carry none. */
+          const fix = fixUnless(isFixOffered, ruleFixer => sortAll(ruleFixer, context.sourceCode, methods))
+          isFixOffered = true
           context.report({
-            node: member,
+            node: method,
             messageId,
-            data: { method: memberNameOf(member), previous: memberNameOf(before) },
-            fix: ruleFixer => swap(ruleFixer, context.sourceCode, before, member),
+            data: { method: memberNameOf(method), previous: memberNameOf(before) },
+            fix,
           })
         }
       },
@@ -76,27 +80,47 @@ const judge = (before: TSESTree.MethodDefinition, after: TSESTree.MethodDefiniti
 }
 
 /**
- * Exchanges two adjacent members, each with its comments, and keeps whatever sits between them.
+ * The fix, unless the class already carries one.
+ *
+ * @param isOffered - Whether an earlier report of the class carries the fix.
+ * @param fix - What sorts the class.
+ * @returns The fix, and null where an earlier report carries it.
+ */
+const fixUnless = (isOffered: boolean, fix: TSESLint.ReportFixFunction): TSESLint.ReportFixFunction | null => {
+  if (isOffered) return null
+
+  return fix
+}
+
+/**
+ * Puts every method of the class where the order wants it, in one fix: public before private, each block in the
+ * alphabet. The methods trade places among the slots they hold, so what sits between them, a field or a method under
+ * a computed key, stays where it is, and each method carries its comments with it.
  *
  * @param ruleFixer - What writes the fix.
  * @param sourceCode - The source the members are written in.
- * @param before - The member declared first.
- * @param after - The member declared second.
- * @returns The fix that swaps them.
+ * @param methods - The methods the order places, as the class declares them.
+ * @returns The fix that sorts them.
  */
-const swap = (
+const sortAll = (
   ruleFixer: TSESLint.RuleFixer,
   sourceCode: TSESLint.SourceCode,
-  before: TSESTree.MethodDefinition,
-  after: TSESTree.MethodDefinition,
+  methods: TSESTree.MethodDefinition[],
 ): TSESLint.RuleFix => {
-  const beforeStart = startOf(sourceCode, before)
-  const afterStart = startOf(sourceCode, after)
-  const beforeText = sourceCode.text.slice(beforeStart, before.range[1])
-  const between = sourceCode.text.slice(before.range[1], afterStart)
-  const afterText = sourceCode.text.slice(afterStart, after.range[1])
+  const slots = methods.map(method => ({ start: startOf(sourceCode, method), end: method.range[1] }))
+  const text = [...methods]
+    .sort(compare)
+    .map((placed, index) => {
+      const end = slots[index]?.end
+      const between = sourceCode.text.slice(end, slots[index + 1]?.start ?? end)
 
-  return ruleFixer.replaceTextRange([beforeStart, after.range[1]], `${afterText}${between}${beforeText}`)
+      return `${sourceCode.text.slice(startOf(sourceCode, placed), placed.range[1])}${between}`
+    })
+    .join('')
+  const start = Math.min(...slots.map(slot => slot.start))
+  const end = Math.max(...slots.map(slot => slot.end))
+
+  return ruleFixer.replaceTextRange([start, end], text)
 }
 
 /**
@@ -111,4 +135,18 @@ const startOf = (sourceCode: TSESLint.SourceCode, member: TSESTree.MethodDefinit
   if (!first) return member.range[0]
 
   return first.range[0]
+}
+
+/**
+ * The order the class wants two methods in: public first, then the alphabet.
+ *
+ * @param left - One method.
+ * @param right - The other.
+ * @returns A negative number when the left one comes first, a positive one when it comes after, and zero for a tie.
+ */
+const compare = (left: TSESTree.MethodDefinition, right: TSESTree.MethodDefinition): number => {
+  const visibility = Number(!isPublic(left)) - Number(!isPublic(right))
+  if (visibility) return visibility
+
+  return memberNameOf(left).localeCompare(memberNameOf(right))
 }

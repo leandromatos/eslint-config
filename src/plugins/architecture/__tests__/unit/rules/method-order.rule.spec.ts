@@ -72,3 +72,18 @@ ruleTester.run('method-order, in a repository of several packages', methodOrder,
     },
   ],
 })
+
+ruleTester.run('method-order, sorting a whole class', methodOrder, {
+  valid: [],
+  invalid: [
+    // One fix puts every method in place, so the class converges in one pass, and a field between them stays put.
+    {
+      code: 'class UserService {\n  /** Writes. */\n  writeUser() {}\n\n  private cache = 1\n\n  private buildKey() {}\n\n  readUser() {}\n\n  /** Creates. */\n  createUser() {}\n}',
+      filename: service,
+      options,
+      errors: [{ messageId: 'privateBeforePublic' }, { messageId: 'outOfOrder' }],
+      output:
+        'class UserService {\n  /** Creates. */\n  createUser() {}\n\n  private cache = 1\n\n  readUser() {}\n\n  /** Writes. */\n  writeUser() {}\n\n  private buildKey() {}\n}',
+    },
+  ],
+})
