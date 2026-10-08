@@ -61,9 +61,9 @@ export const NESTJS_TEXT: TextOptions = {
     {
       callee: 'new ConflictException',
       property: 'title',
-      must: '( already .*| is not [a-z]+)\\.$',
+      must: '( already .*| is not (soft )?[a-z]+)\\.$',
       because:
-        'a conflict title is "{Field} already exists.", "{Field} already in use." or "{Resource} is not {state}."',
+        'a conflict title is "{Field} already exists.", "{Field} already in use." or "{Resource} is not {state}.", with one word or "soft deleted" for the state',
     },
     {
       callee: 'new InternalServerErrorException',

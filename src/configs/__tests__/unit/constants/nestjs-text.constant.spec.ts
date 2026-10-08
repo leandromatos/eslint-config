@@ -20,6 +20,20 @@ describe('NESTJS_TEXT', () => {
     expect(NESTJS_TEXT.stringPatterns.every(stringPattern => stringPattern.must ?? stringPattern.mustNot)).toBeTruthy()
   })
 
+  it('takes a conflict over a state of one word or "soft deleted", and no sentence', () => {
+    const conflictPattern = NESTJS_TEXT.stringPatterns.find(
+      stringPattern => stringPattern.callee === 'new ConflictException' && stringPattern.property === 'title',
+    )
+    const must = new RegExp(conflictPattern?.must ?? '')
+
+    expect(must.test('Username already exists.')).toBe(true)
+    expect(must.test('Email already in use.')).toBe(true)
+    expect(must.test('Policy is not deleted.')).toBe(true)
+    expect(must.test('User is not soft deleted.')).toBe(true)
+    expect(must.test('Policy is not in the state it was.')).toBe(false)
+    expect(must.test('User is not soft deleted yet.')).toBe(false)
+  })
+
   it('holds a valid regular expression in every field that takes one', () => {
     const sources = NESTJS_TEXT.stringPatterns.flatMap(({ must, mustNot, target }) =>
       [must, mustNot, target].filter((source): source is string => source !== undefined),
