@@ -73,7 +73,6 @@ export const DEFAULT_NAMING: NamingOptions = {
     createOrUpdate: 'createdOrUpdated',
     hash: 'hashed',
     process: 'processed',
-    to: 'transformed',
     update: 'updated',
   },
   valueCases: [],

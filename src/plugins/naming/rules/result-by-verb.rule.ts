@@ -7,8 +7,7 @@ import type { NamingRule, ResultNamedByVerbMessageId } from '../types/index.js'
 
 /**
  * A variable holding what a call produced opens with the participle of the verb that produced it:
- * `transformedActivityEntity` for `toActivityEntity(activity)`, `createdToken` for
- * `createToken(body)`, `hashedPassword` for `hashPassword(password)`. The input and the output
+ * `createdToken` for `createToken(body)`, `hashedPassword` for `hashPassword(password)`. The input and the output
  * of such a verb are two values that share a scope, and often a type; the participle is what
  * tells them apart and says which one is the result. A verb that only looks something up
  * produces nothing new, so its result is named by its type alone; the options list which verbs

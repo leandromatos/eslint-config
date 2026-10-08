@@ -39,4 +39,8 @@ describe('SUFFIX_TO_FOLDER', () => {
     expect(SUFFIX_TO_FOLDER.spec).toBe('__tests__')
     expect(DEFAULT_ARCHITECTURE.testFolder).toBe(SUFFIX_TO_FOLDER.spec)
   })
+
+  it('leaves the result of a conversion free to name, so to* carries no participle', () => {
+    expect(DEFAULT_NAMING.verbParticiples).not.toHaveProperty('to')
+  })
 })

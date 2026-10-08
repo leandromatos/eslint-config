@@ -11,7 +11,6 @@ something up produces nothing new, so nothing marks what it answers.
 👎 Examples of **incorrect** code:
 
 ```typescript
-const activityEntity = this.activitiesTransformer.toActivityEntity(activity)
 const token = await this.credentialTokensRepository.createToken(input)
 const password = await hashPassword(password, saltOrRounds)
 ```
@@ -19,7 +18,7 @@ const password = await hashPassword(password, saltOrRounds)
 👍 Examples of **correct** code:
 
 ```typescript
-const transformedActivityEntity = this.activitiesTransformer.toActivityEntity(activity)
+const activityEntity = this.activitiesTransformer.toActivityEntity(activity) // a conversion names its result freely
 const createdToken = await this.credentialTokensRepository.createToken(input)
 const hashedPassword = await hashPassword(password, saltOrRounds)
 const user = await this.usersService.findOneUser(params) // find produces nothing new
@@ -29,11 +28,11 @@ const { user } = await this.load() // a shorthand key is the reader's contract
 
 ## Options
 
-| Option            | Type                     | What it decides                                                                                                                       |
-| ----------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `verbParticiples` | `Record<string, string>` | The producing verbs and the participle each one's result opens with: `to` as `transformed`, `create` as `created`, `hash` as `hashed` |
-| `roleNames`       | `string[]`               | Names a test gives by role, which the rule leaves alone                                                                               |
-| `testFolder`      | `string`                 | The folder where the role names apply                                                                                                 |
+| Option            | Type                     | What it decides                                                                                                |
+| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `verbParticiples` | `Record<string, string>` | The producing verbs and the participle each one's result opens with: `create` as `created`, `hash` as `hashed` |
+| `roleNames`       | `string[]`               | Names a test gives by role, which the rule leaves alone                                                        |
+| `testFolder`      | `string`                 | The folder where the role names apply                                                                          |
 
 ## Fixable
 
