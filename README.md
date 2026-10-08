@@ -166,6 +166,14 @@ The rules each layer sets are in [`src/configs/recommended.config.ts`](src/confi
 | a bare `fs`, `path`, `http` | without `node:`, a package of that name takes the builtin's place                                                        |
 | `.catch(() => null)`        | one value answers every failure, so a broken connection and a refused credential leave the same trace, which is none     |
 
+### No cast
+
+`configs.strict`, and every tier built on it, admits no cast in the sources, specs included: `@typescript-eslint/consistent-type-assertions` with `assertionStyle: 'never'`, and `@typescript-eslint/no-non-null-assertion`. A guard, a generic or the type a library declares says what a cast says and keeps the check. `as const` is no cast, since it narrows a literal to itself, and `satisfies` checks a value without changing its type, so both stay.
+
+Outside a spec, no value typed `any` travels either: the five `no-unsafe-*` rules of typescript-eslint are errors, so what `JSON.parse` or `Reflect.getMetadata` returns stops at `unknown`, where a guard narrows it. A spec keeps them off, because the asymmetric matchers of a test runner are typed `any` by design.
+
+The cast nothing else can replace goes behind a directive, and the directive says why: `@eslint-community/eslint-comments/require-description` reports an `eslint-disable` with no `-- <reason>`.
+
 ### The plugin
 
 One plugin, [`eslint-plugin-leandromatos`](src/plugins/README.md), holding every rule. A namespace is global to a configuration and ESLint refuses a second plugin registered under a name another already took, so a word as common as `testing` is not a namespace to claim. The subject a rule is about is part of its name, so a configuration writes `leandromatos/architecture-known-suffix` and a report shows the same.

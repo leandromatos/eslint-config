@@ -1,27 +1,23 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ArchitectureOptions } from '../../../plugins/architecture/types/index.js'
+import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
 import { plugin } from '../../../plugins/index.js'
 import { moduleDepthOf } from '../../../plugins/shared/utils/index.js'
-import { LAYOUT_RULES } from '../../constants/index.js'
+import { EXPO_ARCHITECTURE, LAYOUT_RULES } from '../../constants/index.js'
 import { expo } from '../../expo.config.js'
 
 describe('expo', () => {
-  const architectureOf = (entries: ReturnType<typeof expo>): ArchitectureOptions => {
+  const architectureOf = (entries: ReturnType<typeof expo>): Record<string, unknown> => {
     const [ownEntry] = entries.filter(entry => entry.name === 'leandromatos/recommended')
-    const [, architectureOptions] = ownEntry?.rules?.['leandromatos/architecture-known-suffix'] as [
-      string,
-      ArchitectureOptions,
-    ]
 
-    return architectureOptions
+    return ruleOptionsOf(ownEntry, 'leandromatos/architecture-known-suffix')
   }
 
   it('adds the suffixes a project names to the map of the tier, rather than replacing it', () => {
     const { suffixToFolder } = architectureOf(expo({ architecture: { suffixToFolder: { exception: 'exceptions' } } }))
 
-    expect(suffixToFolder['exception']).toBe('exceptions')
-    expect(suffixToFolder['storage']).toBe('storages')
+    expect(suffixToFolder).toHaveProperty('exception', 'exceptions')
+    expect(suffixToFolder).toHaveProperty('storage', 'storages')
   })
 
   it('carries all of strict, which is what the tier is built on', () => {
@@ -35,7 +31,7 @@ describe('expo', () => {
   it('names the store the device keeps, which the web reaches through a cookie instead', () => {
     const { suffixToFolder } = architectureOf(expo())
 
-    expect(suffixToFolder['storage']).toBe('storages')
+    expect(suffixToFolder).toHaveProperty('storage', 'storages')
   })
 
   it('leaves the story out: React Native renders its catalog as an application', () => {
@@ -47,8 +43,11 @@ describe('expo', () => {
   it('reads a container nested in a feature, which is how an editor holds its tools', () => {
     const { moduleContainers } = architectureOf(expo())
 
-    expect(moduleContainers).toEqual(expect.arrayContaining(['features', 'libs', 'tools']))
-    expect(moduleDepthOf(['features', 'editor', 'tools', 'background-tool', 'hooks'], moduleContainers)).toBe(4)
+    expect(moduleContainers).toEqual(EXPO_ARCHITECTURE.moduleContainers)
+    expect(EXPO_ARCHITECTURE.moduleContainers).toEqual(expect.arrayContaining(['features', 'libs', 'tools']))
+    expect(
+      moduleDepthOf(['features', 'editor', 'tools', 'background-tool', 'hooks'], EXPO_ARCHITECTURE.moduleContainers),
+    ).toBe(4)
   })
 
   it('judges the local Expo modules and the catalog beside the sources, which the project writes too', () => {
@@ -94,11 +93,8 @@ describe('expo', () => {
 
   it('names no HTTP client: an end-to-end run drives a built app rather than sending a request', () => {
     const [ownEntry] = expo().filter(configEntry => configEntry.name === 'leandromatos/recommended')
-    const [, testingOptions] = ownEntry?.rules?.['leandromatos/testing-e2e-over-http'] as [
-      string,
-      { httpTest: { kind: string } },
-    ]
+    const testingOptions = ruleOptionsOf(ownEntry, 'leandromatos/testing-e2e-over-http')
 
-    expect(testingOptions.httpTest.kind).toBe('')
+    expect(testingOptions).toHaveProperty(['httpTest', 'kind'], '')
   })
 })

@@ -1,4 +1,4 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { optionsWith, packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { importBoundaries } from '../../../rules/import-boundaries.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -48,7 +48,7 @@ ruleTester.run('import-boundaries', importBoundaries, {
     {
       code: "import { x } from './y'",
       filename: entity,
-      options: [{ ...EMPTY_OPTIONS, alias: '@', suffixToFolder: {} }] as [ArchitectureOptions],
+      options: optionsWith([EMPTY_OPTIONS], { alias: '@', suffixToFolder: {} }),
     },
   ],
   invalid: [

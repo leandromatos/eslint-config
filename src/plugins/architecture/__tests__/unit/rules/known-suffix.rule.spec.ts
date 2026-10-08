@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, optionsWith, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { knownSuffix } from '../../../rules/known-suffix.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -70,7 +70,7 @@ ruleTester.run('known-suffix, where the folder says what the file is', knownSuff
     {
       code: 'export const Card = () => null',
       filename: sourceFile('components', 'card.tsx'),
-      options: [{ ...EMPTY_OPTIONS, suffixFreeFolders: ['components'] }] as [ArchitectureOptions],
+      options: optionsWith([EMPTY_OPTIONS], { suffixFreeFolders: ['components'] }),
     },
   ],
   invalid: [],
@@ -82,9 +82,7 @@ ruleTester.run('known-suffix, under a folder that mirrors the layers', knownSuff
     {
       code: 'export const readPerson = () => null',
       filename: sourceFile('features', 'account', 'server', 'read-person.util.ts'),
-      options: [{ ...EMPTY_OPTIONS, suffixToFolder: { util: 'utils' }, mirrorFolders: ['server'] }] as [
-        ArchitectureOptions,
-      ],
+      options: optionsWith([EMPTY_OPTIONS], { suffixToFolder: { util: 'utils' }, mirrorFolders: ['server'] }),
     },
   ],
   invalid: [],
@@ -131,7 +129,7 @@ ruleTester.run('known-suffix, under a base folder', knownSuffix, {
     {
       code: 'export abstract class DomainEvent {}',
       filename: sourceFile('events', 'core', 'domain-event.ts'),
-      options: [{ ...options[0], baseFolders: ['core'] }] as [ArchitectureOptions],
+      options: optionsWith(options, { baseFolders: ['core'] }),
     },
   ],
   invalid: [
@@ -139,7 +137,7 @@ ruleTester.run('known-suffix, under a base folder', knownSuffix, {
     {
       code: 'export abstract class DomainEvent {}',
       filename: sourceFile('events', 'services', 'core', 'domain-event.ts'),
-      options: [{ ...options[0], baseFolders: ['core'] }] as [ArchitectureOptions],
+      options: optionsWith(options, { baseFolders: ['core'] }),
       errors: [{ messageId: 'noSuffix' }],
     },
   ],

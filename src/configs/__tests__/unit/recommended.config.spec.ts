@@ -1,16 +1,14 @@
-import type { Linter } from 'eslint'
-import { ESLint } from 'eslint'
+import { TSESLint } from '@typescript-eslint/utils'
 import { describe, expect, it } from 'vitest'
 
 import { firstLintResult } from '../../../__tests__/utils/index.js'
 import { recommended } from '../../index.js'
 
 /*
- * The package's own entries come from `typescript-eslint`, which declares `languageOptions` through
- * `@typescript-eslint/utils` rather than through `@eslint/core`. The two describe the same object, and only the linter
- * that runs here has to be told so.
+ * The package's own entries come from `typescript-eslint`, which declares them through `@typescript-eslint/utils`, so
+ * the linter here is the one that package types: the same class as ESLint's, declared over the same configuration.
  */
-const eslint = new ESLint({ overrideConfigFile: true, baseConfig: recommended() as Linter.Config[] })
+const eslint = new TSESLint.ESLint({ overrideConfigFile: true, baseConfig: recommended() })
 
 /**
  * Lints one snippet as if it were the file at the path, which is what decides the layer that judges it.
@@ -19,7 +17,7 @@ const eslint = new ESLint({ overrideConfigFile: true, baseConfig: recommended() 
  * @param filePath - The path the file would have.
  * @returns The result for that file.
  */
-const lint = async (code: string, filePath: string): Promise<ESLint.LintResult> =>
+const lint = async (code: string, filePath: string) =>
   firstLintResult(await eslint.lintText(code, { filePath }), filePath)
 
 describe('recommended', () => {
@@ -91,10 +89,10 @@ describe('recommended', () => {
    * of being linted, which is why the cases above all use .js.
    */
   describe('layers that need a TypeScript project', () => {
-    const lintFixture = async (name: string): Promise<ESLint.LintResult> =>
+    const lintFixture = async (name: string) =>
       firstLintResult(await esLint.lintFiles([`src/configs/__tests__/fixtures/invalid/${name}`]), name)
 
-    const esLint = new ESLint({ overrideConfigFile: true, baseConfig: recommended() as Linter.Config[] })
+    const esLint = new TSESLint.ESLint({ overrideConfigFile: true, baseConfig: recommended() })
 
     it('reports a floating promise', async () => {
       const result = await lintFixture('floating-promise.ts')

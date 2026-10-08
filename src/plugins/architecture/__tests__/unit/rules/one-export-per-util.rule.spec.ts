@@ -1,4 +1,4 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { optionsWith, packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { oneExportPerUtil } from '../../../rules/one-export-per-util.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -35,7 +35,7 @@ ruleTester.run('one-export-per-util', oneExportPerUtil, {
     {
       code: 'export const hashPassword = () => 1\nexport const comparePassword = () => 1',
       filename: sourceFile('users', 'utils', '__mocks__', 'hash-password.util.ts'),
-      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+      options: optionsWith(options, { mockFolder: '__mocks__' }),
     },
 
     { code: 'export const hashPassword = () => 1', filename: util, options },

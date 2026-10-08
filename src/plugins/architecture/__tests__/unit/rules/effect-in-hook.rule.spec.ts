@@ -1,4 +1,4 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { optionsWith, packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { effectInHook } from '../../../rules/effect-in-hook.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -47,7 +47,7 @@ ruleTester.run('effect-in-hook', effectInHook, {
     {
       code: 'export const Card = () => {\n  useEffect(() => undefined, [])\n\n  return null\n}',
       filename: sourceFile('components', 'card.component.tsx'),
-      options: [{ ...options[0], effectHooks: [] }] as [ArchitectureOptions],
+      options: optionsWith(options, { effectHooks: [] }),
     },
   ],
   invalid: [

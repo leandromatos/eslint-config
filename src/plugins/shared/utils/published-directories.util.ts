@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { fieldOf } from './field-of.util.js'
+
 /** What a package answers with when it publishes nothing by path. */
 const NONE: string[] = []
 
@@ -21,8 +23,8 @@ export const publishedDirectoriesOf = (packageRoot: string): string[] => {
   if (known) return known
   const manifest = path.join(packageRoot, 'package.json')
   if (!fs.existsSync(manifest)) return NONE
-  const { exports: entrypoints } = JSON.parse(fs.readFileSync(manifest, 'utf8')) as { exports?: unknown }
-  const directories = readDirectories(entrypoints)
+  const parsed: unknown = JSON.parse(fs.readFileSync(manifest, 'utf8'))
+  const directories = readDirectories(fieldOf(parsed, 'exports'))
   byPackage.set(packageRoot, directories)
 
   return directories

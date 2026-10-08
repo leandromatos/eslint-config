@@ -67,7 +67,7 @@ const stringLiteralsOf = (value: TSESTree.Expression, valueCase: ValueCase): TSE
 
   return unwrapped.properties.flatMap(property => {
     if (property.type !== AST_NODE_TYPES.Property) return []
-    const inner = unwrapAssertion(property.value as TSESTree.Expression)
+    const inner = unwrapAssertion(property.value)
     if (!isStringLiteral(inner)) return []
 
     return [inner]
@@ -80,7 +80,7 @@ const stringLiteralsOf = (value: TSESTree.Expression, valueCase: ValueCase): TSE
  * @param value - What the declaration holds.
  * @returns The expression the assertion wraps.
  */
-const unwrapAssertion = (value: TSESTree.Expression): TSESTree.Expression => {
+const unwrapAssertion = (value: TSESTree.Node): TSESTree.Node => {
   if (value.type === AST_NODE_TYPES.TSAsExpression) return value.expression
 
   return value
@@ -92,5 +92,5 @@ const unwrapAssertion = (value: TSESTree.Expression): TSESTree.Expression => {
  * @param value - The value.
  * @returns Whether it is a string literal.
  */
-const isStringLiteral = (value: TSESTree.Expression): value is TSESTree.StringLiteral =>
+const isStringLiteral = (value: TSESTree.Node): value is TSESTree.StringLiteral =>
   value.type === AST_NODE_TYPES.Literal && typeof value.value === 'string'

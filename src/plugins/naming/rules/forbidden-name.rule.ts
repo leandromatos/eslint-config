@@ -31,15 +31,19 @@ export const forbiddenName: NamingRule<ForbiddenNameMessageId> = {
       if (!identifier || !forbiddenNames.includes(identifier.name)) return
       context.report({ node: identifier, messageId: 'forbidden', data: { name: identifier.name } })
     }
+    const judgeParameters = (node: TSESTree.FunctionLike): void => {
+      for (const parameter of node.params) judge(identifierOf(parameter))
+    }
     const listener: TSESLint.RuleListener = {
       VariableDeclarator: node => judge(identifierOf(node.id)),
-      FunctionDeclaration: node => judge(node.id),
+      FunctionDeclaration: node => {
+        judge(node.id)
+        judgeParameters(node)
+      },
+      FunctionExpression: judgeParameters,
+      ArrowFunctionExpression: judgeParameters,
       ClassDeclaration: node => judge(node.id),
       PropertyDefinition: node => judge(identifierOf(node.key)),
-      'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression': node => {
-        const { params } = node as TSESTree.FunctionLike
-        for (const parameter of params) judge(identifierOf(parameter))
-      },
     }
 
     return listener

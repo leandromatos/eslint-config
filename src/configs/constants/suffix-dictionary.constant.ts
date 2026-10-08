@@ -1,4 +1,4 @@
-import type { DictionarySuffix } from '../types/constants/index.js'
+import type { DictionarySuffix, FolderMap } from '../types/constants/index.js'
 
 /**
  * Every suffix these conventions know, and the folder that holds it.
@@ -90,10 +90,28 @@ export const SUFFIX_DICTIONARY = {
  *
  * @param suffixes - The suffixes this vocabulary admits.
  * @returns The suffixes paired with the folder the dictionary gives each one.
+ * @throws Error When a suffix reads a folder the dictionary does not give it, which the pairing above rules out.
  */
 export const readFolders = <const TSuffixes extends readonly DictionarySuffix[]>(
   suffixes: TSuffixes,
-): { [TSuffix in TSuffixes[number]]: (typeof SUFFIX_DICTIONARY)[TSuffix] } =>
-  Object.fromEntries(suffixes.map(suffix => [suffix, SUFFIX_DICTIONARY[suffix]])) as {
-    [TSuffix in TSuffixes[number]]: (typeof SUFFIX_DICTIONARY)[TSuffix]
-  }
+): FolderMap<TSuffixes> => {
+  const folders: Record<string, string> = Object.fromEntries(
+    suffixes.map(suffix => [suffix, SUFFIX_DICTIONARY[suffix]]),
+  )
+  /* v8 ignore next -- every folder above is the one the dictionary gives its suffix */
+  if (!isFolderMapOf(folders, suffixes)) throw new Error('A suffix reads a folder the dictionary does not give it.')
+
+  return folders
+}
+
+/**
+ * Whether every suffix of the vocabulary reads the folder the dictionary gives it, which is what the map promises.
+ *
+ * @param folders - The suffixes, each paired with a folder.
+ * @param suffixes - The suffixes the vocabulary admits.
+ * @returns Whether the pairing is the dictionary's.
+ */
+const isFolderMapOf = <const TSuffixes extends readonly DictionarySuffix[]>(
+  folders: Record<string, string>,
+  suffixes: TSuffixes,
+): folders is FolderMap<TSuffixes> => suffixes.every(suffix => folders[suffix] === SUFFIX_DICTIONARY[suffix])

@@ -1,4 +1,4 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { optionsWith, packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { typesFolder } from '../../../rules/types-folder.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -61,22 +61,17 @@ ruleTester.run('types-folder, where a type is read beside what it types', typesF
     {
       code: 'export interface CardProps {\n  label: string\n}',
       filename: sourceFile('components', 'card.tsx'),
-      options: [{ ...EMPTY_OPTIONS, suffixToFolder: { type: 'types' }, suffixFreeFolders: ['components'] }] as [
-        ArchitectureOptions,
-      ],
+      options: optionsWith([EMPTY_OPTIONS], { suffixToFolder: { type: 'types' }, suffixFreeFolders: ['components'] }),
     },
 
     // What a hook takes is declared in the hook, which is where a reader of the call looks for it.
     {
       code: 'export interface UseSessionOptions {\n  id: string\n}',
       filename: sourceFile('features', 'auth', 'hooks', 'use-session.hook.ts'),
-      options: [
-        {
-          ...EMPTY_OPTIONS,
-          suffixToFolder: { hook: 'hooks', type: 'types' },
-          coLocatedTypeSuffixes: ['hook'],
-        },
-      ] as [ArchitectureOptions],
+      options: optionsWith([EMPTY_OPTIONS], {
+        suffixToFolder: { hook: 'hooks', type: 'types' },
+        coLocatedTypeSuffixes: ['hook'],
+      }),
     },
   ],
   invalid: [],

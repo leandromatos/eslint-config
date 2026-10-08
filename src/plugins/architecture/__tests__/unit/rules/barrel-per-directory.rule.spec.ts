@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, optionsWith, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { barrelPerDirectory } from '../../../rules/barrel-per-directory.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -27,7 +27,7 @@ ruleTester.run('barrel-per-directory', barrelPerDirectory, {
     {
       code: 'export class UserService {}',
       filename: sourceFile('users', 'services', '__mocks__', 'user.service.ts'),
-      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+      options: optionsWith(options, { mockFolder: '__mocks__' }),
     },
 
     { code: 'export * from "./user.service.js"', filename: sourceFile('users', 'services', 'index.ts'), options },
@@ -37,7 +37,7 @@ ruleTester.run('barrel-per-directory', barrelPerDirectory, {
     {
       code: 'export type * from "./garmin-strategy.type.js"',
       filename: sourceFile('types', 'index.ts'),
-      options: [{ ...EMPTY_OPTIONS, mirrorFolders: ['types'], testFolder: '__tests__' }] as [ArchitectureOptions],
+      options: optionsWith([EMPTY_OPTIONS], { mirrorFolders: ['types'], testFolder: '__tests__' }),
     },
   ],
   invalid: [
@@ -69,23 +69,21 @@ ruleTester.run('barrel-per-directory, under a module container', barrelPerDirect
     {
       code: 'export const registry = 1',
       filename: sourceFile('features', 'registry.ts'),
-      options: [{ ...EMPTY_OPTIONS, moduleContainers: ['features'] }] as [ArchitectureOptions],
+      options: optionsWith([EMPTY_OPTIONS], { moduleContainers: ['features'] }),
     },
 
     // A module of a barrelled container is reached whole, so its root is where its barrel belongs.
     {
       code: 'export const device = 1',
       filename: sourceFile('features', 'devices', 'device.entity.ts'),
-      options: [{ ...EMPTY_OPTIONS, moduleContainers: ['features'], barrelledContainers: ['features'] }] as [
-        ArchitectureOptions,
-      ],
+      options: optionsWith([EMPTY_OPTIONS], { moduleContainers: ['features'], barrelledContainers: ['features'] }),
     },
 
     // The module inside it is the root, so it carries none either.
     {
       code: 'export const device = 1',
       filename: sourceFile('features', 'devices', 'device.entity.ts'),
-      options: [{ ...EMPTY_OPTIONS, moduleContainers: ['features'] }] as [ArchitectureOptions],
+      options: optionsWith([EMPTY_OPTIONS], { moduleContainers: ['features'] }),
     },
   ],
   invalid: [],

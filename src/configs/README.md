@@ -54,13 +54,16 @@ mechanism and a rule of the plugin would say the same thing twice.
 
 In this order. The last entry to match a file wins, which is what lets a project append its own.
 
-| Entry            | What it is                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `recommended`    | every layer of it, with whatever the project added to `ignores`                                                       |
-| the plugin       | every rule of `eslint-plugin-leandromatos`, each reading the group of its own subject                                 |
-| the syntax rule  | `tsdoc/syntax`, from `eslint-plugin-tsdoc`: every documentation comment parses as TSDoc, with its standard tags only  |
-| the comment rule | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches           |
-| the cycle rule   | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only |
+| Entry              | What it is                                                                                                            |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `recommended`      | every layer of it, with whatever the project added to `ignores`                                                       |
+| the plugin         | every rule of `eslint-plugin-leandromatos`, each reading the group of its own subject                                 |
+| the syntax rule    | `tsdoc/syntax`, from `eslint-plugin-tsdoc`: every documentation comment parses as TSDoc, with its standard tags only  |
+| the comment rule   | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches           |
+| the cycle rule     | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only |
+| the cast rules     | `consistent-type-assertions` with `assertionStyle: 'never'` and `no-non-null-assertion`, specs included               |
+| the `any` rules    | the five `no-unsafe-*` rules of typescript-eslint, outside a spec                                                     |
+| the directive rule | `eslint-comments/require-description`: every directive that turns a rule off says why, after `--`                     |
 
 ### The framework tiers
 

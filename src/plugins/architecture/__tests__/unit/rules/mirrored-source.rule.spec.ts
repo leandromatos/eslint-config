@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, optionsWith, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { mirroredSource } from '../../../rules/mirrored-source.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -81,7 +81,7 @@ ruleTester.run('mirrored-source', mirroredSource, {
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
       filename: sourceFile('users', 'types', 'services', '__mocks__', 'user.service.type.ts'),
-      options: [{ ...options[0], mockFolder: '__mocks__' }] as [ArchitectureOptions],
+      options: optionsWith(options, { mockFolder: '__mocks__' }),
     },
   ],
   invalid: [

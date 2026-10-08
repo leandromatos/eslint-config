@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
 import { DEFAULT_ARCHITECTURE } from '../../constants/index.js'
 import { strict } from '../../strict.config.js'
 
@@ -31,11 +32,36 @@ describe('strict', () => {
     expect(cycles?.ignores).toEqual(['**/index.{ts,tsx}'])
   })
 
+  it('admits no cast in the sources, specs included, and leaves as const alone', () => {
+    const entry = strict().find(configEntry => configEntry.name === 'leandromatos/casts')
+
+    expect(entry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts'])
+    expect(entry?.ignores).toBeUndefined()
+    expect(entry?.rules).toEqual({
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/no-non-null-assertion': 'error',
+    })
+  })
+
+  it('lets no value typed any travel through the sources, outside a spec', () => {
+    const entry = strict().find(configEntry => configEntry.name === 'leandromatos/unsafe-values')
+
+    expect(entry?.ignores).toEqual(['**/*.spec.{ts,tsx}'])
+    expect(Object.values(entry?.rules ?? {})).toEqual(['error', 'error', 'error', 'error', 'error'])
+  })
+
+  it('asks every directive that turns a rule off for its reason', () => {
+    const entry = strict({ files: ['lib/**/*.ts'] }).find(configEntry => configEntry.name === 'leandromatos/directives')
+
+    expect(entry?.files).toEqual(['lib/**/*.ts'])
+    expect(entry?.rules).toEqual({ '@eslint-community/eslint-comments/require-description': 'error' })
+  })
+
   it('keeps the cycle walk inside the project, which is the only graph it can act on', () => {
     const [cycles] = strict().filter(entry => entry.rules?.['import-x/no-cycle'])
-    const [, options] = cycles?.rules?.['import-x/no-cycle'] as [string, { ignoreExternal: boolean }]
+    const options = ruleOptionsOf(cycles, 'import-x/no-cycle')
 
-    expect(options.ignoreExternal).toBe(true)
+    expect(options).toHaveProperty('ignoreExternal', true)
   })
 
   it('hands the default vocabulary out whole, so a project extends it rather than restating it', () => {
@@ -43,12 +69,9 @@ describe('strict', () => {
     const suffixDictionary = { widget: 'widgets' }
     const entries = strict({ architecture: { ...DEFAULT_ARCHITECTURE, suffixToFolder, suffixDictionary } })
     const [ownEntry] = entries.filter(entry => entry.name === 'leandromatos/recommended')
-    const [, options] = ownEntry?.rules?.['leandromatos/architecture-known-suffix'] as [
-      string,
-      { suffixToFolder: object },
-    ]
+    const options = ruleOptionsOf(ownEntry, 'leandromatos/architecture-known-suffix')
 
-    expect(options.suffixToFolder).toMatchObject({ widget: 'widgets', service: 'services' })
+    expect(options['suffixToFolder']).toMatchObject({ widget: 'widgets', service: 'services' })
   })
 
   it('judges the sources of the repository and of each package of a workspace folder, by default', () => {

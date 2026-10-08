@@ -11,7 +11,10 @@ import type { ESLint } from 'eslint'
  * @returns The result.
  * @throws Error When ESLint returned no result.
  */
-export const firstLintResult = (lintResults: ESLint.LintResult[], label: string): ESLint.LintResult => {
+export const firstLintResult = <TLintResult = ESLint.LintResult>(
+  lintResults: TLintResult[],
+  label: string,
+): TLintResult => {
   const [lintResult] = lintResults
   if (!lintResult) throw new Error(`ESLint returned no result for "${label}"`)
 

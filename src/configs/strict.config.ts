@@ -1,3 +1,4 @@
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments'
 import tsdoc from 'eslint-plugin-tsdoc'
 
 import { leandromatos, plugin as ownPlugin } from '../plugins/index.js'
@@ -17,6 +18,9 @@ import { assertKnownFolders } from './utils/index.js'
 
 /** The files a project's rules judge when it names none. */
 const DEFAULT_FILES = TS_SOURCES
+
+/** The files a spec is written in, where a matcher of the test runner is typed `any` by design. */
+const SPEC_FILES = ['**/*.spec.{ts,tsx}']
 
 /**
  * Every framework-agnostic rule of this package, on, with the personal conventions as its vocabulary.
@@ -55,6 +59,9 @@ export const strict = (strictOptions: StrictOptions = {}): Config[] => {
     documentation(files),
     notes(tsdocOptions),
     cycles(files),
+    casts(files),
+    unsafeValues(files),
+    directives(files),
   ]
 }
 
@@ -105,4 +112,62 @@ const cycles = (files: string[]): Config => ({
   files,
   ignores: ['**/index.{ts,tsx}'],
   rules: { 'import-x/no-cycle': ['error', { maxDepth: 2, ignoreExternal: true }] },
+})
+
+/**
+ * No cast, anywhere in the sources, specs included.
+ *
+ * A cast tells the compiler to stop checking, and a non-null assertion is a cast to a narrower type. A guard, a
+ * generic or the type the library declares says the same thing and keeps the check. `as const` is no cast: it narrows
+ * a literal to itself, and `satisfies` checks a value without changing its type, so both stay.
+ *
+ * @param files - The files the rules judge.
+ * @returns The configuration entry.
+ */
+const casts = (files: string[]): Config => ({
+  name: 'leandromatos/casts',
+  files,
+  rules: {
+    '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+    '@typescript-eslint/no-non-null-assertion': 'error',
+  },
+})
+
+/**
+ * No value typed `any` travels through the sources.
+ *
+ * `any` reaches the code through `JSON.parse`, `Reflect.getMetadata` or a dynamic import, and it stops at `unknown`,
+ * where a guard narrows it. A spec is left out, because the asymmetric matchers of a test runner are typed `any` by
+ * design.
+ *
+ * @param files - The files the rules judge.
+ * @returns The configuration entry.
+ */
+const unsafeValues = (files: string[]): Config => ({
+  name: 'leandromatos/unsafe-values',
+  files,
+  ignores: SPEC_FILES,
+  rules: {
+    '@typescript-eslint/no-unsafe-argument': 'error',
+    '@typescript-eslint/no-unsafe-assignment': 'error',
+    '@typescript-eslint/no-unsafe-call': 'error',
+    '@typescript-eslint/no-unsafe-member-access': 'error',
+    '@typescript-eslint/no-unsafe-return': 'error',
+  },
+})
+
+/**
+ * Every directive that turns a rule off says why, after `--`.
+ *
+ * The one cast the sources admit is the one nothing else can replace, and the directive that lets it through is where
+ * the reason is written, so the next reader checks the reason rather than guessing it.
+ *
+ * @param files - The files the rule judges.
+ * @returns The configuration entry.
+ */
+const directives = (files: string[]): Config => ({
+  name: 'leandromatos/directives',
+  files,
+  plugins: { '@eslint-community/eslint-comments': eslintComments },
+  rules: { '@eslint-community/eslint-comments/require-description': 'error' },
 })

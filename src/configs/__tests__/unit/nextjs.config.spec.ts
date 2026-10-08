@@ -1,25 +1,21 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ArchitectureOptions } from '../../../plugins/architecture/types/index.js'
+import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
 import { NEXTJS_ARCHITECTURE } from '../../constants/index.js'
 import { nextjs } from '../../nextjs.config.js'
 
 describe('nextjs', () => {
-  const architectureOf = (entries: ReturnType<typeof nextjs>): ArchitectureOptions => {
+  const architectureOf = (entries: ReturnType<typeof nextjs>): Record<string, unknown> => {
     const [ownEntry] = entries.filter(entry => entry.name === 'leandromatos/recommended')
-    const [, architectureOptions] = ownEntry?.rules?.['leandromatos/architecture-known-suffix'] as [
-      string,
-      ArchitectureOptions,
-    ]
 
-    return architectureOptions
+    return ruleOptionsOf(ownEntry, 'leandromatos/architecture-known-suffix')
   }
 
   it('adds the suffixes a project names to the map of the tier, rather than replacing it', () => {
     const { suffixToFolder } = architectureOf(nextjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } }))
 
-    expect(suffixToFolder['exception']).toBe('exceptions')
-    expect(suffixToFolder['hook']).toBe('hooks')
+    expect(suffixToFolder).toHaveProperty('exception', 'exceptions')
+    expect(suffixToFolder).toHaveProperty('hook', 'hooks')
   })
 
   it('carries all of strict, which is what the tier is built on', () => {
@@ -33,9 +29,9 @@ describe('nextjs', () => {
   it('reads the tree a React project writes', () => {
     const architectureOptions = architectureOf(nextjs())
 
-    expect(architectureOptions.moduleContainers).toEqual(NEXTJS_ARCHITECTURE.moduleContainers)
-    expect(architectureOptions.suffixFreeFolders).toEqual(NEXTJS_ARCHITECTURE.suffixFreeFolders)
-    expect(architectureOptions.coLocatedTypeSuffixes).toEqual(NEXTJS_ARCHITECTURE.coLocatedTypeSuffixes)
+    expect(architectureOptions['moduleContainers']).toEqual(NEXTJS_ARCHITECTURE.moduleContainers)
+    expect(architectureOptions['suffixFreeFolders']).toEqual(NEXTJS_ARCHITECTURE.suffixFreeFolders)
+    expect(architectureOptions['coLocatedTypeSuffixes']).toEqual(NEXTJS_ARCHITECTURE.coLocatedTypeSuffixes)
   })
 
   it('judges the components as well as the modules, which is what a React project holds', () => {
@@ -51,7 +47,7 @@ describe('nextjs', () => {
       nextjs({ architecture: { ...NEXTJS_ARCHITECTURE, suffixToFolder, suffixDictionary } }),
     )
 
-    expect(architectureOptions.suffixToFolder).toMatchObject({ widget: 'widgets', screen: 'screens' })
+    expect(architectureOptions['suffixToFolder']).toMatchObject({ widget: 'widgets', screen: 'screens' })
   })
 
   it('judges the files the project names', () => {
@@ -64,7 +60,7 @@ describe('nextjs', () => {
     const entry = nextjs()
       .filter(configEntry => configEntry.rules?.['no-restricted-imports'])
       .at(-1)
-    const [, restriction] = entry?.rules?.['no-restricted-imports'] as [string, { patterns: { group: string[] }[] }]
+    const restriction = ruleOptionsOf(entry, 'no-restricted-imports')
 
     expect(entry?.ignores).toEqual([
       'src/storybook/**/*.{ts,tsx}',
@@ -72,9 +68,9 @@ describe('nextjs', () => {
       '{apps,libs,packages}/*/src/storybook/**/*.{ts,tsx}',
       '{apps,libs,packages}/*/src/**/*.stories.tsx',
     ])
-    expect(restriction.patterns.map(pattern => pattern.group)).toEqual([
-      ['@/storybook', '@/storybook/*'],
-      ['*.stories', '*.stories.tsx'],
+    expect(restriction['patterns']).toEqual([
+      expect.objectContaining({ group: ['@/storybook', '@/storybook/*'] }),
+      expect.objectContaining({ group: ['*.stories', '*.stories.tsx'] }),
     ])
   })
 
