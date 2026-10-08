@@ -53,7 +53,7 @@ describe('nextjs', () => {
     expect(ownEntry?.files).toEqual(['app/**/*.tsx'])
   })
 
-  it('keeps the catalogue out of the application, and leaves the catalogue itself alone', () => {
+  it('keeps the catalog out of the application, and leaves the catalog itself alone', () => {
     const entry = nextjs()
       .filter(configEntry => configEntry.rules?.['no-restricted-imports'])
       .at(-1)
@@ -66,7 +66,7 @@ describe('nextjs', () => {
     ])
   })
 
-  it('ignores what the framework, the catalogue and a browser run wrote, plus what the project adds', () => {
+  it('ignores what the framework, the catalog and a browser run wrote, plus what the project adds', () => {
     const entries = nextjs({ ignores: ['src/components/ui'] })
     const ignoring = entries.find(entry => entry.ignores && !entry.files && !entry.rules)
 

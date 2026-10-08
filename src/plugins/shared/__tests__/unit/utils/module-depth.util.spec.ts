@@ -15,7 +15,7 @@ describe('moduleDepthOf', () => {
     expect(moduleDepthOf(['components', 'layout'], ['features', 'libs'])).toBe(1)
   })
 
-  it('reads a container inside a module, which is how a client is organised by domain', () => {
+  it('reads a container inside a module, which is how a client is organized by domain', () => {
     expect(moduleDepthOf(['libs', 'api', 'modules', 'packages', 'keys'], ['features', 'libs', 'modules'])).toBe(4)
   })
 

@@ -27,19 +27,19 @@ export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
     architecture: { ...NEXTJS_ARCHITECTURE, ...nextjsOptions.architecture },
     testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
   }),
-  catalogue(),
+  catalog(),
 ]
 
 /**
- * What keeps the catalogue out of the application.
+ * What keeps the catalog out of the application.
  *
- * A story and the catalogue around it are a development tool: nothing the application ships imports either, and
- * a build that did would carry the harness into production. The catalogue itself is the one place allowed to, so
+ * A story and the catalog around it are a development tool: nothing the application ships imports either, and
+ * a build that did would carry the harness into production. The catalog itself is the one place allowed to, so
  * it is the only thing the entry leaves out.
  *
  * @returns The configuration entry.
  */
-const catalogue = (): Config => ({
+const catalog = (): Config => ({
   files: NEXTJS_FILES,
   ignores: [`src/${STORYBOOK_FOLDER}/**/*.{ts,tsx}`, `src/**/*.${STORY_SUFFIX}.tsx`],
   rules: {
@@ -49,11 +49,11 @@ const catalogue = (): Config => ({
         patterns: [
           {
             group: [`@/${STORYBOOK_FOLDER}`, `@/${STORYBOOK_FOLDER}/*`],
-            message: `The catalogue does not ship. Only src/${STORYBOOK_FOLDER} may import it.`,
+            message: `The catalog does not ship. Only src/${STORYBOOK_FOLDER} may import it.`,
           },
           {
             group: [`*.${STORY_SUFFIX}`, `*.${STORY_SUFFIX}.tsx`],
-            message: 'A story does not ship. Only the catalogue may import one.',
+            message: 'A story does not ship. Only the catalog may import one.',
           },
         ],
       },

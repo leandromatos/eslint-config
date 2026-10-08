@@ -9,7 +9,7 @@ export const NEXTJS_FILES = ['src/**/*.{ts,tsx}']
  * What a React project never reads.
  *
  * Every entry is written by a tool rather than by a person: the framework's build and its ambient types, the
- * directory it serves untouched, the catalogue's build, and what a run against a browser leaves behind. A project
+ * directory it serves untouched, the catalog's build, and what a run against a browser leaves behind. A project
  * that runs none of them ignores a directory that never appears, which costs it nothing.
  */
 export const NEXTJS_IGNORED = [
@@ -22,7 +22,7 @@ export const NEXTJS_IGNORED = [
   '**/test-results',
 ]
 
-/** Where the catalogue lives, which is a development tool rather than a part of the application. */
+/** Where the catalog lives, which is a development tool rather than a part of the application. */
 export const STORYBOOK_FOLDER = 'storybook'
 
 /** What closes the name of a story, which sits beside the component it shows. */
@@ -52,7 +52,7 @@ export const NEXTJS_ARCHITECTURE: ArchitectureOptions = {
   },
   /*
    * `features` and `libs` hold modules; the layer of a file starts one segment later. `modules` holds them inside
-   * a lib, which is how a client is organised by the domain it calls: `libs/api/modules/packages/keys`.
+   * a lib, which is how a client is organized by the domain it calls: `libs/api/modules/packages/keys`.
    */
   moduleContainers: ['features', 'libs', 'modules'],
   /*
@@ -92,7 +92,7 @@ export const NEXTJS_ARCHITECTURE: ArchitectureOptions = {
   folderlessSuffixes: [...DEFAULT_ARCHITECTURE.folderlessSuffixes, 'e2e', STORY_SUFFIX],
   /* What a component or a hook takes is read beside it. */
   coLocatedTypeSuffixes: ['component', 'hook', 'provider', 'screen', 'store'],
-  /* The catalogue loads a story and the application never does, so a story may build its props from a testing entry. */
+  /* The catalog loads a story and the application never does, so a story may build its props from a testing entry. */
   developmentSuffixes: [STORY_SUFFIX],
 }
 

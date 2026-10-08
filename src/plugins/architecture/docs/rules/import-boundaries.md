@@ -39,7 +39,7 @@ ships one, such as `@graphabits/nestjs/database/testing`. A testing folder depen
 production install leaves out, so the import passes every check that installs the development
 dependencies and the application fails at boot. Test code is exempt: a file in the test tree, a
 spec anywhere, a file inside a testing folder, which is built out of other ones, and a file only a
-development tool loads, such as a story, which the catalogue renders and the application never
+development tool loads, such as a story, which the catalog renders and the application never
 imports. The mock folder is part of the test tree: a stand-in there may name any file a spec may,
 and production code imports the module it replaces, never the stand-in. A test setup sits in the test tree or outside every `src/`, which the rule does not read.
 

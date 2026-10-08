@@ -29,7 +29,7 @@ describe('expo', () => {
     expect(suffixToFolder['storage']).toBe('storages')
   })
 
-  it('leaves the story out: React Native renders its catalogue as an application', () => {
+  it('leaves the story out: React Native renders its catalog as an application', () => {
     const { folderlessSuffixes } = architectureOf(expo())
 
     expect(folderlessSuffixes).not.toContain('stories')

@@ -164,7 +164,7 @@ ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
       options: testingOptions,
     },
 
-    // A story is loaded by the catalogue, never by the application.
+    // A story is loaded by the catalog, never by the application.
     {
       code: "import { UserFactory } from '@graphabits/sdk/testing'",
       filename: sourceFile('settings', 'components', 'language-section.stories.tsx'),

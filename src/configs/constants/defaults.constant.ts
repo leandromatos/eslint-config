@@ -129,7 +129,7 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
    * A test loads it and the application never does, so it answers to the rules as the test tree does.
    */
   mockFolder: '__mocks__',
-  /* A project on no framework runs no catalogue, so every file it writes outside the tests is production code. */
+  /* A project on no framework runs no catalog, so every file it writes outside the tests is production code. */
   developmentSuffixes: [],
   /*
    * The kinds a project may write, each a folder under the test folder. A project writes the ones it needs, and a kind

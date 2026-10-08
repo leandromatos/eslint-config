@@ -23,7 +23,7 @@ ruleTester.run('barrel-per-directory', barrelPerDirectory, {
       options,
     },
     { code: 'export const boot = () => 1', filename: sourceFile('users', '__tests__', 'boot.util.ts'), options },
-    // The mock folder is read by the test runner and the catalogue, which name the module rather than the folder.
+    // The mock folder is read by the test runner and the catalog, which name the module rather than the folder.
     {
       code: 'export class UserService {}',
       filename: sourceFile('users', 'services', '__mocks__', 'user.service.ts'),

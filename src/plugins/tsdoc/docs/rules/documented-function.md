@@ -5,7 +5,7 @@ says what the name cannot.
 
 The visibility decides nothing. A public method is read at its call site, where the body is not in
 view, and a private one is read by the next person to edit the class, who meets it the same way.
-Whether a name "already says it" is a judgement two authors make differently, so presence is not
+Whether a name "already says it" is a judgment two authors make differently, so presence is not
 left to it. A summary that rewrites the name into a sentence is reported as if it were missing.
 
 A method an interface or a base class declares is no exception, with or without `override`. Its

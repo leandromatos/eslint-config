@@ -8,7 +8,7 @@ export type ImportBoundariesMessageId =
   | 'testingFromProduction'
 
 /** What the rule needs to judge one specifier. */
-export interface Judgement {
+export interface Judgment {
   /** The specifier as the code writes it. */
   specifier: string
   /** The path alias that reaches the source root. */

@@ -3,7 +3,7 @@ import type { DictionarySuffix } from '../types/constants/index.js'
 /**
  * Every suffix these conventions know, and the folder that holds it.
  *
- * A file is named in the singular and the folder that holds it is the plural, so the folder is never a judgement
+ * A file is named in the singular and the folder that holds it is the plural, so the folder is never a judgment
  * call. The dictionary is the one place that pairing is written: a tier's vocabulary is cut from it, and a
  * project's own map is checked against it, so no two maps can spell the same folder differently.
  *

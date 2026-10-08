@@ -27,7 +27,7 @@ export const EXPO_IGNORED = [
  *
  * The same tree a Next project writes, because the architecture is the same one: modules under a container, a
  * component named after the function in it, and the router naming its own files. What differs is the platform. A
- * screen has no document, so there is no `app` styling and no catalogue of one; a storage is the device's, which
+ * screen has no document, so there is no `app` styling and no catalog of one; a storage is the device's, which
  * the web reaches through a cookie; and Expo Router names the files under `app` the way the App Router does.
  */
 export const EXPO_ARCHITECTURE: ArchitectureOptions = {
@@ -46,7 +46,7 @@ export const EXPO_ARCHITECTURE: ArchitectureOptions = {
   rootContexts: ['app', 'assets', 'constants', 'hooks', 'theme', 'types', 'utils'],
   /* The router names its own files, and a component is named after the function in it. */
   suffixFreeFolders: ['app', 'components'],
-  /* A story is a web idea: React Native renders its catalogue as an application rather than as a page. */
+  /* A story is a web idea: React Native renders its catalog as an application rather than as a page. */
   folderlessSuffixes: [...NEXTJS_ARCHITECTURE.folderlessSuffixes].filter(suffix => suffix !== 'stories'),
   /*
    * The Worklets Babel plugin turns a `'worklet'` function into a factory called where the function is declared, with

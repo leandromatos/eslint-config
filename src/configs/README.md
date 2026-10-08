@@ -17,7 +17,7 @@ project passes what differs and the tier carries the rest down.
 | `configs.recommended` | `RecommendedOptions` | the ecosystem's rules, by file type                                                            |
 | `configs.strict`      | `StrictOptions`      | every rule of this package, the documentation rules, the comment rule, the cycle rule          |
 | `configs.nestjs`      | `NestjsOptions`      | the layers a module is cut into, the order a class walks down them, the Swagger and log shapes |
-| `configs.nextjs`      | `NextjsOptions`      | modules under a container, the App Router tree, the catalogue                                  |
+| `configs.nextjs`      | `NextjsOptions`      | modules under a container, the App Router tree, the catalog                                    |
 | `configs.expo`        | `ExpoOptions`        | the same tree on React Native, the native folders, and Jest as the test runner                 |
 
 The rules themselves live in the plugin, and [`src/plugins`](../plugins/README.md) is their
@@ -73,7 +73,7 @@ its layout.
 | `nextjs` | the sources and the root TypeScript files                                  | `.next`, `lighthouse-report`, `next-env.d.ts`, `playwright-report`, `public`, `storybook-static`, `test-results` |
 | `expo`   | the sources, `modules/` and `.rnstorybook/`, and the root TypeScript files | `.expo`, `android`, `ios`, `expo-env.d.ts`, `.rnstorybook/storybook.requires.ts`                                 |
 
-`nextjs` adds one entry of its own: the catalogue, which keeps a story and a component in step.
+`nextjs` adds one entry of its own: the catalog, which keeps a story and a component in step.
 `expo` adds one too: Jest's globals, because a React Native project's unit tests run on `jest-expo`
 rather than on Vitest.
 

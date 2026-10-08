@@ -2,7 +2,7 @@ import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
 import { locate } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, ImportBoundariesMessageId, Judgement } from '../types/index.js'
+import type { ArchitectureRule, ImportBoundariesMessageId, Judgment } from '../types/index.js'
 
 /**
  * A file reaches another layer through its barrel, and its own layer directly.
@@ -104,7 +104,7 @@ const layerDirectoryOf = (segments: string[], folder: string): string | null => 
 /**
  * What is wrong with this specifier, and nothing when it is allowed.
  *
- * @param judgement - The specifier, and where the file asking for it sits.
+ * @param judgment - The specifier, and where the file asking for it sits.
  * @returns The message to report, and null for an import this file may write.
  */
 const judge = ({
@@ -118,7 +118,7 @@ const judge = ({
   testFolder,
   testingFolder,
   mockFolder,
-}: Judgement): ImportBoundariesMessageId | null => {
+}: Judgment): ImportBoundariesMessageId | null => {
   if (specifier.startsWith('.')) return 'relativeImport'
   const reachesTesting = (segments: string[]): boolean =>
     !isTestCode && testingFolder !== '' && segments.includes(testingFolder)

@@ -5,7 +5,7 @@
  * and the layer `services`. A tree of another kind groups its modules under a container, so `features/devices` is
  * the module `devices` and the layer starts one segment later. Naming the containers is what tells the two apart.
  *
- * A container may sit inside a module, which is how a client is organised by the domain it calls:
+ * A container may sit inside a module, which is how a client is organized by the domain it calls:
  * `libs/api/modules/packages/keys` is the module `api`, the module `packages` inside it, and the layer `keys`.
  * Each container consumes itself and the module it names, so the layer is whatever the last one leaves.
  *
