@@ -5,6 +5,9 @@ import { fileRule } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ArchitectureOptions, MirrorShape } from '../types/index.js'
 
+/** A source written for one platform, which the report leaves out: the shared name is the one a caller imports. */
+const PLATFORM_FILE_REG_EXP = /\.(?:ios|android)\.tsx?$/
+
 /**
  * A file under a mirror folder mirrors a file in the tree beside that folder, and a mirror
  * folder inside the test folder mirrors the test folder's own tree. Three files mirror nothing
@@ -45,7 +48,10 @@ export const mirroredSource = fileRule(
     }
     const candidates = resolveCandidates(mirrorShape, architectureOptions)
     if (candidates.some(candidate => fs.existsSync(candidate))) return []
-    const expected = candidates.map(candidate => path.relative(context.cwd, candidate)).join(' or ')
+    const expected = candidates
+      .filter(candidate => !PLATFORM_FILE_REG_EXP.test(candidate))
+      .map(candidate => path.relative(context.cwd, candidate))
+      .join(' or ')
 
     return [{ messageId: 'noSource', data: { file, expected } }]
   },
@@ -93,10 +99,17 @@ const resolveCandidates = (mirrorShape: MirrorShape, architectureOptions: Archit
 /**
  * Closes a path with each extension a source is written in.
  *
+ * A module split by platform is two files, `toggle.ios.tsx` and `toggle.android.tsx`, that callers import as
+ * `./toggle`, so either one stands for the source a mirror names.
+ *
  * @param withoutExtension - The path up to the extension.
- * @returns The path as a module and as a component.
+ * @returns The path as a module and as a component, shared or written for one platform.
  */
-const withExtensions = (withoutExtension: string): string[] => [`${withoutExtension}.ts`, `${withoutExtension}.tsx`]
+const withExtensions = (withoutExtension: string): string[] =>
+  ['', '.ios', '.android'].flatMap(platform => [
+    `${withoutExtension}${platform}.ts`,
+    `${withoutExtension}${platform}.tsx`,
+  ])
 
 /**
  * The folders inside the test directory, without the one that names the kind of test.

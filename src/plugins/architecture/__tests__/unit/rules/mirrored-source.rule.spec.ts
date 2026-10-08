@@ -188,3 +188,31 @@ ruleTester.run('mirrored-source, in a driver inside its capability', mirroredSou
     },
   ],
 })
+
+ruleTester.run('mirrored-source, over a module split by platform', mirroredSource, {
+  valid: [
+    // The props both platform files take mirror the name a caller imports, which neither file is called.
+    {
+      code: 'export interface ToggleProps {\n  isOn: boolean\n}',
+      filename: sourceFile('components', 'native', 'types', 'toggle.type.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    // The report names the shared file, which is the one to create when no platform splits it.
+    {
+      code: 'export interface SwitchProps {\n  isOn: boolean\n}',
+      filename: sourceFile('components', 'native', 'types', 'switch.type.ts'),
+      options,
+      errors: [
+        {
+          messageId: 'noSource',
+          data: {
+            file: 'switch.type.ts',
+            expected: 'src/components/native/switch.ts or src/components/native/switch.tsx',
+          },
+        },
+      ],
+    },
+  ],
+})

@@ -26,6 +26,9 @@ src/users/__tests__/e2e/users.spec.ts                    ← a kind that mirrors
 src/users/types/__mocks__/users.type.ts                  ← a stand-in, paired with its module by name
 ```
 
+A module split by platform, as `toggle.ios.tsx` and `toggle.android.tsx`, is imported as
+`./toggle`, so `types/toggle.type.ts` mirrors either file.
+
 ## Options
 
 | Option                    | Type                     | What it decides                                                                    |
