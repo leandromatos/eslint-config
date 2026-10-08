@@ -1,7 +1,8 @@
-import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
+import type { TSESLint } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA, SENTENCE_TAGS } from '../constants/index.js'
-import type { DescriptionSentenceMessageId, TsdocRule } from '../types/index.js'
+import type { DescriptionSentenceMessageId, DocumentedNode, TsdocRule } from '../types/index.js'
 import { findDocBlock, lineLocationOf, parseDocBlock } from '../utils/index.js'
 
 /**
@@ -12,7 +13,8 @@ const SENTENCE_REG_EXP = /^\n?([A-Z`\d_][\s\S]*[.?!`\p{RGI_Emoji}]\s*)?$/v
 
 /**
  * The main description of a documented function, and the text of its `@param`, `@returns` and `@throws`, read as
- * sentences.
+ * sentences. A method without a body, an interface method and an interface property typed as a function are read as a
+ * function is.
  *
  * A sentence opens with a capital and closes with its punctuation, so a reader meets the same shape in every comment.
  * A backtick may open or close one, which lets a sentence start with a name in code or end on a code fence. A tag whose
@@ -35,7 +37,7 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
   },
   create: context => {
     const { sourceCode } = context
-    const judge = (node: TSESTree.FunctionLike): void => {
+    const judge = (node: DocumentedNode): void => {
       const comment = findDocBlock(sourceCode, node)
       if (!comment) return
       const docBlock = parseDocBlock(comment)
@@ -55,7 +57,15 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
         })
       }
     }
-    const listener: TSESLint.RuleListener = { ':function': judge, TSDeclareFunction: judge }
+    const listener: TSESLint.RuleListener = {
+      ':function': judge,
+      TSDeclareFunction: judge,
+      TSEmptyBodyFunctionExpression: judge,
+      TSMethodSignature: judge,
+      TSPropertySignature: node => {
+        if (node.typeAnnotation?.typeAnnotation.type === AST_NODE_TYPES.TSFunctionType) judge(node)
+      },
+    }
 
     return listener
   },

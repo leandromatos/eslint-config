@@ -17,7 +17,7 @@ project passes what differs and the tier carries the rest down.
 | `configs.recommended` | `RecommendedOptions` | the ecosystem's rules, by file type                                                            |
 | `configs.strict`      | `StrictOptions`      | every rule of this package, the documentation rules, the comment rule, the cycle rule          |
 | `configs.nestjs`      | `NestjsOptions`      | the layers a module is cut into, the order a class walks down them, the Swagger and log shapes |
-| `configs.nextjs`      | `NextjsOptions`      | modules under a container, the App Router tree, the component rules, the catalogue             |
+| `configs.nextjs`      | `NextjsOptions`      | modules under a container, the App Router tree, the catalogue                                  |
 | `configs.expo`        | `ExpoOptions`        | the same tree on React Native, the native folders, and Jest as the test runner                 |
 
 The rules themselves live in the plugin, and [`src/plugins`](../plugins/README.md) is their
@@ -73,11 +73,9 @@ its layout.
 | `nextjs` | the sources and the root TypeScript files | `.next`, `lighthouse-report`, `next-env.d.ts`, `playwright-report`, `public`, `storybook-static`, `test-results` |
 | `expo`   | the sources and the root TypeScript files | `.expo`, `android`, `ios`, `expo-env.d.ts`                                                                       |
 
-`nextjs` adds two entries of its own: the component rules, which judge what a `.tsx` declares and
-how, and the catalogue, which keeps a story and a component in step. The component rules ask no
-`function` declaration for `@param` or `@returns`, because a component is written as one and both
-tags would restate its props and its markup. `expo` adds one: Jest's globals, because a React
-Native project's unit tests run on `jest-expo` rather than on Vitest.
+`nextjs` adds one entry of its own: the catalogue, which keeps a story and a component in step.
+`expo` adds one too: Jest's globals, because a React Native project's unit tests run on `jest-expo`
+rather than on Vitest.
 
 ## ⚙️ Options
 
@@ -92,7 +90,7 @@ over the tier's own default, so a project states only where it differs.
 | `naming`       | No       | the tier's own       | What a value, a method and a spec fixture are called        |
 | `testing`      | No       | the tier's own       | How a spec is written and where it sits                     |
 | `text`         | No       | the tier's own       | The strings the product ships                               |
-| `tsdoc`        | No       | the tier's own       | The comments of a file: form, presence, tags                |
+| `tsdoc`        | No       | `DEFAULT_TSDOC`      | The comments of a file: form, presence, tags                |
 | `typescript`   | No       | `DEFAULT_TYPESCRIPT` | The constructs of the language itself                       |
 
 ## 🧩 The defaults

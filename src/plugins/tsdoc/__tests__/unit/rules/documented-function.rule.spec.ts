@@ -7,23 +7,12 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'documented-function')
 const ruleTester = typedRuleTester(root)
-const options: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
-]
-const defaultFrameworkOptions: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['default'], requiredTagContexts: [] },
-]
-const frameworkOptions: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['generateMetadata'], requiredTagContexts: [] },
-]
+const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 const source = sourceFile('users', 'services', 'user.service.ts')
 const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
 
 ruleTester.run('documented-function', documentedFunction, {
   valid: [
-    // A framework that calls the default export exempts it, declared in the export or bound before it.
-    { code: 'export default function Page() {\n  return 1\n}', filename: source, options: defaultFrameworkOptions },
-    { code: 'const Page = () => 1\nexport default Page', filename: source, options: defaultFrameworkOptions },
     // A method of an object literal is no member of a class, so no contract declares it.
     {
       code: 'export const service = {\n  /** Reads one user, or nothing when the account is closed. */\n  findOneUser() {},\n}',
@@ -69,21 +58,16 @@ ruleTester.run('documented-function', documentedFunction, {
       filename: source,
       options,
     },
+    // A file outside the sources is left alone.
+    { code: 'export const release = () => 1', filename: 'release.ts', options },
     // An export that is not a function documents itself by its type.
     { code: 'export const LIMIT = 10', filename: source, options },
-    // A name the framework calls is documented by the framework, and the same sentence per page says nothing.
-    {
-      code: 'export const generateMetadata = () => ({})',
-      filename: source,
-      options: frameworkOptions,
-    },
 
     {
       code: '/** Reads one user, or nothing when the account is closed. */\nexport const findOneUser = () => 1',
       filename: source,
       options,
     },
-    { code: 'export const findOneUser = () => 1', filename: spec, options },
     {
       code: '/** Reads one user, or nothing when the account is closed. */\nconst findOneUser = () => 1',
       filename: source,
@@ -103,6 +87,14 @@ ruleTester.run('documented-function', documentedFunction, {
     },
   ],
   invalid: [
+    // A spec and a name a framework calls are documented like any other.
+    { code: 'export const findOneUser = () => 1', filename: spec, options, errors: [{ messageId: 'undocumented' }] },
+    {
+      code: 'export const generateMetadata = () => ({})',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
     // A method under a computed key is public too, and carries no name for the message.
     {
       code: 'class UserService {\n  [key]() {}\n}',

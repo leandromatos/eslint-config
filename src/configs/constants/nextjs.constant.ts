@@ -1,7 +1,6 @@
 import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
 import type { TestingOptions } from '../../plugins/testing/types/index.js'
-import type { TsdocOptions } from '../../plugins/tsdoc/types/index.js'
-import { DEFAULT_ARCHITECTURE, DEFAULT_TESTING, DEFAULT_TSDOC, SUFFIX_TO_FOLDER } from './defaults.constant.js'
+import { DEFAULT_ARCHITECTURE, DEFAULT_TESTING, SUFFIX_TO_FOLDER } from './defaults.constant.js'
 
 /** The files a React project's rules judge, which is its components as much as its modules. */
 export const NEXTJS_FILES = ['src/**/*.{ts,tsx}']
@@ -95,36 +94,6 @@ export const NEXTJS_ARCHITECTURE: ArchitectureOptions = {
   coLocatedTypeSuffixes: ['component', 'hook', 'provider', 'screen', 'store'],
   /* The catalogue loads a story and the application never does, so a story may build its props from a testing entry. */
   developmentSuffixes: [STORY_SUFFIX],
-}
-
-/**
- * How a React project writes a documentation comment.
- *
- * The App Router calls these names instead of importing them, so what they are is the framework's documentation
- * rather than this project's, and the same sentence on every page says nothing.
- */
-export const NEXTJS_TSDOC: TsdocOptions = {
-  ...DEFAULT_TSDOC,
-  frameworkSymbols: [
-    'default',
-    'dynamic',
-    'generateMetadata',
-    'generateStaticParams',
-    'generateViewport',
-    'metadata',
-    'middleware',
-    'proxy',
-    'register',
-    'revalidate',
-    'viewport',
-    'DELETE',
-    'GET',
-    'HEAD',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-  ],
 }
 
 /**

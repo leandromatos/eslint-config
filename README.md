@@ -170,14 +170,14 @@ The rules each layer sets are in [`src/configs/recommended.config.ts`](src/confi
 
 One plugin, [`eslint-plugin-leandromatos`](src/plugins/README.md), holding every rule. A namespace is global to a configuration and ESLint refuses a second plugin registered under a name another already took, so a word as common as `testing` is not a namespace to claim. The subject a rule is about is part of its name, so a configuration writes `leandromatos/architecture-known-suffix` and a report shows the same.
 
-| Subject        | Rules | Judges                                                       | Reads                                                           |
-| -------------- | ----- | ------------------------------------------------------------ | --------------------------------------------------------------- |
-| `typescript`   | 1     | the constructs of the language: how a vocabulary is declared | the suffix of a type file                                       |
-| `naming`       | 5     | what a value, a method and a fixture are called              | word lists                                                      |
-| `tsdoc`        | 9     | the comments of a file: form, presence, tags                 | a column, the test folder, the kinds of function asked for tags |
-| `architecture` | 12    | where a file lives, what it is called, what a layer exposes  | the project's vocabulary                                        |
-| `testing`      | 4     | how a spec is written and where it sits                      | the test folder and its kinds                                   |
-| `text`         | 1     | the strings the product ships                                | the patterns the brand decided                                  |
+| Subject        | Rules | Judges                                                       | Reads                                       |
+| -------------- | ----- | ------------------------------------------------------------ | ------------------------------------------- |
+| `typescript`   | 1     | the constructs of the language: how a vocabulary is declared | the suffix of a type file                   |
+| `naming`       | 5     | what a value, a method and a fixture are called              | word lists                                  |
+| `tsdoc`        | 10    | the comments of a file: form, presence, tags                 | a column, whether a tool reads release tags |
+| `architecture` | 12    | where a file lives, what it is called, what a layer exposes  | the project's vocabulary                    |
+| `testing`      | 4     | how a spec is written and where it sits                      | the test folder and its kinds               |
+| `text`         | 1     | the strings the product ships                                | the patterns the brand decided              |
 
 A rule reads the group of its own subject and nothing else, so a project states one vocabulary per subject. One markdown page per rule sits under `src/plugins/<subject>/docs/rules/<rule>.md`, which is where `meta.docs.url` points, so the editor shows the link beside the report: what the rule enforces, why, what fails, what passes, whether it fixes, and when not to use it.
 
@@ -224,16 +224,16 @@ const eslintConfig: Config[] = configs.nestjs(nestjsOptions)
 export default eslintConfig
 ```
 
-| Option         | Required | Default               | Description                                      |
-| -------------- | -------- | --------------------- | ------------------------------------------------ |
-| `files`        | No       | `['src/**/*.ts']`     | The files the rules judge                        |
-| `ignores`      | No       | none                  | What the linter never reads, beyond the defaults |
-| `architecture` | No       | the default layout    | Merged over the tier's architecture vocabulary   |
-| `naming`       | No       | the default words     | Merged over the tier's naming vocabulary         |
-| `testing`      | No       | the default test tree | Merged over the tier's testing vocabulary        |
-| `text`         | No       | the tier's own shapes | Merged over the tier's text vocabulary           |
-| `tsdoc`        | No       | column 120            | Merged over the tier's TSDoc vocabulary          |
-| `typescript`   | No       | the `type` suffix     | Merged over `DEFAULT_TYPESCRIPT`                 |
+| Option         | Required | Default                              | Description                                      |
+| -------------- | -------- | ------------------------------------ | ------------------------------------------------ |
+| `files`        | No       | `['src/**/*.ts']`                    | The files the rules judge                        |
+| `ignores`      | No       | none                                 | What the linter never reads, beyond the defaults |
+| `architecture` | No       | the default layout                   | Merged over the tier's architecture vocabulary   |
+| `naming`       | No       | the default words                    | Merged over the tier's naming vocabulary         |
+| `testing`      | No       | the default test tree                | Merged over the tier's testing vocabulary        |
+| `text`         | No       | the tier's own shapes                | Merged over the tier's text vocabulary           |
+| `tsdoc`        | No       | column 120, no tool for release tags | Merged over `DEFAULT_TSDOC`                      |
+| `typescript`   | No       | the `type` suffix                    | Merged over `DEFAULT_TYPESCRIPT`                 |
 
 `configs.recommended` takes `ignores` alone: the base layer judges every file a project holds rather than its sources, so the only thing to state is what the linter never reads.
 

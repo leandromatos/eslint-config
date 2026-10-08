@@ -1,7 +1,6 @@
 import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
 import type { TestingOptions } from '../../plugins/testing/types/index.js'
-import type { TsdocOptions } from '../../plugins/tsdoc/types/index.js'
-import { DEFAULT_TESTING, DEFAULT_TSDOC } from './defaults.constant.js'
+import { DEFAULT_TESTING } from './defaults.constant.js'
 import { NEXTJS_ARCHITECTURE } from './nextjs.constant.js'
 
 /** The files a React Native project's rules judge, which is its components as much as its modules. */
@@ -58,15 +57,4 @@ export const EXPO_TESTING: TestingOptions = {
   ...DEFAULT_TESTING,
   suffixToFolder: EXPO_ARCHITECTURE.suffixToFolder,
   httpTest: { kind: '', client: '' },
-}
-
-/**
- * How a React Native project writes a documentation comment.
- *
- * Expo Router calls these names instead of importing them, so what they are is the framework's documentation rather
- * than this project's.
- */
-export const EXPO_TSDOC: TsdocOptions = {
-  ...DEFAULT_TSDOC,
-  frameworkSymbols: ['default', 'ErrorBoundary', 'unstable_settings'],
 }

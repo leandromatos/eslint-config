@@ -1,15 +1,15 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TYPED_TAGS } from '../constants/index.js'
-import type { DocBlockTag, DocumentedNode, TsdocRule, TypelessTagMessageId } from '../types/index.js'
-import { findDocBlock, lineLocationOf, parseDocBlock } from '../utils/index.js'
+import type { DocBlockTag, TsdocRule, TypelessTagMessageId } from '../types/index.js'
+import { isDocComment, lineLocationOf, parseDocBlock } from '../utils/index.js'
 
 /**
  * A `@param` or a `@returns` carries no type in braces.
  *
  * TypeScript declares the type in the signature, and TSDoc writes none in the comment, so a type there repeats the
- * signature and goes stale when it changes. The rule reads the comment of a function, of an interface method and of a
- * class. `@throws` is the business of `tsdoc/throws-tag`.
+ * signature and goes stale when it changes. The rule reads every documentation comment of the file. `@throws` is the
+ * business of `tsdoc/throws-tag`.
  */
 export const typelessTag: TsdocRule<TypelessTagMessageId> = {
   meta: {
@@ -28,9 +28,7 @@ export const typelessTag: TsdocRule<TypelessTagMessageId> = {
   },
   create: context => {
     const { sourceCode } = context
-    const judge = (node: DocumentedNode): void => {
-      const comment = findDocBlock(sourceCode, node)
-      if (!comment) return
+    const judge = (comment: TSESTree.Comment): void => {
       for (const docBlockTag of parseDocBlock(comment).tags) {
         if (!TYPED_TAGS.has(docBlockTag.tag) || docBlockTag.type === null) continue
         const fixedValue = withoutType(comment.value, docBlockTag)
@@ -43,10 +41,9 @@ export const typelessTag: TsdocRule<TypelessTagMessageId> = {
       }
     }
     const listener: TSESLint.RuleListener = {
-      ':function': judge,
-      TSDeclareFunction: judge,
-      TSMethodSignature: judge,
-      ClassDeclaration: judge,
+      Program: () => {
+        for (const comment of sourceCode.getAllComments().filter(isDocComment)) judge(comment)
+      },
     }
 
     return listener

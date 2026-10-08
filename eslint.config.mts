@@ -45,7 +45,6 @@ const eslintConfig: Config[] = [
       resourceSuffixes: [],
       testFolder: SUFFIX_TO_FOLDER.spec,
     },
-    tsdoc: { testFolder: SUFFIX_TO_FOLDER.spec },
     architecture: {
       suffixToFolder: SUFFIX_TO_FOLDER,
       // The runner reads this one by name, so it carries the framework's suffix rather than a layer's.

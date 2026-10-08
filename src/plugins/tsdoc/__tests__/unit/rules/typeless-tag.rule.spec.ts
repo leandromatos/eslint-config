@@ -4,9 +4,7 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
 
-const options: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
-]
+const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('typeless-tag', typelessTag, {
   valid: [
@@ -14,11 +12,16 @@ ruleTester.run('typeless-tag', typelessTag, {
     // `@throws` is the business of another rule, and any other tag is not read.
     { code: '/**\n * Reads.\n *\n * @throws {Error} When it fails.\n */\nfunction read() {}', options },
     { code: '/**\n * Reads.\n *\n * @typeParam {string} T - The type.\n */\nfunction read<T>() {}', options },
-    // A variable is not read.
-    { code: '/**\n * Holds it.\n *\n * @param {string} id - The ID.\n */\nconst limit = 1', options },
     { code: 'function read(id) {}', options },
   ],
   invalid: [
+    // Every documentation comment is read, whatever it documents.
+    {
+      code: '/**\n * Holds it.\n *\n * @param {string} id - The ID.\n */\nconst limit = 1',
+      options,
+      errors: [{ messageId: 'typedTag', data: { tag: 'param' } }],
+      output: '/**\n * Holds it.\n *\n * @param id - The ID.\n */\nconst limit = 1',
+    },
     {
       code: '/**\n * Reads.\n *\n * @param {string} id - The ID.\n */\nfunction read(id) {}',
       options,

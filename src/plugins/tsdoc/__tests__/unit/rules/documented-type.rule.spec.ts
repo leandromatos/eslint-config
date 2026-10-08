@@ -3,12 +3,7 @@ import { documentedType } from '../../../rules/documented-type.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
-const options: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
-]
-const frameworkOptions: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['Props'], requiredTagContexts: [] },
-]
+const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 const source = sourceFile('users', 'types', 'users.type.ts')
 const spec = sourceFile('users', '__tests__', 'unit', 'users.spec.ts')
 
@@ -58,12 +53,23 @@ ruleTester.run('documented-type', documentedType, {
     { code: 'const [Service] = [class {}]', filename: source, options },
     // A default export with no name answers to `default`.
     { code: '/** The page every route falls back to. */\nexport default class {}', filename: source, options },
-    // The test folder, a file outside the sources and a name the framework calls are left alone.
-    { code: 'export class UserFixture {}', filename: spec, options },
+    // A file outside the sources is left alone.
     { code: 'export class Release {}', filename: 'scripts/release.ts', options },
-    { code: 'export type Props = { id: string }', filename: source, options: frameworkOptions },
   ],
   invalid: [
+    // A spec and a name a framework reads are documented like any other.
+    {
+      code: 'export class UserFixture {}',
+      filename: spec,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'UserFixture' } }],
+    },
+    {
+      code: 'export type Props = { id: string }',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'Props' } }],
+    },
     {
       code: 'export class UserEntity {}',
       filename: source,

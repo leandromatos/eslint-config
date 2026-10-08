@@ -13,8 +13,8 @@ import { findDocBlock, restatesName } from '../utils/index.js'
  * A type is read wherever it is named, and the editor shows its comment there. An alias a type utility derives is no
  * exception: its right-hand side tells how the type is built, and the comment tells what it is for. A class bound to a
  * variable is declared too, and so is a type inside a `declare module` or a `declare global`. A summary that only
- * rewrites the name is reported as if it were missing. The test folder is left alone, as the functions there are, and
- * so is a name the framework calls.
+ * rewrites the name is reported as if it were missing. A spec and a name a framework reads are documented like any
+ * other.
  */
 export const documentedType: TsdocRule<DocumentedTypeMessageId> = {
   meta: {
@@ -35,12 +35,10 @@ export const documentedType: TsdocRule<DocumentedTypeMessageId> = {
   },
   create: context => {
     const where = locate(context)
-    const [{ testFolder, frameworkSymbols }] = context.options
-    if (!where || where.segments.includes(testFolder)) return {}
+    if (!where) return {}
     const { sourceCode } = context
     const judge = (node: TypeDeclaration): void => {
       const name = nameOf(node)
-      if (frameworkSymbols.includes(name)) return
       const comment = findDocBlock(sourceCode, node)
       if (!comment) {
         context.report({ node, messageId: 'undocumented', data: { name } })

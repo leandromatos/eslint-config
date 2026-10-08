@@ -49,10 +49,7 @@ A class bound to a variable is declared too, and so is a type inside a `declare 
 
 ## Options
 
-| Option             | Type       | What it decides                                                                 |
-| ------------------ | ---------- | ------------------------------------------------------------------------------- |
-| `testFolder`       | `string`   | The folder the rule leaves alone, because a spec documents nothing for a caller |
-| `frameworkSymbols` | `string[]` | The names a framework reads, which its own documentation describes              |
+None. A spec and a name a framework reads are documented like any other type.
 
 ## Fixable
 

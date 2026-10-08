@@ -1,13 +1,18 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
 import type { DocumentedNode } from '../types/index.js'
+import { isDocComment } from './is-doc-comment.util.js'
 
-/** The expressions a comment documents through what holds them: a function or a class written as a value. */
+/**
+ * The expressions a comment documents through what holds them: a function or a class written as a value, and the
+ * value of a method without a body.
+ */
 const VALUES = new Set<string>([
   AST_NODE_TYPES.ArrowFunctionExpression,
   AST_NODE_TYPES.FunctionExpression,
   AST_NODE_TYPES.ClassExpression,
+  AST_NODE_TYPES.TSEmptyBodyFunctionExpression,
 ])
 
 /** The calls a function handed as an argument is part of, which leave the comment to the function itself. */
@@ -18,6 +23,7 @@ const HOLDERS = new Set<string>([
   AST_NODE_TYPES.VariableDeclaration,
   AST_NODE_TYPES.ExpressionStatement,
   AST_NODE_TYPES.MethodDefinition,
+  AST_NODE_TYPES.TSAbstractMethodDefinition,
   AST_NODE_TYPES.Property,
   AST_NODE_TYPES.PropertyDefinition,
   AST_NODE_TYPES.ExportDefaultDeclaration,
@@ -105,12 +111,3 @@ const exportOf = (node: DocumentedNode): TSESTree.Node => {
  */
 const isPassedThrough = (sourceCode: TSESLint.SourceCode, node: TSESTree.Node): boolean =>
   !node.type.includes('Function') && !HOLDERS.has(node.type) && sourceCode.getCommentsBefore(node).length === 0
-
-/**
- * Whether a comment is a documentation comment: a block that opens with two asterisks and not a third.
- *
- * @param comment - The comment.
- * @returns Whether it documents what follows it.
- */
-const isDocComment = (comment: TSESTree.Comment): boolean =>
-  comment.type === AST_TOKEN_TYPES.Block && comment.value.startsWith('*') && !comment.value.startsWith('**')

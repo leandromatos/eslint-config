@@ -78,6 +78,7 @@ the comments of a file: their form, their presence and their tags.
 | [`tsdoc/returns-tag`](tsdoc/docs/rules/returns-tag.md)                   | A documented function carries one @returns with a description when it hands a value back, and none otherwise. | ✅  |     |     |
 | [`tsdoc/description-sentence`](tsdoc/docs/rules/description-sentence.md) | The description of a documented function and the text of its tags read as sentences.                          | ✅  |     |     |
 | [`tsdoc/typeless-tag`](tsdoc/docs/rules/typeless-tag.md)                 | A @param or a @returns carries no type in braces.                                                             | ✅  | 🔧  |     |
+| [`tsdoc/unread-tag`](tsdoc/docs/rules/unread-tag.md)                     | A comment carries no tag that nothing reads: @override always, and a release tag with no tool for it.         | ✅  |     |     |
 
 ### typescript
 

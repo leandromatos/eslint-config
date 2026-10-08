@@ -13,11 +13,8 @@ import { restatesName } from '../utils/index.js'
  * public one is read at its call site, and whether a name "already answers" is a judgment two authors make differently,
  * so the presence is not left to it. What is left to the author is the text, and a text that only rewrites the name
  * into a sentence is reported, because it costs a read and goes stale on the next rename. A method an interface or a
- * base class declares is documented there, so it is not asked for again. A name a framework calls rather than a caller
- * imports is left out through `frameworkSymbols`: the framework's own documentation says what it is, and the same
- * sentence written once per page says nothing. A default export answers to `default` there, whether it is declared in
- * the export or bound first and exported by name, because the framework reaches both the same way. A function written
- * inline as an argument is not a declaration and is left alone.
+ * base class declares is documented there, so it is not asked for again. A spec and a name a framework calls are
+ * documented like any other. A function written inline as an argument is not a declaration and is left alone.
  */
 export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
   meta: {
@@ -37,15 +34,11 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
   },
   create: context => {
     const where = locate(context)
-    const [{ testFolder, frameworkSymbols }] = context.options
-    if (!where || where.segments.includes(testFolder)) return {}
+    if (!where) return {}
     const { sourceCode } = context
     const parserServicesWithTypeInformation = ESLintUtils.getParserServices(context)
     const typeChecker = parserServicesWithTypeInformation.program.getTypeChecker()
-    const defaultExportName = defaultExportNameOf(sourceCode.ast)
     const judge = (documented: TSESTree.Node, name: string): void => {
-      if (frameworkSymbols.includes(name)) return
-      if (name === defaultExportName && frameworkSymbols.includes('default')) return
       const comment = sourceCode.getCommentsBefore(documented).at(-1)
       if (!comment || comment.type !== AST_TOKEN_TYPES.Block || !comment.value.startsWith('*')) {
         context.report({ node: documented, messageId: 'undocumented', data: { name } })
@@ -83,7 +76,7 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
         for (const statement of program.body) {
           if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && statement.declaration)
             judgeFunctionsOf(statement.declaration, statement)
-          if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration && !frameworkSymbols.includes('default'))
+          if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration)
             judgeFunctionsOf(statement.declaration, statement)
           if (
             statement.type !== AST_NODE_TYPES.ExportNamedDeclaration &&
@@ -149,18 +142,3 @@ const superClassesOf = (classNode: TSESTree.ClassDeclaration | TSESTree.ClassExp
  */
 const instanceTypesOf = (constructorType: ts.Type): ts.Type[] =>
   constructorType.getConstructSignatures().map(signature => signature.getReturnType())
-
-/**
- * Reads the name a module binds first and then exports as its default, as in `export default Page`.
- *
- * @param program - The module.
- * @returns The name, or undefined when the default export is not a bare identifier.
- */
-const defaultExportNameOf = (program: TSESTree.Program): string | undefined => {
-  for (const statement of program.body) {
-    if (statement.type !== AST_NODE_TYPES.ExportDefaultDeclaration) continue
-    if (statement.declaration.type === AST_NODE_TYPES.Identifier) return statement.declaration.name
-  }
-
-  return undefined
-}

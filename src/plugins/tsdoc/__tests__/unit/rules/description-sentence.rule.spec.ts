@@ -4,9 +4,7 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
 
-const options: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
-]
+const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('description-sentence', descriptionSentence, {
   valid: [
@@ -35,11 +33,28 @@ ruleTester.run('description-sentence', descriptionSentence, {
     // A class, a variable and an interface method are not read.
     { code: '/** lowercase class */\nclass Reader {}', options },
     { code: '/** lowercase value */\nconst limit = 1', options },
-    { code: 'interface Reader {\n  /** lowercase method */\n  read(): void\n}', options },
     // A function nothing documents.
     { code: 'function read() {}', options },
+    // A property that holds no function is a value.
+    { code: 'interface Options {\n  /** lowercase value */\n  limit: number\n}', options },
   ],
   invalid: [
+    // A method without a body, an interface method and a property typed as a function read as a function does.
+    {
+      code: 'interface Reader {\n  /** lowercase method */\n  read(): void\n}',
+      options,
+      errors: [{ messageId: 'notSentence', data: { part: 'description' } }],
+    },
+    {
+      code: 'abstract class Reader {\n  /** lowercase method */\n  abstract read(): void\n}',
+      options,
+      errors: [{ messageId: 'notSentence', data: { part: 'description' } }],
+    },
+    {
+      code: 'interface Options {\n  /** lowercase callback */\n  build: () => void\n}',
+      options,
+      errors: [{ messageId: 'notSentence', data: { part: 'description' } }],
+    },
     {
       code: '/** reads a user. */\nfunction read() {}',
       options,

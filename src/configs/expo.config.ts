@@ -1,6 +1,6 @@
 import globals from 'globals'
 
-import { EXPO_ARCHITECTURE, EXPO_FILES, EXPO_IGNORED, EXPO_TESTING, EXPO_TSDOC } from './constants/index.js'
+import { EXPO_ARCHITECTURE, EXPO_FILES, EXPO_IGNORED, EXPO_TESTING } from './constants/index.js'
 import { strict } from './strict.config.js'
 import type { Config, ExpoOptions } from './types/index.js'
 
@@ -21,7 +21,6 @@ export const expo = (expoOptions: ExpoOptions = {}): Config[] => [
     ignores: [...EXPO_IGNORED, ...(expoOptions.ignores ?? [])],
     architecture: { ...EXPO_ARCHITECTURE, ...expoOptions.architecture },
     testing: { ...EXPO_TESTING, ...expoOptions.testing },
-    tsdoc: { ...EXPO_TSDOC, ...expoOptions.tsdoc },
   }),
   runner(expoOptions.files ?? EXPO_FILES),
 ]

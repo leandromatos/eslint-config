@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  DEFAULT_ARCHITECTURE,
-  DEFAULT_NAMING,
-  DEFAULT_TESTING,
-  DEFAULT_TSDOC,
-  SUFFIX_TO_FOLDER,
-} from '../../../constants/index.js'
+import { DEFAULT_ARCHITECTURE, DEFAULT_NAMING, DEFAULT_TESTING, SUFFIX_TO_FOLDER } from '../../../constants/index.js'
 
 describe('SUFFIX_TO_FOLDER', () => {
   it('is the one place a folder name is written, so every default that names one agrees with it', () => {
@@ -16,7 +10,6 @@ describe('SUFFIX_TO_FOLDER', () => {
       ...Object.keys(DEFAULT_ARCHITECTURE.typeSuffixes),
       DEFAULT_ARCHITECTURE.testFolder,
       DEFAULT_TESTING.testFolder,
-      DEFAULT_TSDOC.testFolder,
       DEFAULT_NAMING.testFolder,
     ]
 

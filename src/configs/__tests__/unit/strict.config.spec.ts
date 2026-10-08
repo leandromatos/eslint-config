@@ -63,19 +63,12 @@ describe('strict', () => {
     expect(documentation?.rules?.['tsdoc/syntax']).toBe('error')
   })
 
-  it('asks every function for its parameters and its value, in the contexts the defaults name', () => {
+  it('reads no release tag until the project says a tool reads them', () => {
     const [ownEntry] = strict().filter(entry => entry.name === 'leandromatos/recommended')
 
-    expect(ownEntry?.rules?.['leandromatos/tsdoc-param-tag']).toEqual([
+    expect(ownEntry?.rules?.['leandromatos/tsdoc-unread-tag']).toEqual([
       'error',
-      expect.objectContaining({
-        requiredTagContexts: [
-          'ArrowFunctionExpression',
-          'FunctionDeclaration',
-          'FunctionExpression',
-          'TSDeclareFunction',
-        ],
-      }),
+      expect.objectContaining({ readsReleaseTags: false }),
     ])
   })
 

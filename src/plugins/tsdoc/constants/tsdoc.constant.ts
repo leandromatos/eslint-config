@@ -1,11 +1,9 @@
 import type { TsdocOptions } from '../types/index.js'
 
-/** Nothing: every list empty, so a rule given no options judges nothing and reports nothing. */
+/** Nothing: no column, and no tool that reads the release tags. */
 export const EMPTY_OPTIONS: TsdocOptions = {
   commentWidth: 0,
-  testFolder: '',
-  frameworkSymbols: [],
-  requiredTagContexts: [],
+  readsReleaseTags: false,
 }
 
 /** The tags that write a parameter or a value back, which is where JSDoc puts a type in braces. */

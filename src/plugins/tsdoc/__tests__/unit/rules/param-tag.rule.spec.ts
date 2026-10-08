@@ -4,25 +4,7 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
 
-const REQUIRED_TAG_CONTEXTS = [
-  'ArrowFunctionExpression',
-  'FunctionDeclaration',
-  'FunctionExpression',
-  'TSDeclareFunction',
-]
-
-const options: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: REQUIRED_TAG_CONTEXTS },
-]
-
-const componentOptions: [TsdocOptions] = [
-  {
-    commentWidth: 120,
-    testFolder: '__tests__',
-    frameworkSymbols: [],
-    requiredTagContexts: ['ArrowFunctionExpression', 'FunctionExpression', 'TSDeclareFunction', 'TSMethodSignature'],
-  },
-]
+const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('param-tag', paramTag, {
   valid: [
@@ -37,12 +19,7 @@ ruleTester.run('param-tag', paramTag, {
     { code: '/** Sums two numbers. */\n\nconst sum = (left, right) => left + right', options },
     // A comment that opens with three asterisks is not a documentation comment.
     { code: '/*** Sums two numbers. */\nconst sum = (left, right) => left + right', options },
-    // A destructured parameter needs no tag, and a tag at its position takes any name.
-    { code: '/** Reads a user. */\nfunction readUser({ id }) {}', options },
     { code: '/**\n * Reads a user.\n *\n * @param query - The query.\n */\nfunction readUser({ id }) {}', options },
-    // A parameter typed by an object literal reads as destructured.
-    { code: '/** Reads a user. */\nfunction readUser(query: { id: string }) {}', options },
-    { code: '/** Reads a user. */\nfunction readUser(query?: { id: string }) {}', options },
     // A dotted name documents a property, and the order reads the names without a dot.
     {
       code: '/**\n * Reads a user.\n *\n * @param query - The query.\n * @param query.id - The ID.\n */\nfunction readUser({ id }) {}',
@@ -50,15 +27,8 @@ ruleTester.run('param-tag', paramTag, {
     },
     // `this` types the receiver and is not passed by the caller.
     { code: '/** Reads the receiver. */\nfunction read(this: Repository) {}', options },
-    // A setter takes the value it is assigned.
-    { code: 'class Repository {\n  /** Sets the limit. */\n  set limit(value: number) {}\n}', options },
     // A comment that inherits its documentation documents nothing here.
     { code: '/**\n * @inheritDoc\n */\nfunction read(id) {}', options },
-    // A method without a body is documented where it is implemented.
-    { code: 'abstract class Repository {\n  /** Reads one. */\n  abstract read(id: string): void\n}', options },
-    { code: 'interface Repository {\n  /** Reads one. */\n  read(id: string): void\n}', options },
-    // A component outside the contexts the options name is not asked for its props.
-    { code: '/** Renders the card. */\nfunction Card(props) {}', options: componentOptions },
     // A bare hyphen still reads as text.
     { code: '/**\n * Reads one.\n *\n * @param id -\n */\nfunction read(id) {}', options },
     // An optional name in brackets, with its default, names the parameter.
@@ -68,7 +38,6 @@ ruleTester.run('param-tag', paramTag, {
       code: 'interface Options {\n  /**\n   * The key.\n   *\n   * @param z - The z.\n   */\n  key: string\n}',
       options,
     },
-    { code: 'interface Options {\n  /** Builds it. */\n  build: (error: unknown) => void\n}', options },
     { code: 'interface Options {\n  key: string\n}', options },
     /*
      * A function that only a condition holds reaches the file, and a default inside a declaration belongs to the
@@ -76,8 +45,27 @@ ruleTester.run('param-tag', paramTag, {
      */
     { code: 'if ((handler = function (id) {})) {\n}', options },
     {
-      code: '/** Builds it. */\nfunction build(callback = (id) => id) {}',
-      options: [{ ...options[0], requiredTagContexts: ['ArrowFunctionExpression'] }],
+      code: '/**\n * Builds it.\n *\n * @param callback - What it calls.\n */\nfunction build(callback = (id) => id) {}',
+      options,
+    },
+    // A destructured parameter carries one tag for the whole object, under any name.
+    { code: '/**\n * Reads a user.\n *\n * @param params - The route.\n */\nfunction readUser({ id }) {}', options },
+    // A setter, a method without a body and an interface method list their parameters too.
+    {
+      code: 'class Repository {\n  /**\n   * Sets the limit.\n   *\n   * @param value - How many.\n   */\n  set limit(value: number) {}\n}',
+      options,
+    },
+    {
+      code: 'abstract class Repository {\n  /**\n   * Reads one.\n   *\n   * @param id - The ID.\n   */\n  abstract read(id: string): void\n}',
+      options,
+    },
+    {
+      code: 'class Repository {\n  /**\n   * Reads one.\n   *\n   * @param id - The ID.\n   */\n  read(id: string): void\n  read(id: string) {}\n}',
+      options,
+    },
+    {
+      code: 'interface Options {\n  /**\n   * Builds it.\n   *\n   * @param error - What failed.\n   */\n  build: (error: unknown) => void\n}',
+      options,
     },
     // A line comment between the documentation and the function keeps them together.
     { code: '/** Reads one. */\n// a note\nfunction read() {}', options },
@@ -108,22 +96,25 @@ ruleTester.run('param-tag', paramTag, {
       options,
       errors: [{ messageId: 'missingParam', data: { name: 'repository' } }],
     },
-    // A rest parameter that destructures is named by the names it binds.
+    // A rest parameter that destructures carries a tag at its position, like any destructured one.
     {
       code: '/** Reads. */\nfunction read(...[first, second]) {}',
       options,
-      errors: [{ messageId: 'missingParam', data: { name: 'first,second' } }],
+      errors: [{ messageId: 'missingDestructuredParam', data: { position: '1' } }],
     },
-    // A rest parameter that destructures an object, or skips an element, names what it can.
+    // An object destructured as a rest parameter, or after a named one.
     {
       code: '/** Reads. */\nfunction read(...{ length }) {}',
       options,
-      errors: [{ messageId: 'missingParam', data: { name: '' } }],
+      errors: [{ messageId: 'missingDestructuredParam', data: { position: '1' } }],
     },
     {
-      code: '/** Reads. */\nfunction read(...[first, , [second]]) {}',
+      code: '/** Reads. */\nfunction read(id, ...[first, , [second]]) {}',
       options,
-      errors: [{ messageId: 'missingParam', data: { name: 'first,,' } }],
+      errors: [
+        { messageId: 'missingParam', data: { name: 'id' } },
+        { messageId: 'missingDestructuredParam', data: { position: '2' } },
+      ],
     },
     // The comment sits on the export, the member, the return, the assignment, or right before an argument.
     {
@@ -190,8 +181,47 @@ ruleTester.run('param-tag', paramTag, {
     },
     {
       code: 'interface Repository {\n  /** Reads. */\n  read(id: string): void\n}',
-      options: componentOptions,
+      options,
       errors: [{ messageId: 'missingParam', data: { name: 'id' } }],
+    },
+    /*
+     * Every function is asked: a destructured object, one typed by a literal, a setter, a method without a body, an
+     * interface method, a component and a property typed as a function.
+     */
+    {
+      code: '/** Reads a user. */\nfunction readUser({ id }) {}',
+      options,
+      errors: [{ messageId: 'missingDestructuredParam', data: { position: '1' } }],
+    },
+    {
+      code: '/** Reads a user. */\nfunction readUser(query?: { id: string }) {}',
+      options,
+      errors: [{ messageId: 'missingParam', data: { name: 'query' } }],
+    },
+    {
+      code: 'class Repository {\n  /** Sets the limit. */\n  set limit(value: number) {}\n}',
+      options,
+      errors: [{ messageId: 'missingParam', data: { name: 'value' } }],
+    },
+    {
+      code: 'abstract class Repository {\n  /** Reads one. */\n  abstract read(id: string): void\n}',
+      options,
+      errors: [{ messageId: 'missingParam', data: { name: 'id' } }],
+    },
+    {
+      code: 'class Repository {\n  /** Reads one. */\n  read(id: string): void\n  read(id: string) {}\n}',
+      options,
+      errors: [{ messageId: 'missingParam', data: { name: 'id' } }],
+    },
+    {
+      code: '/** Renders the card. */\nfunction Card(props) {}',
+      options,
+      errors: [{ messageId: 'missingParam', data: { name: 'props' } }],
+    },
+    {
+      code: 'interface Options {\n  /** Builds it. */\n  build: (error: unknown) => void\n}',
+      options,
+      errors: [{ messageId: 'missingParam', data: { name: 'error' } }],
     },
     // A name past the last parameter.
     {
@@ -220,19 +250,26 @@ ruleTester.run('param-tag', paramTag, {
       errors: [
         { messageId: 'paramOrder', data: { got: 'query', expected: 'id, ' } },
         { messageId: 'missingParam', data: { name: 'id' } },
+        { messageId: 'missingDestructuredParam', data: { position: '2' } },
       ],
     },
-    // An interface method compares names even where no tag is asked for.
+    // An interface method compares names and asks for every parameter.
     {
       code: 'interface Repository {\n  /**\n   * Reads.\n   *\n   * @param key - The key.\n   */\n  read(id: string): void\n}',
       options,
-      errors: [{ messageId: 'paramOrder', data: { got: 'key', expected: 'id' } }],
+      errors: [
+        { messageId: 'paramOrder', data: { got: 'key', expected: 'id' } },
+        { messageId: 'missingParam', data: { name: 'id' } },
+      ],
     },
-    // A property typed as a function compares its names with the parameters of the type, and asks for nothing else.
+    // A property typed as a function is asked for its parameters as a method is.
     {
       code: 'interface Options {\n  /**\n   * Builds it.\n   *\n   * @param key - The key.\n   */\n  build?: (error: unknown) => void\n}',
       options,
-      errors: [{ messageId: 'paramOrder', data: { got: 'key', expected: 'error' } }],
+      errors: [
+        { messageId: 'paramOrder', data: { got: 'key', expected: 'error' } },
+        { messageId: 'missingParam', data: { name: 'error' } },
+      ],
     },
     // A name written twice, dotted or not, is reported before anything else.
     {
@@ -256,12 +293,13 @@ ruleTester.run('param-tag', paramTag, {
         { messageId: 'missingParamDescription', data: { name: '' } },
       ],
     },
-    // A setter still compares its names and asks for text.
+    // A setter compares its names, asks for every parameter and for text.
     {
       code: 'class Repository {\n  /**\n   * Sets the limit.\n   *\n   * @param limit\n   */\n  set limit(value: number) {}\n}',
       options,
       errors: [
         { messageId: 'paramOrder', data: { got: 'limit', expected: 'value' } },
+        { messageId: 'missingParam', data: { name: 'value' } },
         { messageId: 'missingParamDescription', data: { name: 'limit' } },
       ],
     },

@@ -1,27 +1,13 @@
-import type { TsdocOptions } from '../plugins/tsdoc/types/index.js'
 import {
   NEXTJS_ARCHITECTURE,
   NEXTJS_FILES,
   NEXTJS_IGNORED,
   NEXTJS_TESTING,
-  NEXTJS_TSDOC,
   STORY_SUFFIX,
   STORYBOOK_FOLDER,
 } from './constants/index.js'
 import { strict } from './strict.config.js'
 import type { Config, NextjsOptions } from './types/index.js'
-
-/** The files a component is written in, which is where the carve-out below applies. */
-const COMPONENT_FILES = ['**/*.tsx']
-
-/**
- * Where `@param` and `@returns` are read from, once a component is left out.
- *
- * A component takes props and returns markup, so both tags restate the signature on every component of the project.
- * A component is written as a `function` declaration and everything else as an arrow, so dropping that one
- * context leaves the tags required wherever they still say something.
- */
-const DOCUMENTED_CONTEXTS = ['ArrowFunctionExpression', 'FunctionExpression', 'TSDeclareFunction', 'TSMethodSignature']
 
 /**
  * All of {@link strict}, with the tree a React project writes.
@@ -33,40 +19,16 @@ const DOCUMENTED_CONTEXTS = ['ArrowFunctionExpression', 'FunctionExpression', 'T
  * @param nextjsOptions - What this project says on top of the tier.
  * @returns The configuration, to export from `eslint.config.mts`.
  */
-export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => {
-  const tsdocOptions = { ...NEXTJS_TSDOC, ...nextjsOptions.tsdoc }
-
-  return [
-    ...strict({
-      ...nextjsOptions,
-      files: nextjsOptions.files ?? NEXTJS_FILES,
-      ignores: [...NEXTJS_IGNORED, ...(nextjsOptions.ignores ?? [])],
-      architecture: { ...NEXTJS_ARCHITECTURE, ...nextjsOptions.architecture },
-      testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
-      tsdoc: tsdocOptions,
-    }),
-    components(tsdocOptions),
-    catalogue(),
-  ]
-}
-
-/**
- * What a component's comment is not asked for.
- *
- * @param tsdocOptions - The comment vocabulary of the project, which the entry narrows for a component.
- * @returns The configuration entry.
- */
-const components = (tsdocOptions: TsdocOptions): Config => {
-  const componentTsdocOptions = { ...tsdocOptions, requiredTagContexts: DOCUMENTED_CONTEXTS }
-
-  return {
-    files: COMPONENT_FILES,
-    rules: {
-      'leandromatos/tsdoc-param-tag': ['error', componentTsdocOptions],
-      'leandromatos/tsdoc-returns-tag': ['error', componentTsdocOptions],
-    },
-  }
-}
+export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
+  ...strict({
+    ...nextjsOptions,
+    files: nextjsOptions.files ?? NEXTJS_FILES,
+    ignores: [...NEXTJS_IGNORED, ...(nextjsOptions.ignores ?? [])],
+    architecture: { ...NEXTJS_ARCHITECTURE, ...nextjsOptions.architecture },
+    testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
+  }),
+  catalogue(),
+]
 
 /**
  * What keeps the catalogue out of the application.

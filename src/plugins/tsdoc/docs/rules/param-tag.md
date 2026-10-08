@@ -42,18 +42,28 @@ const findOneUser = (userId: string) => {}
  */
 const sum = (left: number, right: number) => left + right
 
-/** Reads a user. */
+/**
+ * Reads a user.
+ *
+ * @param params - The route, which names the user.
+ */
 const findOneUser = ({ userId }: FindOneUserParams) => {}
 
 class Repository {
-  /** Sets the limit. */
+  /**
+   * Sets the limit.
+   *
+   * @param value - How many rows a page holds.
+   */
   set limit(value: number) {}
 }
 ```
 
-A destructured parameter, or one typed by an object literal, needs no tag, and a tag at its position
-may take any name. `this` is the receiver and takes none. A setter takes the value it is assigned,
-and a comment carrying `@inheritDoc` documents nothing here, so neither is asked for its tags.
+Every function is asked: one with a body, a declared one, a setter, a method without a body, an
+overload, an interface method and an interface property typed as a function. A destructured
+parameter carries one `@param` for the whole object, under any name, because TSDoc writes no path
+into it. A parameter typed by an object literal is a named one. `this` is the receiver and takes
+none, and a comment carrying `@inheritDoc` documents nothing here, so it is not asked.
 
 The comment is the `/**` block right above the statement that holds the function: the declaration,
 the export, the variable, the member, the return, or the assignment. A function handed straight to a
@@ -61,13 +71,7 @@ call carries it right before itself.
 
 ## Options
 
-| Option                | Type       | What it decides                                                     |
-| --------------------- | ---------- | ------------------------------------------------------------------- |
-| `requiredTagContexts` | `string[]` | The kinds of node, by AST type, whose comment is asked for its tags |
-
-Outside those kinds the rule still compares names with the parameters, including an interface
-method and an interface property typed as a function, and still asks a tag for its description in
-a function.
+None.
 
 ## Fixable
 

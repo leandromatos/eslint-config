@@ -4,9 +4,7 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
 
-const options: [TsdocOptions] = [
-  { commentWidth: 60, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
-]
+const options: [TsdocOptions] = [{ commentWidth: 60, readsReleaseTags: false }]
 
 /** Fourteen words, which run past the column the options set. */
 const WORDS = 'word '.repeat(14).trim()

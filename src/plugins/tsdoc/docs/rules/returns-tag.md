@@ -68,16 +68,16 @@ back values when its own body yields one or returns one. Past the type, an arrow
 for its body hands a value back, and so does a function whose own `return` carries one. A promise a
 `return` builds in place hands back nothing when its executor resolves it empty.
 
-A constructor builds the instance, and a comment carrying `@inheritDoc` documents nothing here, so
-neither is asked. A second tag is always one too many.
+Every function is read: one with a body, a declared one, a method without a body, an overload, an
+interface method and an interface property typed as a function. A constructor builds the instance,
+so it is left out, and a comment carrying `@inheritDoc` is not asked for the tag. A second tag is
+always one too many.
 
 The rule reads types, so it runs where the parser has a project.
 
 ## Options
 
-| Option                | Type       | What it decides                                                    |
-| --------------------- | ---------- | ------------------------------------------------------------------ |
-| `requiredTagContexts` | `string[]` | The kinds of node, by AST type, whose comment is asked for the tag |
+None.
 
 ## Fixable
 

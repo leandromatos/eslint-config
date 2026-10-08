@@ -25,6 +25,7 @@ import {
   returnsTag,
   throwsTag,
   typelessTag,
+  unreadTag,
 } from '../tsdoc/rules/index.js'
 import type { OptionsGroup } from '../types/index.js'
 import { constAssertionPair } from '../typescript/rules/index.js'
@@ -62,6 +63,7 @@ export const RULES = {
   'returns-tag': { rule: returnsTag, group: 'tsdoc' },
   'description-sentence': { rule: descriptionSentence, group: 'tsdoc' },
   'typeless-tag': { rule: typelessTag, group: 'tsdoc' },
+  'unread-tag': { rule: unreadTag, group: 'tsdoc' },
   'describes-source': { rule: describesSource, group: 'testing' },
   'e2e-over-http': { rule: e2eOverHttp, group: 'testing' },
   'spec-blocks': { rule: specBlocks, group: 'testing' },

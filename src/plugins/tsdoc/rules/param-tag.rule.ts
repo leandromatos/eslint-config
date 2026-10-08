@@ -11,25 +11,17 @@ import type {
   TsdocRule,
 } from '../types/index.js'
 import { ParameterKind } from '../types/index.js'
-import {
-  findDocBlock,
-  inheritsDoc,
-  isDescribedFunction,
-  isSetter,
-  lineLocationOf,
-  parseDocBlock,
-  readParameters,
-} from '../utils/index.js'
+import { findDocBlock, inheritsDoc, lineLocationOf, parseDocBlock, readParameters } from '../utils/index.js'
 
 /**
  * A documented function lists every parameter it takes in a `@param`, in the order of the signature, once, with a
  * description.
  *
- * Every parameter a caller passes needs a tag, in the kinds of function `requiredTagContexts` names. A setter takes
- * the value it is assigned, and a comment that inherits its documentation documents nothing here, so neither is
- * asked. A destructured parameter needs no tag, and a tag at its position may take any name. A dotted name documents
- * a property, so the order reads the names without a dot. The first tag out of place is reported, and nothing after it.
- * A property of an interface typed as a function compares its names with the parameters of that type.
+ * Every function is asked: one with a body, a declared one, a method without a body, a setter, an interface method and
+ * an interface property typed as a function. A comment that inherits its documentation documents nothing here, so it is
+ * not asked. A destructured parameter carries one `@param` for the whole object, under any name, since TSDoc writes no
+ * path into it. A parameter typed by an object literal is a named one. The first tag out of place is reported, and
+ * nothing after it.
  */
 export const paramTag: TsdocRule<ParamTagMessageId> = {
   meta: {
@@ -41,6 +33,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
     },
     messages: {
       missingParam: 'The comment carries no @param for "{{name}}".',
+      missingDestructuredParam: 'The comment carries no @param for the object destructured at position {{position}}.',
       unknownParam: 'The @param "{{name}}" names no parameter of the function.',
       paramOrder: 'The @param names read "{{got}}", and the parameters read "{{expected}}".',
       duplicateParam: 'The @param "{{name}}" is written twice.',
@@ -50,7 +43,6 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const [{ requiredTagContexts }] = context.options
     const { sourceCode } = context
     const judge = (node: ParameterizedNode, declaredParameters: TSESTree.Parameter[]): void => {
       const comment = findDocBlock(sourceCode, node)
@@ -61,9 +53,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
       const reportOnComment: CommentReporter = (messageId, messageValues) =>
         context.report({ loc: comment.loc, messageId, data: messageValues })
       judgeNames(paramTags, parameters, reportOnComment)
-      if (requiredTagContexts.includes(node.type) && !isSetter(node) && !inheritsDoc(docBlock))
-        judgePresence(paramTags, parameters, reportOnComment)
-      if (!isDescribedFunction(node)) return
+      if (!inheritsDoc(docBlock)) judgePresence(paramTags, parameters, reportOnComment)
       for (const paramTag of paramTags.filter(docBlockTag => docBlockTag.description === ''))
         context.report({
           loc: lineLocationOf(paramTag.line),
@@ -75,6 +65,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
     const listener: TSESLint.RuleListener = {
       ':function': judgeParameters,
       TSDeclareFunction: judgeParameters,
+      TSEmptyBodyFunctionExpression: judgeParameters,
       TSMethodSignature: judgeParameters,
       TSPropertySignature: node => {
         const typeAnnotation = node.typeAnnotation?.typeAnnotation
@@ -120,17 +111,21 @@ const judgeNames = (paramTags: DocBlockTag[], parameters: Parameter[], reportOnC
 }
 
 /**
- * Reports every parameter a caller passes that no tag names. A destructured parameter has no name to look for.
+ * Reports every parameter a caller passes that no tag documents. A named or a rest parameter is looked for by its name,
+ * and a destructured one by a tag at its position, whatever the name.
  *
  * @param paramTags - The `@param` tags of the comment.
  * @param parameters - The parameters of the signature.
  * @param reportOnComment - What a missing tag is reported through.
  */
 const judgePresence = (paramTags: DocBlockTag[], parameters: Parameter[], reportOnComment: CommentReporter): void => {
-  const documented = new Set(paramTags.map(paramTag => paramTag.parameterName))
-  for (const parameter of parameters) {
-    if (parameter.kind === ParameterKind.DESTRUCTURED || documented.has(parameter.name)) continue
-    reportOnComment('missingParam', { name: parameter.name })
+  const names = paramTags.map(paramTag => paramTag.parameterName)
+  const rootNames = names.filter(name => !name.includes('.'))
+  for (const [index, parameter] of parameters.entries()) {
+    if (parameter.kind !== ParameterKind.DESTRUCTURED && !names.includes(parameter.name))
+      reportOnComment('missingParam', { name: parameter.name })
+    if (parameter.kind === ParameterKind.DESTRUCTURED && rootNames[index] === undefined)
+      reportOnComment('missingDestructuredParam', { position: String(index + 1) })
   }
 }
 

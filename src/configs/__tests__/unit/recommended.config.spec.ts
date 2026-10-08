@@ -12,6 +12,13 @@ import { recommended } from '../../index.js'
  */
 const eslint = new ESLint({ overrideConfigFile: true, baseConfig: recommended() as Linter.Config[] })
 
+/**
+ * Lints one snippet as if it were the file at the path, which is what decides the layer that judges it.
+ *
+ * @param code - The source.
+ * @param filePath - The path the file would have.
+ * @returns The result for that file.
+ */
 const lint = async (code: string, filePath: string): Promise<ESLint.LintResult> =>
   firstLintResult(await eslint.lintText(code, { filePath }), filePath)
 

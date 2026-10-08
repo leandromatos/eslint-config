@@ -85,19 +85,11 @@ describe('nextjs', () => {
     ])
   })
 
-  it('asks a component for neither its props nor its markup, and keeps asking everything else', () => {
-    const [components] = nextjs().filter(
+  it('asks a component for its props and its markup, as every other function', () => {
+    const componentEntries = nextjs().filter(
       entry => entry.files?.includes('**/*.tsx') && entry.rules?.['leandromatos/tsdoc-param-tag'],
     )
-    const expectedContexts = ['ArrowFunctionExpression', 'FunctionExpression', 'TSDeclareFunction', 'TSMethodSignature']
 
-    expect(components?.rules?.['leandromatos/tsdoc-param-tag']).toEqual([
-      'error',
-      expect.objectContaining({ requiredTagContexts: expectedContexts }),
-    ])
-    expect(components?.rules?.['leandromatos/tsdoc-returns-tag']).toEqual([
-      'error',
-      expect.objectContaining({ requiredTagContexts: expectedContexts }),
-    ])
+    expect(componentEntries).toEqual([])
   })
 })

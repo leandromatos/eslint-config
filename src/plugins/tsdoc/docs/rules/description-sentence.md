@@ -46,6 +46,9 @@ question mark, an exclamation mark, a backtick or an emoji. The hyphen TSDoc wri
 of a `@param` and a `@returns` is not part of the text. An empty text, and a bare hyphen, are left
 to `tsdoc/param-tag` and `tsdoc/returns-tag`, which ask for one.
 
+A method without a body, an interface method and an interface property typed as a function are
+read as a function is.
+
 ## Options
 
 None.

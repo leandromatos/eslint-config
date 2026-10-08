@@ -31,7 +31,7 @@ const NOTHING_FLAGS = ts.TypeFlags.Void | ts.TypeFlags.Undefined | ts.TypeFlags.
 export const handsValueBack = (node: ReturningNode, parserServices: ParserServicesWithTypeInformation): boolean => {
   if (isGenerator(node)) return producesValue(node.body)
   if (typeSaysNothing(node, parserServices)) return false
-  if (node.type === AST_NODE_TYPES.TSDeclareFunction || node.type === AST_NODE_TYPES.TSMethodSignature) return true
+  if (!hasBody(node)) return true
   if (node.type === AST_NODE_TYPES.ArrowFunctionExpression && node.expression) return true
 
   return returnsValue(node.body)
@@ -91,6 +91,19 @@ const isNothing = (type: ts.Type): boolean => {
 
   return (type.flags & NOTHING_FLAGS) !== 0
 }
+
+/**
+ * Whether a function carries a body, which a declared one, a method without a body and a signature do not.
+ *
+ * @param node - The function, or the signature without a body.
+ * @returns Whether it has a body to read.
+ */
+const hasBody = (
+  node: ReturningNode,
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression =>
+  node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+  node.type === AST_NODE_TYPES.FunctionDeclaration ||
+  node.type === AST_NODE_TYPES.FunctionExpression
 
 /**
  * Whether a node holds a `return` with a value that belongs to the function being read.

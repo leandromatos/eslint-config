@@ -4,15 +4,11 @@ import type { PluginRule } from '../../shared/types/index.js'
 export interface TsdocOptions {
   /** The column a comment is wrapped at, which is the one the formatter wraps code at. */
   commentWidth: number
-  /** The folder tests live in, which documents nothing for a caller. */
-  testFolder: string
-  /** The names a framework calls rather than a caller imports, which document nothing to anybody. */
-  frameworkSymbols: string[]
   /**
-   * The kinds of node whose comment has to list every parameter and say what comes back, by the type the parser gives
-   * them: `FunctionDeclaration`, `ArrowFunctionExpression`, `TSMethodSignature`.
+   * Whether the project runs a tool that reads the release tags, such as TypeDoc or API Extractor. Without one, a
+   * `@public`, `@internal`, `@alpha` or `@beta` claims a pipeline that does not exist.
    */
-  requiredTagContexts: string[]
+  readsReleaseTags: boolean
 }
 
 /** A rule of this plugin: one options object, the vocabulary above. */

@@ -31,7 +31,7 @@ const findOneUser = (userId: string): Promise<UserEntity> => {}
 const findOneUser = (userId: string): Promise<UserEntity> => {}
 ```
 
-The rule reads the comment of a function, of an interface method and of a class. A type on a
+The rule reads every documentation comment of the file, whatever it documents. A type on a
 `@throws` is the business of `tsdoc/throws-tag`.
 
 ## Options

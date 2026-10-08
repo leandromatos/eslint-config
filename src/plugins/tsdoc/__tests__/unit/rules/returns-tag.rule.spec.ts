@@ -9,23 +9,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..',
 const ruleTester = typedRuleTester(root)
 const filename = sourceFile('users', 'services', 'user.service.ts')
 
-const options: [TsdocOptions] = [
-  {
-    commentWidth: 120,
-    testFolder: '__tests__',
-    frameworkSymbols: [],
-    requiredTagContexts: ['ArrowFunctionExpression', 'FunctionDeclaration', 'FunctionExpression', 'TSDeclareFunction'],
-  },
-]
-
-const componentOptions: [TsdocOptions] = [
-  {
-    commentWidth: 120,
-    testFolder: '__tests__',
-    frameworkSymbols: [],
-    requiredTagContexts: ['ArrowFunctionExpression', 'FunctionExpression', 'TSDeclareFunction', 'TSMethodSignature'],
-  },
-]
+const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('returns-tag', returnsTag, {
   valid: withFilename([
@@ -51,13 +35,13 @@ ruleTester.run('returns-tag', returnsTag, {
     { code: '/** Logs. */\ndeclare function log(): void', options },
     { code: '/** Logs. */\ndeclare function log(): undefined', options },
     { code: '/** Fails. */\ndeclare function fail(): never', options },
-
-    // A method without a body, and an interface method outside the contexts the options name.
-    { code: 'abstract class Repository {\n  /** Counts. */\n  abstract count(): number\n}', options },
-    { code: 'interface Repository {\n  /** Counts. */\n  count(): number\n}', options },
-
-    // A component outside the contexts the options name.
-    { code: '/** Renders the card. */\nfunction Card() {\n  return markup\n}', options: componentOptions },
+    // A method without a body, an interface method and a property typed as a function say what comes back.
+    {
+      code: 'abstract class Repository {\n  /**\n   * Counts.\n   *\n   * @returns How many.\n   */\n  abstract count(): number\n}',
+      options,
+    },
+    { code: 'interface Options {\n  /** Logs. */\n  log: () => void\n}', options },
+    { code: 'interface Options {\n  /** The limit. */\n  limit: number\n}', options },
     // A promise built in place that resolves with nothing hands back no value to document.
     { code: '/** Waits. */\nfunction wait() {\n  return new Promise(resolve => resolve())\n}', options },
     {
@@ -146,11 +130,39 @@ ruleTester.run('returns-tag', returnsTag, {
       options,
       errors: [{ messageId: 'missingReturns' }],
     },
-    // An interface method, where the options name it.
+    /*
+     * Every function is asked: an interface method, a method without a body, an overload, a component and a property
+     * typed as a function.
+     */
     {
       code: 'interface Repository {\n  /** Counts. */\n  count(): number\n}',
-      options: componentOptions,
+      options,
       errors: [{ messageId: 'missingReturns' }],
+    },
+    {
+      code: 'abstract class Repository {\n  /** Counts. */\n  abstract count(): number\n}',
+      options,
+      errors: [{ messageId: 'missingReturns' }],
+    },
+    {
+      code: 'class Repository {\n  /** Counts. */\n  count(): number\n  count() {\n    return 1\n  }\n}',
+      options,
+      errors: [{ messageId: 'missingReturns' }],
+    },
+    {
+      code: '/** Renders the card. */\nfunction Card() {\n  return markup\n}',
+      options,
+      errors: [{ messageId: 'missingReturns' }],
+    },
+    {
+      code: 'interface Options {\n  /** Builds it. */\n  build: () => number\n}',
+      options,
+      errors: [{ messageId: 'missingReturns' }],
+    },
+    {
+      code: 'interface Options {\n  /**\n   * Logs.\n   *\n   * @returns Nothing.\n   */\n  log: () => void\n}',
+      options,
+      errors: [{ messageId: 'unexpectedReturns' }],
     },
     // A tag on a function that hands nothing back, whatever its declared type.
     {
