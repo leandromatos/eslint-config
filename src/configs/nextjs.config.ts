@@ -14,7 +14,8 @@ import type { Config, NextjsOptions } from './types/index.js'
  *
  * What the tier changes is the vocabulary, never the rules: a module sits under a container, a component is named
  * after the function in it, what a component takes is declared beside it, and the files the router names are read
- * by the folder that holds them. A project states only where it differs from that.
+ * by the folder that holds them. A project states only where it differs from that, and a suffix it adds joins the
+ * tier's map rather than replacing it.
  *
  * @param nextjsOptions - What this project says on top of the tier.
  * @returns The configuration, to export from `eslint.config.mts`.
@@ -24,7 +25,11 @@ export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
     ...nextjsOptions,
     files: nextjsOptions.files ?? NEXTJS_FILES,
     ignores: [...NEXTJS_IGNORED, ...(nextjsOptions.ignores ?? [])],
-    architecture: { ...NEXTJS_ARCHITECTURE, ...nextjsOptions.architecture },
+    architecture: {
+      ...NEXTJS_ARCHITECTURE,
+      ...nextjsOptions.architecture,
+      suffixToFolder: { ...NEXTJS_ARCHITECTURE.suffixToFolder, ...nextjsOptions.architecture?.suffixToFolder },
+    },
     testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
   }),
   catalog(),

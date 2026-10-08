@@ -9,7 +9,7 @@ import type { Config, ExpoOptions } from './types/index.js'
  *
  * The architecture is the one a Next project writes: modules under a container, a component named after the
  * function in it, the router naming its own files. What the tier changes is the platform, and a project states
- * only where it differs from both.
+ * only where it differs from both, and a suffix it adds joins the tier's map rather than replacing it.
  *
  * @param expoOptions - What this project says on top of the tier.
  * @returns The configuration, to export from `eslint.config.mts`.
@@ -19,7 +19,11 @@ export const expo = (expoOptions: ExpoOptions = {}): Config[] => [
     ...expoOptions,
     files: expoOptions.files ?? EXPO_FILES,
     ignores: [...EXPO_IGNORED, ...(expoOptions.ignores ?? [])],
-    architecture: { ...EXPO_ARCHITECTURE, ...expoOptions.architecture },
+    architecture: {
+      ...EXPO_ARCHITECTURE,
+      ...expoOptions.architecture,
+      suffixToFolder: { ...EXPO_ARCHITECTURE.suffixToFolder, ...expoOptions.architecture?.suffixToFolder },
+    },
     testing: { ...EXPO_TESTING, ...expoOptions.testing },
   }),
   runner(expoOptions.files ?? EXPO_FILES),

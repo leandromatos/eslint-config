@@ -15,6 +15,13 @@ describe('nestjs', () => {
     return architectureOptions
   }
 
+  it('adds the suffixes a project names to the map of the tier, rather than replacing it', () => {
+    const { suffixToFolder } = architectureOf(nestjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } }))
+
+    expect(suffixToFolder['exception']).toBe('exceptions')
+    expect(suffixToFolder['interceptor']).toBe('interceptors')
+  })
+
   it('carries all of strict, which is what the tier is built on', () => {
     const names = nestjs()
       .map(entry => entry.name)

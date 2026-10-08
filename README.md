@@ -293,6 +293,8 @@ export default configs.strict({
 
 Spread them; never mutate them. Every project in one ESLint process shares the object.
 
+A framework tier (`nestjs`, `nextjs`, `expo`) merges `architecture.suffixToFolder` into the map of the tier, so a project there names only the suffixes it adds: `configs.nestjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } })` keeps every layer the tier names.
+
 **Override the result.** A tier returns an array of flat config entries, so what ESLint says about a shareable config applies: append your own entries, and the later one wins. That is how ESLint documents it. "You can override settings from the shareable config by adding them directly into your `eslint.config.js` file after importing the shareable config" ([Overriding settings](https://eslint.org/docs/latest/extend/shareable-configs#overriding-settings-from-shareable-configs)).
 
 ```ts

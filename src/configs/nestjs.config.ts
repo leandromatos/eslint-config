@@ -6,7 +6,8 @@ import type { Config, NestjsOptions } from './types/index.js'
  * All of {@link strict}, with the tree a NestJS project writes.
  *
  * What the tier adds is the vocabulary of the framework: the layers a module is cut into, the order a class walks
- * down them, and the request objects a controller takes whole. A project states only where it differs from that.
+ * down them, and the request objects a controller takes whole. A project states only where it differs from that, and
+ * a suffix it adds joins the tier's map rather than replacing it.
  *
  * @param nestjsOptions - What this project says on top of the tier.
  * @returns The configuration, to export from `eslint.config.mts`.
@@ -15,7 +16,11 @@ export const nestjs = (nestjsOptions: NestjsOptions = {}): Config[] =>
   strict({
     ...nestjsOptions,
     files: nestjsOptions.files ?? NESTJS_FILES,
-    architecture: { ...NESTJS_ARCHITECTURE, ...nestjsOptions.architecture },
+    architecture: {
+      ...NESTJS_ARCHITECTURE,
+      ...nestjsOptions.architecture,
+      suffixToFolder: { ...NESTJS_ARCHITECTURE.suffixToFolder, ...nestjsOptions.architecture?.suffixToFolder },
+    },
     naming: { ...NESTJS_NAMING, ...nestjsOptions.naming },
     text: { ...NESTJS_TEXT, ...nestjsOptions.text },
   })

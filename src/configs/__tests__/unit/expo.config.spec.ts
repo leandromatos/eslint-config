@@ -15,6 +15,13 @@ describe('expo', () => {
     return architectureOptions
   }
 
+  it('adds the suffixes a project names to the map of the tier, rather than replacing it', () => {
+    const { suffixToFolder } = architectureOf(expo({ architecture: { suffixToFolder: { exception: 'exceptions' } } }))
+
+    expect(suffixToFolder['exception']).toBe('exceptions')
+    expect(suffixToFolder['storage']).toBe('storages')
+  })
+
   it('carries all of strict, which is what the tier is built on', () => {
     const names = expo()
       .map(entry => entry.name)
