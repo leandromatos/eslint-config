@@ -3,15 +3,24 @@ import type { TestingOptions } from '../../plugins/testing/types/index.js'
 import { DEFAULT_TESTING } from './defaults.constant.js'
 import { NEXTJS_ARCHITECTURE } from './nextjs.constant.js'
 
-/** The files a React Native project's rules judge, which is its components as much as its modules. */
-export const EXPO_FILES = ['src/**/*.{ts,tsx}']
+/**
+ * The files a React Native project's rules judge: its sources, the local Expo modules under `modules/`, and the
+ * catalog under `.rnstorybook/`. Each is code the project writes, and React Native keeps the last two beside `src/`.
+ */
+export const EXPO_FILES = ['src/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
 
 /**
- * What a React Native project never reads: what Expo writes, and what the native builds leave behind.
+ * What a React Native project never reads: what Expo and the catalog write, and what the native builds leave behind.
  *
  * A project that runs none of them ignores a directory that never appears, which costs it nothing.
  */
-export const EXPO_IGNORED = ['**/.expo', '**/android', '**/ios', '**/expo-env.d.ts']
+export const EXPO_IGNORED = [
+  '**/.expo',
+  '**/android',
+  '**/ios',
+  '**/expo-env.d.ts',
+  '**/.rnstorybook/storybook.requires.ts',
+]
 
 /**
  * The tree a React Native project writes here.

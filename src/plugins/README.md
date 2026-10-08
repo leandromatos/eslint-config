@@ -111,6 +111,10 @@ directory between the working directory and the file. `src/users/user.service.ts
 or a serverless repository is judged under its own sources. A module named `src` inside the
 sources stays a module, and a file with no `src` in its path is left alone.
 
+The rules that ask for a comment read no location: a declaration is documented wherever it sits,
+so `tsdoc-documented-function`, `tsdoc-documented-type` and `tsdoc-link-symbols` judge every file
+the configuration names, `src` or not.
+
 The directory that holds the source root is the package. A rule that reads a manifest, such as
 `architecture-barrel-per-directory`, reads the `package.json` of that package and not the one of
 the working directory.

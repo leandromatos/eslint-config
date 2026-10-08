@@ -42,6 +42,18 @@ describe('expo', () => {
     expect(moduleDepthOf(['features', 'editor', 'tools', 'background-tool', 'hooks'], moduleContainers)).toBe(4)
   })
 
+  it('judges the local Expo modules and the catalog beside the sources, which the project writes too', () => {
+    const [ownEntry] = expo().filter(entry => entry.name === 'leandromatos/recommended')
+
+    expect(ownEntry?.files).toEqual(['src/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}'])
+  })
+
+  it('ignores the registry the catalog writes again on every run', () => {
+    const ignoring = expo().find(entry => entry.ignores && !entry.files && !entry.rules)
+
+    expect(ignoring?.ignores).toContain('**/.rnstorybook/storybook.requires.ts')
+  })
+
   it('ignores what Expo and the native builds wrote, plus what the project adds', () => {
     const ignoring = expo({ ignores: ['fastlane'] }).find(entry => entry.ignores && !entry.files && !entry.rules)
 

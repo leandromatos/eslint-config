@@ -2,7 +2,7 @@ import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typ
 import { AST_NODE_TYPES, AST_TOKEN_TYPES, ESLintUtils } from '@typescript-eslint/utils'
 import type ts from 'typescript'
 
-import { isMethod, locate, memberNameOf } from '../../shared/utils/index.js'
+import { isMethod, memberNameOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { DocumentedFunctionMessageId, TsdocRule } from '../types/index.js'
 import { restatesName } from '../utils/index.js'
@@ -33,8 +33,6 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
-    if (!where) return {}
     const { sourceCode } = context
     const parserServicesWithTypeInformation = ESLintUtils.getParserServices(context)
     const typeChecker = parserServicesWithTypeInformation.program.getTypeChecker()

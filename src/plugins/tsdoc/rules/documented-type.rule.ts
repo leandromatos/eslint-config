@@ -1,7 +1,6 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { DocumentedTypeMessageId, TsdocRule, TypeDeclaration } from '../types/index.js'
 import { findDocBlock, restatesName } from '../utils/index.js'
@@ -34,8 +33,6 @@ export const documentedType: TsdocRule<DocumentedTypeMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
-    if (!where) return {}
     const { sourceCode } = context
     const judge = (node: TypeDeclaration): void => {
       const name = nameOf(node)

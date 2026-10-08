@@ -47,7 +47,6 @@ ruleTester.run('link-symbols', linkSymbols, {
     { code: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}', filename: source, options },
     { code: '/** Holds `id`, which is a key. */\nexport const read = () => 1', filename: source, options },
     { code: '/** See {@link https://example.com}. */\nexport const read = () => 1', filename: source, options },
-    { code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}', filename: 'scripts/read.ts', options },
   ],
   invalid: [
     // A member of the class the comment sits in is linked, and a backticked one is reported.
@@ -77,15 +76,16 @@ ruleTester.run('link-symbols', linkSymbols, {
 })
 
 ruleTester.run('link-symbols, in a repository of several packages', linkSymbols, {
-  valid: [
-    // A file with no `src` in its path belongs to no package's sources.
+  valid: [],
+  invalid: [
+    // A declaration is documented wherever it sits, so a file with no `src` in its path is judged too.
     {
       code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
-      filename: 'packages/x/services/user.service.ts',
+      filename: '.rnstorybook/utils/story-users.util.ts',
       options,
+      errors: [{ messageId: 'symbolInBackticks' }],
+      output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}',
     },
-  ],
-  invalid: [
     {
       code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
       filename: packageSourceFile('packages/x', 'users', 'services', 'user.service.ts'),

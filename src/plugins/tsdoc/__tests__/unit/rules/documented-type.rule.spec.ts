@@ -53,8 +53,6 @@ ruleTester.run('documented-type', documentedType, {
     { code: 'const [Service] = [class {}]', filename: source, options },
     // A default export with no name answers to `default`.
     { code: '/** The page every route falls back to. */\nexport default class {}', filename: source, options },
-    // A file outside the sources is left alone.
-    { code: 'export class Release {}', filename: 'scripts/release.ts', options },
   ],
   invalid: [
     // A spec and a name a framework reads are documented like any other.
@@ -143,11 +141,15 @@ ruleTester.run('documented-type', documentedType, {
 })
 
 ruleTester.run('documented-type, in a repository of several packages', documentedType, {
-  valid: [
-    // A file with no `src` in its path belongs to no package's sources.
-    { code: 'export class UserFixture {}', filename: 'libs/x/types/users.type.ts', options },
-  ],
+  valid: [],
   invalid: [
+    // A declaration is documented wherever it sits, so a file with no `src` in its path is judged too.
+    {
+      code: 'export class UserFixture {}',
+      filename: 'modules/dpop-key/index.ts',
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'UserFixture' } }],
+    },
     {
       code: 'export class UserFixture {}',
       filename: packageSourceFile('libs/x', 'users', 'types', 'users.type.ts'),

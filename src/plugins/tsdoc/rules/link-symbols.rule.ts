@@ -1,7 +1,6 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, AST_TOKEN_TYPES, TSESLint } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { TsdocLinkSymbolsMessageId, TsdocRule } from '../types/index.js'
 
@@ -32,7 +31,6 @@ export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    if (!locate(context)) return {}
     const { sourceCode } = context
     const classBodies: TSESTree.ClassBody[] = []
     const listener: TSESLint.RuleListener = {

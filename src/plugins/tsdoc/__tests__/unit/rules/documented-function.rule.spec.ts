@@ -58,8 +58,6 @@ ruleTester.run('documented-function', documentedFunction, {
       filename: source,
       options,
     },
-    // A file outside the sources is left alone.
-    { code: 'export const release = () => 1', filename: 'release.ts', options },
     // An export that is not a function documents itself by its type.
     { code: 'export const LIMIT = 10', filename: source, options },
 
@@ -182,11 +180,15 @@ ruleTester.run('documented-function', documentedFunction, {
 })
 
 ruleTester.run('documented-function, in a repository of several packages', documentedFunction, {
-  valid: [
-    // A file with no `src` in its path belongs to no package's sources.
-    { code: 'export const findOneUser = () => 1', filename: 'find-one-user.ts', options },
-  ],
+  valid: [],
   invalid: [
+    // A declaration is documented wherever it sits, so a file with no `src` in its path is judged too.
+    {
+      code: 'export const findOneUser = () => 1',
+      filename: 'find-one-user.ts',
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
     {
       code: 'export const findOneUser = () => 1',
       filename: packageSourceFile('apps/x', 'users', 'services', 'user.service.ts'),
