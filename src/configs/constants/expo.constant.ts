@@ -11,11 +11,13 @@ import { TSX_SOURCES } from './sources.constant.js'
 export const EXPO_FILES = [...TSX_SOURCES, 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
 
 /**
- * The files of {@link EXPO_FILES} that keep a layout of their own: a local Expo module, which `create-expo-module`
- * names after the native module, and the catalog. The rules that judge every line of code read them; the rules that
- * judge where a file sits and what it is called do not, because no standard describes their layout yet.
+ * The files of {@link EXPO_FILES} that keep a layout of their own: the catalog, whose entry files Storybook names. The
+ * rules that judge every line of code read them; the rules that judge where a file sits and what it is called do not.
+ *
+ * A local Expo module is laid out like any package: its `src/` follows the layout of the house, and what sits beside
+ * it, the entry and the mock, carries no `src` and so meets only the rules of code and comments.
  */
-export const EXPO_UNLAID_FILES = ['modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
+export const EXPO_UNLAID_FILES = ['.rnstorybook/**/*.{ts,tsx}']
 
 /** The rules that judge where a file sits, what it is called, and which layer it reaches through a barrel. */
 export const LAYOUT_RULES = [

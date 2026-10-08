@@ -81,14 +81,15 @@ The sources are `src/` and the `src/` of each package one level under `apps/`, `
 
 `nextjs` adds one entry of its own: the catalog, which keeps a story and a component in step.
 `expo` adds two: Jest's globals, because a React Native project's unit tests run on `jest-expo`
-rather than on Vitest, and one for `modules/` and `.rnstorybook/`.
+rather than on Vitest, and one for `.rnstorybook/`.
 
-A local Expo module and the catalog are code the project writes, so every rule that judges code
-reads them: TSDoc, the TypeScript rules, the text rules. The rules of the layout do not
-(`known-suffix`, `known-directory`, `mirrored-source`, `barrel-per-directory`, `types-folder`,
-`type-suffix`, `one-export-per-util`, `import-boundaries`). `create-expo-module` names a module's
-files after the native module, as in `DpopKeyModule.ts`, and the layout of both trees is pending a
-decision in the Expo standard.
+The catalog is code the project writes, so every rule that judges code reads it: TSDoc, the
+TypeScript rules, the text rules. The rules of the layout do not (`known-suffix`,
+`known-directory`, `mirrored-source`, `barrel-per-directory`, `types-folder`, `type-suffix`,
+`one-export-per-util`, `import-boundaries`), since Storybook names its entry files. A local Expo
+module under `modules/` is laid out like any package: its `src/` follows the layout of the house,
+as in `modules/dpop-key/src/dpop-key.module.ts`, and its entry and its mock, which carry no `src`,
+meet only the rules of code and comments.
 
 ## ⚙️ Options
 

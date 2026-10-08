@@ -61,10 +61,10 @@ describe('expo', () => {
     ])
   })
 
-  it('spares a local Expo module and the catalog the rules of the layout, and only those', () => {
+  it('spares the catalog the rules of the layout, and only those', () => {
     const entry = expo().find(configEntry => configEntry.name === 'leandromatos/expo-unlaid')
 
-    expect(entry?.files).toEqual(['modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}'])
+    expect(entry?.files).toEqual(['.rnstorybook/**/*.{ts,tsx}'])
     expect(Object.values(entry?.rules ?? {})).toEqual(LAYOUT_RULES.map(() => 'off'))
     expect(Object.keys(entry?.rules ?? {})).not.toContain('leandromatos/tsdoc-documented-function')
   })

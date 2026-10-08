@@ -53,8 +53,8 @@ const runner = (files: string[]): Config => ({
 })
 
 /**
- * What a local Expo module and the catalog are spared: the rules of the layout, which no standard describes for them.
- * Every other rule reads them, the documentation rules first.
+ * What the catalog is spared: the rules of the layout, since Storybook names its entry files. Every other rule reads
+ * it, the documentation rules first.
  *
  * @returns The configuration entry.
  */
