@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
+import { moduleDepthOf } from '../../../plugins/shared/utils/index.js'
 import { NEXTJS_ARCHITECTURE } from '../../constants/index.js'
 import { nextjs } from '../../nextjs.config.js'
 
@@ -32,6 +33,13 @@ describe('nextjs', () => {
     expect(architectureOptions['moduleContainers']).toEqual(NEXTJS_ARCHITECTURE.moduleContainers)
     expect(architectureOptions['suffixFreeFolders']).toEqual(NEXTJS_ARCHITECTURE.suffixFreeFolders)
     expect(architectureOptions['coLocatedTypeSuffixes']).toEqual(NEXTJS_ARCHITECTURE.coLocatedTypeSuffixes)
+  })
+
+  it('reads each script under src/scripts as a context with layers of its own', () => {
+    const { moduleContainers } = architectureOf(nextjs())
+
+    expect(moduleContainers).toEqual(NEXTJS_ARCHITECTURE.moduleContainers)
+    expect(moduleDepthOf(['scripts', 'shadcn-to-storybook', 'utils'], NEXTJS_ARCHITECTURE.moduleContainers)).toBe(2)
   })
 
   it('judges the components as well as the modules, which is what a React project holds', () => {

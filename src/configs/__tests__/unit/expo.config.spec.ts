@@ -44,7 +44,7 @@ describe('expo', () => {
     const { moduleContainers } = architectureOf(expo())
 
     expect(moduleContainers).toEqual(EXPO_ARCHITECTURE.moduleContainers)
-    expect(EXPO_ARCHITECTURE.moduleContainers).toEqual(expect.arrayContaining(['features', 'libs', 'tools']))
+    expect(EXPO_ARCHITECTURE.moduleContainers).toEqual(expect.arrayContaining(['features', 'libs', 'scripts', 'tools']))
     expect(
       moduleDepthOf(['features', 'editor', 'tools', 'background-tool', 'hooks'], EXPO_ARCHITECTURE.moduleContainers),
     ).toBe(4)

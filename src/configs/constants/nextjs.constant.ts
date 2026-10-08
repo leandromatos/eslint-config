@@ -53,9 +53,10 @@ export const NEXTJS_ARCHITECTURE: ArchitectureOptions = {
   },
   /*
    * `features` and `libs` hold modules; the layer of a file starts one segment later. `modules` holds them inside
-   * a lib, which is how a client is organized by the domain it calls: `libs/api/modules/packages/keys`.
+   * a lib, which is how a client is organized by the domain it calls: `libs/api/modules/packages/keys`. `scripts`
+   * holds the build-time scripts that import from the sources, each a context with layers of its own.
    */
-  moduleContainers: ['features', 'libs', 'modules'],
+  moduleContainers: ['features', 'libs', 'modules', SUFFIX_TO_FOLDER.script],
   /*
    * The hooks React needs to synchronize with something outside itself. Named rather than banned outright, because
    * the documentation of React says an effect is how that synchronization is written; what the rules decide is

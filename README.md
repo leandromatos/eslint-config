@@ -377,12 +377,12 @@ const eslintConfig: Config[] = [
 
 The `nextjs` and `expo` tiers name what a Bulletproof tree needs, so a React project takes its tier without restating the layout.
 
-| Default            | What it holds                                                 | Why                                                                                                                                                      |
-| ------------------ | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `moduleContainers` | `features`, `libs`                                            | those hold modules rather than layers, so the layer starts one segment later: `features/devices/screens` is the module `devices` and the layer `screens` |
-| `rootContexts`     | what sits at the root of the sources and answers to no module | `app`, `assets`, `storybook`, `styles`, `theme` on the web; the Expo tier names its own                                                                  |
-| `suffixToFolder`   | plus `hook`, `screen`, `store`, `provider`, `query`, `key`    | the layers a React project writes, read from the projects that write them                                                                                |
-| `effectHooks`      | `useEffect`, `useLayoutEffect`, `useInsertionEffect`          | what `architecture-effect-in-hook` keeps out of a component                                                                                              |
+| Default            | What it holds                                                 | Why                                                                                                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `moduleContainers` | `features`, `libs`, `modules`, `scripts`                      | those hold modules rather than layers, so the layer starts one segment later: `features/devices/screens` is the module `devices` and the layer `screens`, and `scripts/shadcn-to-storybook/utils` is a script with layers of its own |
+| `rootContexts`     | what sits at the root of the sources and answers to no module | `app`, `assets`, `storybook`, `styles`, `theme` on the web; the Expo tier names its own                                                                                                                                              |
+| `suffixToFolder`   | plus `hook`, `screen`, `store`, `provider`, `query`, `key`    | the layers a React project writes, read from the projects that write them                                                                                                                                                            |
+| `effectHooks`      | `useEffect`, `useLayoutEffect`, `useInsertionEffect`          | what `architecture-effect-in-hook` keeps out of a component                                                                                                                                                                          |
 
 A project that writes effects in components today turns that last one off by naming no effect, and turns it back on a file at a time:
 
