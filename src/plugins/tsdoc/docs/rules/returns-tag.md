@@ -70,7 +70,7 @@ for its body hands a value back, and so does a function whose own `return` carri
 
 Every function is read: one with a body, a declared one, a method without a body, an overload, an
 interface method and an interface property typed as a function. A constructor builds the instance,
-so it is left out, and a comment carrying `@inheritDoc` is not asked for the tag. A second tag is
+so it is left out, and a comment carrying `{@inheritDoc}` is not asked for the tag. A second tag is
 always one too many.
 
 The rule reads types, so it runs where the parser has a project.

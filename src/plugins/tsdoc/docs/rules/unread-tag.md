@@ -34,7 +34,7 @@ export type UserKey = string
 
 ```typescript
 class UsersRepository extends Repository {
-  /** @inheritDoc */
+  /** {@inheritDoc Repository.findOneUser} */
   override findOneUser(userId: string): Promise<UserEntity> {}
 }
 

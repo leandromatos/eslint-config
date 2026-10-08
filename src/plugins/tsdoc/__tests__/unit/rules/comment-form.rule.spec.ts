@@ -103,7 +103,7 @@ ruleTester.run('comment-form, between the summary and the first tag', commentFor
       options,
     },
     // A comment that opens with a tag carries no summary to separate, and a note is no documentation comment.
-    { code: '/** @inheritDoc */\nconst read = id => id', options },
+    { code: '/** {@inheritDoc Reader.read} */\nconst read = id => id', options },
     { code: '/**\n * @param id - The user.\n */\nconst read = id => id', options },
     { code: '/*\n * Reads one user.\n * @see the route\n */\nconst read = id => id', options },
     // A decorator in a fenced example is code, and the tag after the fence is separated.

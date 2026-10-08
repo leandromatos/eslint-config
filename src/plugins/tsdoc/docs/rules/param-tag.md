@@ -63,7 +63,7 @@ Every function is asked: one with a body, a declared one, a setter, a method wit
 overload, an interface method and an interface property typed as a function. A destructured
 parameter carries one `@param` for the whole object, under any name, because TSDoc writes no path
 into it. A parameter typed by an object literal is a named one. `this` is the receiver and takes
-none, and a comment carrying `@inheritDoc` documents nothing here, so it is not asked.
+none, and a comment carrying `{@inheritDoc}` documents nothing here, so it is not asked.
 
 The comment is the `/**` block right above the statement that holds the function: the declaration,
 the export, the variable, the member, the return, or the assignment. A function handed straight to a

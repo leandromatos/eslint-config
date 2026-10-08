@@ -31,6 +31,8 @@ ruleTester.run('returns-tag', returnsTag, {
     { code: 'class Service {\n  /** Builds it. */\n  constructor() {\n    return build()\n  }\n}', options },
     // A comment that inherits its documentation documents nothing here.
     { code: '/**\n * @inheritDoc\n */\nfunction count() {\n  return 1\n}', options },
+    // The inline tag TSDoc defines inherits the value too.
+    { code: '/** {@inheritDoc Counter.count} */\nfunction count() {\n  return 1\n}', options },
     // A declared function that hands back nothing, by its type.
     { code: '/** Logs. */\ndeclare function log(): void', options },
     { code: '/** Logs. */\ndeclare function log(): undefined', options },

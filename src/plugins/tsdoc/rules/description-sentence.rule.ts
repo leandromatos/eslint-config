@@ -3,7 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA, SENTENCE_TAGS } from '../constants/index.js'
 import type { DescriptionSentenceMessageId, DocumentedNode, TsdocRule } from '../types/index.js'
-import { findDocBlock, lineLocationOf, parseDocBlock } from '../utils/index.js'
+import { findDocBlock, inheritsDoc, lineLocationOf, parseDocBlock } from '../utils/index.js'
 
 /**
  * What a description reads as: a capital, a digit, an underscore or a backtick first, and a period, a question mark,
@@ -18,7 +18,8 @@ const SENTENCE_REG_EXP = /^\n?([A-Z`\d_][\s\S]*[.?!`\p{RGI_Emoji}]\s*)?$/v
  *
  * A sentence opens with a capital and closes with its punctuation, so a reader meets the same shape in every comment.
  * A backtick may open or close one, which lets a sentence start with a name in code or end on a code fence. A tag whose
- * text is a bare hyphen, and a description that is empty, are left to the rules that ask for text.
+ * text is a bare hyphen, and a description that is empty, are left to the rules that ask for text. A comment that
+ * inherits its documentation through `{@inheritDoc}` takes its summary from there, and its own tags are still read.
  */
 export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
   meta: {
@@ -41,7 +42,8 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
       const comment = findDocBlock(sourceCode, node)
       if (!comment) return
       const docBlock = parseDocBlock(comment)
-      if (!SENTENCE_REG_EXP.test(docBlock.description))
+      /* A comment that inherits its documentation takes its summary from there, so it has none of its own to read. */
+      if (!inheritsDoc(docBlock) && !SENTENCE_REG_EXP.test(docBlock.description))
         context.report({
           loc: lineLocationOf(docBlock.descriptionLine),
           messageId: 'notSentence',

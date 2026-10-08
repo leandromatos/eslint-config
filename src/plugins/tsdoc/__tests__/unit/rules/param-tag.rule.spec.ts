@@ -29,6 +29,9 @@ ruleTester.run('param-tag', paramTag, {
     { code: '/** Reads the receiver. */\nfunction read(this: Repository) {}', options },
     // A comment that inherits its documentation documents nothing here.
     { code: '/**\n * @inheritDoc\n */\nfunction read(id) {}', options },
+    // The inline tag TSDoc defines inherits the parameters too, with its reference or without one.
+    { code: '/** {@inheritDoc Reader.read} */\nfunction read(id) {}', options },
+    { code: '/**\n * {@inheritDoc}\n */\nfunction read(id) {}', options },
     // A bare hyphen still reads as text.
     { code: '/**\n * Reads one.\n *\n * @param id -\n */\nfunction read(id) {}', options },
     // An optional name in brackets, with its default, names the parameter.

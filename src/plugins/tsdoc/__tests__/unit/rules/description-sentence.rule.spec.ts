@@ -8,6 +8,8 @@ const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('description-sentence', descriptionSentence, {
   valid: [
+    // A comment that inherits its documentation takes its summary from there.
+    { code: '/** {@inheritDoc Reader.read} */\nfunction read(id) {}', options },
     // A sentence, with sentences in its tags.
     {
       code: '/**\n * Reads a user.\n *\n * @param id - The ID of the user.\n * @returns The user.\n * @throws NotFoundException When no user has the ID.\n */\nfunction read(id) {}',
@@ -39,6 +41,12 @@ ruleTester.run('description-sentence', descriptionSentence, {
     { code: 'interface Options {\n  /** lowercase value */\n  limit: number\n}', options },
   ],
   invalid: [
+    // The tags a comment writes beside the inherited summary are its own, and read as any other.
+    {
+      code: '/**\n * {@inheritDoc Reader.read}\n *\n * @throws NotFoundException when nobody has it\n */\nfunction read(id) {}',
+      options,
+      errors: [{ messageId: 'notSentence', data: { part: 'text of @throws' } }],
+    },
     // A method without a body, an interface method and a property typed as a function read as a function does.
     {
       code: 'interface Reader {\n  /** lowercase method */\n  read(): void\n}',
