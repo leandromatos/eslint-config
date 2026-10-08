@@ -1,4 +1,5 @@
 import type { StringPattern, TextOptions } from '../../plugins/text/types/index.js'
+import { DEFAULT_TEXT } from './defaults.constant.js'
 
 /** A period closing the string. */
 export const PERIOD = '\\.$'
@@ -46,6 +47,7 @@ const FIELD_PHRASES: Pick<StringPattern, 'target' | 'must' | 'because'>[] = [
  * as they are. What a product decides for itself, the words of its own domain, it adds by spreading this list.
  */
 export const NESTJS_TEXT: TextOptions = {
+  ...DEFAULT_TEXT,
   stringPatterns: [
     ...LOG_METHODS.map(callee => ({
       callee,

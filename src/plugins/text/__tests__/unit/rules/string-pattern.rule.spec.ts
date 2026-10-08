@@ -6,6 +6,7 @@ const ruleTester = syntaxRuleTester()
 
 const options: [TextOptions] = [
   {
+    spellingExceptions: [],
     stringPatterns: [
       {
         callee: 'this.logger.warn',

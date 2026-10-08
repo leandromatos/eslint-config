@@ -167,4 +167,6 @@ export const DEFAULT_TYPESCRIPT: TypescriptOptions = {
 /** Nothing: what a product's strings look like is the product's to decide, and a stack says how they are written. */
 export const DEFAULT_TEXT: TextOptions = {
   stringPatterns: [],
+  /* A project lists the words another system spells for it; nothing is spared until one does. */
+  spellingExceptions: [],
 }
