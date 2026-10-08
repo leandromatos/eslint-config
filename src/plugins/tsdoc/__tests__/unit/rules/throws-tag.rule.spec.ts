@@ -27,6 +27,20 @@ ruleTester.run('throws-tag', throwsTag, {
       code: '/**\n * Reads one user.\n *\n * @throws UnauthorizedException if the user is missing.\n */\nconst read = () => 1',
       options,
     },
+    // What a try throws stops at a catch that answers it with another error, which is the one that leaves.
+    {
+      code: '/**\n * Sends the mail.\n *\n * @throws MailNotSentError When the provider refuses it.\n */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch (error) {\n    throw new MailNotSentError()\n  }\n}',
+      options,
+    },
+    // A catch with no binding, or one that swallows the error, keeps what the try throws in.
+    {
+      code: '/** Sends the mail. */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch {\n    return null\n  }\n}',
+      options,
+    },
+    {
+      code: '/** Sends the mail. */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch (error) {\n    const report = () => {\n      throw error\n    }\n    return report\n  } finally {\n    close()\n  }\n}',
+      options,
+    },
     // A word that only contains the tag's name is no tag.
     { code: '/** Reads one user, and documents its failures with `@throws`. */\nconst read = () => 1', options },
     // A function that documents nothing, because nothing precedes it, carries no tag to check.
@@ -66,6 +80,21 @@ ruleTester.run('throws-tag', throwsTag, {
     },
   ],
   invalid: [
+    // A catch that throws the error on lets what the try throws leave, and a finally keeps nothing in.
+    {
+      code: '/** Sends the mail. */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch (error) {\n    log(error)\n    throw error\n  }\n}',
+      options,
+      errors: [{ messageId: 'missingThrows', data: { type: 'ProviderError' } }],
+      output:
+        '/**\n * Sends the mail.\n *\n * @throws ProviderError\n */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch (error) {\n    log(error)\n    throw error\n  }\n}',
+    },
+    {
+      code: '/** Sends the mail. */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } finally {\n    close()\n  }\n}',
+      options,
+      errors: [{ messageId: 'missingThrows', data: { type: 'ProviderError' } }],
+      output:
+        '/**\n * Sends the mail.\n *\n * @throws ProviderError\n */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } finally {\n    close()\n  }\n}',
+    },
     // A capital opens a sentence as well as a type, and a word nothing declares names no type.
     {
       code: '/**\n * Reads one user.\n *\n * @throws The error, unless it is the one a rollback raises.\n */\nconst read = () => 1',

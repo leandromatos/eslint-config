@@ -151,6 +151,14 @@ const thrownOf = (
   const found: { node: TSESTree.NewExpression; type: string; title: string | null }[] = []
   const visit = (current: TSESTree.Node): void => {
     if (current !== node && isFunction(current)) return
+    /* What the try throws stops at its catch, unless the catch throws the error on, which is when it leaves. */
+    if (current.type === AST_NODE_TYPES.TryStatement && current.handler) {
+      if (rethrows(current.handler)) visit(current.block)
+      visit(current.handler)
+      if (current.finalizer) visit(current.finalizer)
+
+      return
+    }
     if (
       current.type === AST_NODE_TYPES.ThrowStatement &&
       current.argument.type === AST_NODE_TYPES.NewExpression &&
@@ -162,6 +170,31 @@ const thrownOf = (
   visit(node)
 
   return found
+}
+
+/**
+ * Whether a catch throws the error it caught on, which lets what the try throws leave the function.
+ *
+ * @param catchClause - The catch of the try.
+ * @returns Whether its body throws the caught error, as it was caught.
+ */
+const rethrows = (catchClause: TSESTree.CatchClause): boolean => {
+  const { param } = catchClause
+  if (param?.type !== AST_NODE_TYPES.Identifier) return false
+  let isRethrown = false
+  const visit = (current: TSESTree.Node): void => {
+    if (isFunction(current)) return
+    if (
+      current.type === AST_NODE_TYPES.ThrowStatement &&
+      current.argument.type === AST_NODE_TYPES.Identifier &&
+      current.argument.name === param.name
+    )
+      isRethrown = true
+    for (const child of childNodesOf(current)) visit(child)
+  }
+  visit(catchClause.body)
+
+  return isRethrown
 }
 
 /**
@@ -252,7 +285,7 @@ const appendTag = (
   comment: TSESTree.Comment,
   thrown: { type: string; title: string | null },
 ): TSESLint.RuleFix => {
-  const lines = comment.value.split('\n')
+  const lines = blockLinesOf(comment).split('\n')
   /* v8 ignore next -- a block comment always carries its closing line */
   const closing = lines.pop() ?? ''
   const indent = closing.replace(/\S.*$/, '')
@@ -263,6 +296,20 @@ const appendTag = (
   const tag = `${indent}* @throws ${thrown.type}${suffixed(condition)}`
 
   return ruleFixer.replaceText(comment, `/*${[...lines, tag, closing].join('\n')}*/`)
+}
+
+/**
+ * The value of a comment written as a block, one line per paragraph, so a comment that fits on one line opens up to
+ * take a tag below its summary.
+ *
+ * @param comment - The documentation comment.
+ * @returns The value, with its closing line.
+ */
+const blockLinesOf = (comment: TSESTree.Comment): string => {
+  if (comment.value.includes('\n')) return comment.value
+  const indent = ' '.repeat(comment.loc.start.column)
+
+  return `*\n${indent} * ${comment.value.replace(/^\*/, '').trim()}\n${indent} `
 }
 
 /**
