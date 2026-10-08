@@ -73,6 +73,12 @@ describe('expo', () => {
     expect(LAYOUT_RULES.filter(rule => !(rule in (plugin.rules ?? {})))).toEqual([])
   })
 
+  it('reads the components a design system ships under components/ui as a context of the root', () => {
+    const { rootContexts } = architectureOf(expo())
+
+    expect(rootContexts).toEqual(expect.arrayContaining(['components']))
+  })
+
   it('ignores the registry the catalog writes again on every run', () => {
     const ignoring = expo().find(entry => entry.ignores && !entry.files && !entry.rules)
 

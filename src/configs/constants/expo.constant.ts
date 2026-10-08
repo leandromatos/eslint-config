@@ -64,8 +64,11 @@ export const EXPO_ARCHITECTURE: ArchitectureOptions = {
    * each tool of it is a module of its own, with its own components and hooks.
    */
   moduleContainers: [...NEXTJS_ARCHITECTURE.moduleContainers, 'tools'],
-  /* What sits at the root of the sources and answers to no module: the router, the assets, the theme. */
-  rootContexts: ['app', 'assets', 'constants', 'hooks', 'theme', 'types', 'utils'],
+  /*
+   * What sits at the root of the sources and answers to no module: the router, the assets, the theme, and the
+   * components a design system ships under `components/ui`.
+   */
+  rootContexts: ['app', 'assets', 'components', 'constants', 'hooks', 'theme', 'types', 'utils'],
   /* The router names its own files, and a component is named after the function in it. */
   suffixFreeFolders: ['app', 'components'],
   /* A story is a web idea: React Native renders its catalog as an application rather than as a page. */
