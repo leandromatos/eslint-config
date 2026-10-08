@@ -30,6 +30,12 @@ ruleTester.run('known-directory', knownDirectory, {
     { code: 'export class UserService {}', filename: sourceFile('users', 'services', 'user.service.ts'), options },
     { code: 'export class UserHelper {}', filename: sourceFile('config', 'helpers', 'user.helper.ts'), options },
 
+    // The testing folder holds what a package publishes for tests, under the module it serves.
+    {
+      code: 'export const buildCollectionEntity = () => 1',
+      filename: sourceFile('users', 'testing', 'build-collection-entity.ts'),
+      options: [{ ...options[0], testingFolder: 'testing' }] as [ArchitectureOptions],
+    },
     // The mock folder sits beside the module it stands in for, wherever that module is.
     {
       code: 'export class UserService {}',
@@ -38,6 +44,13 @@ ruleTester.run('known-directory', knownDirectory, {
     },
   ],
   invalid: [
+    // With no testing folder named, the directory is one the list does not carry.
+    {
+      code: 'export const buildCollectionEntity = () => 1',
+      filename: sourceFile('users', 'testing', 'build-collection-entity.ts'),
+      options,
+      errors: [{ messageId: 'unknownDirectory', data: { directory: 'testing' } }],
+    },
     // With no mock folder named, the stand-in's directory is one the list does not carry.
     {
       code: 'export class UserService {}',
