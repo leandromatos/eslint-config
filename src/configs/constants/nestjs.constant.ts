@@ -1,10 +1,11 @@
 import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
 import type { NamingOptions } from '../../plugins/naming/types/index.js'
 import { DEFAULT_ARCHITECTURE, DEFAULT_NAMING, SUFFIX_TO_FOLDER } from './defaults.constant.js'
+import { TS_SOURCES } from './sources.constant.js'
 export { NESTJS_TEXT } from './nestjs-text.constant.js'
 
 /** The files a NestJS project's rules judge. */
-export const NESTJS_FILES = ['src/**/*.ts']
+export const NESTJS_FILES = TS_SOURCES
 
 /**
  * The layers NestJS invents, and the folder each lives in.

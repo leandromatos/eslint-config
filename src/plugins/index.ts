@@ -7,6 +7,7 @@ import {
   DEFAULT_TEXT,
   DEFAULT_TSDOC,
   DEFAULT_TYPESCRIPT,
+  TS_SOURCES,
 } from '../configs/constants/index.js'
 import { RULES } from './constants/index.js'
 import { PACKAGE, VERSION } from './shared/constants/index.js'
@@ -15,7 +16,7 @@ import type { PluginOptions } from './types/index.js'
 export type * from './types/index.js'
 
 /** The files a project's rules judge when a configuration names none. */
-const DEFAULT_FILES = ['src/**/*.ts']
+const DEFAULT_FILES = TS_SOURCES
 
 /** The prefix a configuration writes before a rule name, and the key it registers the plugin under. */
 const NAMESPACE = 'leandromatos'

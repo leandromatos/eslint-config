@@ -41,7 +41,7 @@ describe('nextjs', () => {
   it('judges the components as well as the modules, which is what a React project holds', () => {
     const [ownEntry] = nextjs().filter(entry => entry.name === 'leandromatos/recommended')
 
-    expect(ownEntry?.files).toEqual(['src/**/*.{ts,tsx}'])
+    expect(ownEntry?.files).toEqual(['src/**/*.{ts,tsx}', '{apps,libs,packages}/*/src/**/*.{ts,tsx}'])
   })
 
   it('lets a project differ from the tier, group by group', () => {
@@ -66,7 +66,12 @@ describe('nextjs', () => {
       .at(-1)
     const [, restriction] = entry?.rules?.['no-restricted-imports'] as [string, { patterns: { group: string[] }[] }]
 
-    expect(entry?.ignores).toEqual(['src/storybook/**/*.{ts,tsx}', 'src/**/*.stories.tsx'])
+    expect(entry?.ignores).toEqual([
+      'src/storybook/**/*.{ts,tsx}',
+      'src/**/*.stories.tsx',
+      '{apps,libs,packages}/*/src/storybook/**/*.{ts,tsx}',
+      '{apps,libs,packages}/*/src/**/*.stories.tsx',
+    ])
     expect(restriction.patterns.map(pattern => pattern.group)).toEqual([
       ['@/storybook', '@/storybook/*'],
       ['*.stories', '*.stories.tsx'],

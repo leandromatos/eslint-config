@@ -67,9 +67,12 @@ In this order. The last entry to match a file wins, which is what lets a project
 Each one calls `strict` with a vocabulary of its own, so a project on a framework restates none of
 its layout.
 
+The sources are `src/` and the `src/` of each package one level under `apps/`, `libs/` or
+`packages/`, so a monorepo names nothing.
+
 | Tier     | Judges                                                                     | Ignores on top of the defaults                                                                                   |
 | -------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `nestjs` | `src/**/*.ts`                                                              | nothing: the tier's vocabulary is the tree, not the build                                                        |
+| `nestjs` | the sources                                                                | nothing: the tier's vocabulary is the tree, not the build                                                        |
 | `nextjs` | the sources and the root TypeScript files                                  | `.next`, `lighthouse-report`, `next-env.d.ts`, `playwright-report`, `public`, `storybook-static`, `test-results` |
 | `expo`   | the sources, `modules/` and `.rnstorybook/`, and the root TypeScript files | `.expo`, `android`, `ios`, `expo-env.d.ts`, `.rnstorybook/storybook.requires.ts`                                 |
 

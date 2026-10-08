@@ -9,13 +9,14 @@ import {
   DEFAULT_TEXT,
   DEFAULT_TSDOC,
   DEFAULT_TYPESCRIPT,
+  TS_SOURCES,
 } from './constants/index.js'
 import { recommended } from './recommended.config.js'
 import type { Config, StrictOptions } from './types/index.js'
 import { assertKnownFolders } from './utils/index.js'
 
 /** The files a project's rules judge when it names none. */
-const DEFAULT_FILES = ['src/**/*.ts']
+const DEFAULT_FILES = TS_SOURCES
 
 /**
  * Every framework-agnostic rule of this package, on, with the personal conventions as its vocabulary.

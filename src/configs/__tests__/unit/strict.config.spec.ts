@@ -51,6 +51,12 @@ describe('strict', () => {
     expect(options.suffixToFolder).toMatchObject({ widget: 'widgets', service: 'services' })
   })
 
+  it('judges the sources of the repository and of each package of a workspace folder, by default', () => {
+    const [ownEntry] = strict().filter(entry => entry.name === 'leandromatos/recommended')
+
+    expect(ownEntry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts'])
+  })
+
   it('judges the files the project names', () => {
     const [ownEntry] = strict({ files: ['lib/**/*.ts'] }).filter(entry => entry.name === 'leandromatos/recommended')
 

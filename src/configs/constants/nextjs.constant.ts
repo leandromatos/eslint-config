@@ -1,9 +1,10 @@
 import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
 import type { TestingOptions } from '../../plugins/testing/types/index.js'
 import { DEFAULT_ARCHITECTURE, DEFAULT_TESTING, SUFFIX_TO_FOLDER } from './defaults.constant.js'
+import { TSX_SOURCES } from './sources.constant.js'
 
 /** The files a React project's rules judge, which is its components as much as its modules. */
-export const NEXTJS_FILES = ['src/**/*.{ts,tsx}']
+export const NEXTJS_FILES = TSX_SOURCES
 
 /**
  * What a React project never reads.

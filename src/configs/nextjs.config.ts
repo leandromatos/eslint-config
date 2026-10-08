@@ -3,6 +3,7 @@ import {
   NEXTJS_FILES,
   NEXTJS_IGNORED,
   NEXTJS_TESTING,
+  SOURCE_ROOTS,
   STORY_SUFFIX,
   STORYBOOK_FOLDER,
 } from './constants/index.js'
@@ -46,7 +47,10 @@ export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
  */
 const catalog = (): Config => ({
   files: NEXTJS_FILES,
-  ignores: [`src/${STORYBOOK_FOLDER}/**/*.{ts,tsx}`, `src/**/*.${STORY_SUFFIX}.tsx`],
+  ignores: SOURCE_ROOTS.flatMap(root => [
+    `${root}/${STORYBOOK_FOLDER}/**/*.{ts,tsx}`,
+    `${root}/**/*.${STORY_SUFFIX}.tsx`,
+  ]),
   rules: {
     'no-restricted-imports': [
       'error',

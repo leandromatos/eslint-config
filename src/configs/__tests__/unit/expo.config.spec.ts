@@ -54,7 +54,12 @@ describe('expo', () => {
   it('judges the local Expo modules and the catalog beside the sources, which the project writes too', () => {
     const [ownEntry] = expo().filter(entry => entry.name === 'leandromatos/recommended')
 
-    expect(ownEntry?.files).toEqual(['src/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}'])
+    expect(ownEntry?.files).toEqual([
+      'src/**/*.{ts,tsx}',
+      '{apps,libs,packages}/*/src/**/*.{ts,tsx}',
+      'modules/**/*.{ts,tsx}',
+      '.rnstorybook/**/*.{ts,tsx}',
+    ])
   })
 
   it('spares a local Expo module and the catalog the rules of the layout, and only those', () => {

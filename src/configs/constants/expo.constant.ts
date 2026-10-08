@@ -2,12 +2,13 @@ import type { ArchitectureOptions } from '../../plugins/architecture/types/index
 import type { TestingOptions } from '../../plugins/testing/types/index.js'
 import { DEFAULT_TESTING } from './defaults.constant.js'
 import { NEXTJS_ARCHITECTURE } from './nextjs.constant.js'
+import { TSX_SOURCES } from './sources.constant.js'
 
 /**
  * The files a React Native project's rules judge: its sources, the local Expo modules under `modules/`, and the
  * catalog under `.rnstorybook/`. Each is code the project writes, and React Native keeps the last two beside `src/`.
  */
-export const EXPO_FILES = ['src/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
+export const EXPO_FILES = [...TSX_SOURCES, 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
 
 /**
  * The files of {@link EXPO_FILES} that keep a layout of their own: a local Expo module, which `create-expo-module`

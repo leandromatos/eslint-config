@@ -224,18 +224,18 @@ const eslintConfig: Config[] = configs.nestjs(nestjsOptions)
 export default eslintConfig
 ```
 
-| Option         | Required | Default                              | Description                                      |
-| -------------- | -------- | ------------------------------------ | ------------------------------------------------ |
-| `files`        | No       | `['src/**/*.ts']`                    | The files the rules judge                        |
-| `ignores`      | No       | none                                 | What the linter never reads, beyond the defaults |
-| `architecture` | No       | the default layout                   | Merged over the tier's architecture vocabulary   |
-| `naming`       | No       | the default words                    | Merged over the tier's naming vocabulary         |
-| `testing`      | No       | the default test tree                | Merged over the tier's testing vocabulary        |
-| `text`         | No       | the tier's own shapes                | Merged over the tier's text vocabulary           |
-| `tsdoc`        | No       | column 120, no tool for release tags | Merged over `DEFAULT_TSDOC`                      |
-| `typescript`   | No       | the `type` suffix                    | Merged over `DEFAULT_TYPESCRIPT`                 |
+| Option         | Required | Default                                  | Description                                      |
+| -------------- | -------- | ---------------------------------------- | ------------------------------------------------ |
+| `files`        | No       | `src/` and `{apps,libs,packages}/*/src/` | The files the rules judge                        |
+| `ignores`      | No       | none                                     | What the linter never reads, beyond the defaults |
+| `architecture` | No       | the default layout                       | Merged over the tier's architecture vocabulary   |
+| `naming`       | No       | the default words                        | Merged over the tier's naming vocabulary         |
+| `testing`      | No       | the default test tree                    | Merged over the tier's testing vocabulary        |
+| `text`         | No       | the tier's own shapes                    | Merged over the tier's text vocabulary           |
+| `tsdoc`        | No       | column 120, no tool for release tags     | Merged over `DEFAULT_TSDOC`                      |
+| `typescript`   | No       | the `type` suffix                        | Merged over `DEFAULT_TYPESCRIPT`                 |
 
-The rules that read where a file sits judge it against its source root: the outermost `src/` between the working directory and the file. A repository of several packages names their sources in `files`, such as `['apps/*/src/**/*.ts', 'libs/*/src/**/*.ts']`, and each package is judged under its own `src/`, against its own `package.json`. A file with no `src/` in its path is left alone by those rules.
+The rules that read where a file sits judge it against its source root: the outermost `src/` between the working directory and the file. The default `files` reads the `src/` of the repository and the `src/` of each package one level under `apps/`, `libs/` or `packages/`, so a monorepo or a serverless repository names nothing; another layout names its sources in `files`. Each package is judged under its own `src/`, against its own `package.json`. A file with no `src/` in its path is left alone by those rules.
 
 `configs.recommended` takes `ignores` alone: the base layer judges every file a project holds rather than its sources, so the only thing to state is what the linter never reads.
 
