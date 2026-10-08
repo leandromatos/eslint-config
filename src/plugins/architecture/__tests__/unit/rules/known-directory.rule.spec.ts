@@ -125,6 +125,12 @@ ruleTester.run('known-directory, with a base folder', knownDirectory, {
       filename: sourceFile('events', 'core', 'domain-event.ts'),
       options: baseOptions,
     },
+    // A mirror of the module root mirrors its base folder too.
+    {
+      code: 'export interface DomainEventPayload {}',
+      filename: sourceFile('events', 'types', 'core', 'domain-event.type.ts'),
+      options: baseOptions,
+    },
   ],
   invalid: [
     // Below a layer, the folder is not the module's base, and the list does not carry it there.
