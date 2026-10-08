@@ -1,5 +1,6 @@
 export * from './as-list.util.js'
 export * from './camel-case.util.js'
+export * from './carries-responsibilities.util.js'
 export * from './child-nodes.util.js'
 export * from './class-members.util.js'
 export * from './context-root.util.js'

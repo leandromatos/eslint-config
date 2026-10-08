@@ -136,3 +136,24 @@ ruleTester.run('known-directory, with a base folder', knownDirectory, {
     },
   ],
 })
+
+ruleTester.run('known-directory, with a driver inside its capability', knownDirectory, {
+  valid: [
+    // A directory at the root of the module that holds layers of its own is a context, and its layers are on the list.
+    {
+      code: 'export class KeyvService {}',
+      filename: sourceFile('cache', 'keyv', 'services', 'keyv.service.ts'),
+      options,
+    },
+    { code: 'export class KeyvModule {}', filename: sourceFile('cache', 'keyv', 'keyv.module.ts'), options },
+  ],
+  invalid: [
+    // A directory that holds no layer is a responsibility nobody declared.
+    {
+      code: 'export const build = () => 1',
+      filename: sourceFile('cache', 'loose', 'build.ts'),
+      options,
+      errors: [{ messageId: 'unknownDirectory', data: { directory: 'loose' } }],
+    },
+  ],
+})

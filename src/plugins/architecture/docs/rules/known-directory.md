@@ -6,6 +6,10 @@ A directory that is not on the list is a responsibility nobody declared: the nex
 open it to learn what it holds, and the layer rules, the ones that decide where a file goes and what it may import, have
 nothing to say about it. Adding the row to the options is the decision; the directory follows.
 
+A directory at the root of a module that holds layers of its own is a context rather than a
+responsibility: a driver inside the capability it implements, such as `cache/keyv/` with its
+`services/` and `types/`. The list judges the directories inside it the way it judges a module's.
+
 ## Rule details
 
 👎 Incorrect: a module with a directory the options do not name.
@@ -25,6 +29,12 @@ src/users/
 ├── services/
 ├── utils/          ← the row the options carry for helpers
 └── types/          ← a mirror folder, also declared
+
+src/cache/
+├── cache.module.ts
+└── keyv/           ← a driver: it holds layers of its own
+    ├── services/
+    └── types/
 ```
 
 ## Options

@@ -164,3 +164,27 @@ monorepoRuleTester.run('mirrored-source, in a repository of several packages', m
     },
   ],
 })
+
+ruleTester.run('mirrored-source, in a driver inside its capability', mirroredSource, {
+  valid: [
+    // The driver's mirror reads the driver's own tree, and its vocabulary is named after the driver.
+    {
+      code: 'export interface KeyvServiceOptions {}',
+      filename: sourceFile('cache', 'keyv', 'types', 'services', 'keyv.service.type.ts'),
+      options,
+    },
+    {
+      code: 'export interface KeyvOptions {}',
+      filename: sourceFile('cache', 'keyv', 'types', 'keyv.type.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'export interface MissingOptions {}',
+      filename: sourceFile('cache', 'keyv', 'types', 'services', 'missing.service.type.ts'),
+      options,
+      errors: [{ messageId: 'noSource' }],
+    },
+  ],
+})

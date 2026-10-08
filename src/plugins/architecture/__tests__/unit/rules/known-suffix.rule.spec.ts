@@ -144,3 +144,22 @@ ruleTester.run('known-suffix, under a base folder', knownSuffix, {
     },
   ],
 })
+
+ruleTester.run('known-suffix, in a driver inside its capability', knownSuffix, {
+  valid: [
+    // A layer of the driver sits under the folder of its suffix, inside the driver.
+    {
+      code: 'export class KeyvService {}',
+      filename: sourceFile('cache', 'keyv', 'services', 'keyv.service.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'export class KeyvService {}',
+      filename: sourceFile('cache', 'keyv', 'repositories', 'keyv.service.ts'),
+      options,
+      errors: [{ messageId: 'wrongFolder' }],
+    },
+  ],
+})

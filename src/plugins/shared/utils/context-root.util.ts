@@ -1,5 +1,6 @@
-import fs from 'node:fs'
 import path from 'node:path'
+
+import { carriesResponsibilities } from './carries-responsibilities.util.js'
 
 /**
  * Whether a file is the root file of the context it sits in.
@@ -21,7 +22,5 @@ export const isContextRoot = (sourceRoot: string, segments: string[], stem: stri
   const directory = segments[segments.length - 1]
   if (!directory || directory !== stem) return false
 
-  return fs
-    .readdirSync(path.join(sourceRoot, ...segments), { withFileTypes: true })
-    .some(entry => entry.isDirectory() && folders.includes(entry.name))
+  return carriesResponsibilities(path.join(sourceRoot, ...segments), folders)
 }
