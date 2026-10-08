@@ -100,4 +100,13 @@ describe('nextjs', () => {
 
     expect(componentEntries).toEqual([])
   })
+
+  it('keeps the catalog out of the application of a package, over the files the tier judges there', () => {
+    const entry = nextjs({ basePath: 'packages/web', files: ['src/**/*.tsx'] })
+      .filter(configEntry => configEntry.rules?.['no-restricted-imports'])
+      .at(-1)
+
+    expect(entry?.basePath).toBe('packages/web')
+    expect(entry?.files).toEqual(['src/**/*.tsx'])
+  })
 })

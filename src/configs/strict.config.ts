@@ -14,7 +14,7 @@ import {
 } from './constants/index.js'
 import { recommended } from './recommended.config.js'
 import type { Config, StrictOptions } from './types/index.js'
-import { assertKnownFolders } from './utils/index.js'
+import { assertKnownFolders, inPackage } from './utils/index.js'
 
 /** The files a project's rules judge when it names none. */
 const DEFAULT_FILES = TS_SOURCES
@@ -43,8 +43,8 @@ export const strict = (strictOptions: StrictOptions = {}): Config[] => {
   const textOptions = { ...DEFAULT_TEXT, ...strictOptions.text }
   const typescriptOptions = { ...DEFAULT_TYPESCRIPT, ...strictOptions.typescript }
 
-  return [
-    ...recommended({ ignores: strictOptions.ignores }),
+  const shared = sharedOf(recommended({ ignores: strictOptions.ignores }), strictOptions.basePath)
+  const own = [
     leandromatos(
       {
         architecture: architectureOptions,
@@ -63,6 +63,22 @@ export const strict = (strictOptions: StrictOptions = {}): Config[] => {
     unsafeValues(files),
     directives(files),
   ]
+
+  return [...shared, ...inPackage(own, strictOptions.basePath)]
+}
+
+/**
+ * What a tier opens with: every layer of {@link recommended} for the repository, and only what ignores a file for a
+ * package, whose root configuration carries the layers once for the whole repository.
+ *
+ * @param layers - The layers of {@link recommended}, which open with the entry that ignores what a tool writes.
+ * @param basePath - The directory of the package, and nothing for the repository itself.
+ * @returns The entries.
+ */
+const sharedOf = (layers: Config[], basePath: string | undefined): Config[] => {
+  if (!basePath) return layers
+
+  return inPackage(layers.slice(0, 1), basePath)
 }
 
 /**

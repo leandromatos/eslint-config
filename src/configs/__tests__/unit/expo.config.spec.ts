@@ -97,4 +97,13 @@ describe('expo', () => {
 
     expect(testingOptions).toHaveProperty(['httpTest', 'kind'], '')
   })
+
+  it('reads the runner and the layout it spares under the package', () => {
+    const entries = expo({ basePath: 'packages/mobile' })
+    const own = entries.filter(
+      entry => entry.name === 'leandromatos/expo-runner' || entry.name === 'leandromatos/expo-unlaid',
+    )
+
+    expect(own.map(entry => entry.basePath)).toEqual(['packages/mobile', 'packages/mobile'])
+  })
 })

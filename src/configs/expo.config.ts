@@ -10,6 +10,7 @@ import {
 } from './constants/index.js'
 import { strict } from './strict.config.js'
 import type { Config, ExpoOptions } from './types/index.js'
+import { inPackage } from './utils/index.js'
 
 /**
  * All of {@link strict}, with the tree a React Native project writes.
@@ -33,8 +34,7 @@ export const expo = (expoOptions: ExpoOptions = {}): Config[] => [
     },
     testing: { ...EXPO_TESTING, ...expoOptions.testing },
   }),
-  runner(expoOptions.files ?? EXPO_FILES),
-  unlaid(),
+  ...inPackage([runner(expoOptions.files ?? EXPO_FILES), unlaid()], expoOptions.basePath),
 ]
 
 /**

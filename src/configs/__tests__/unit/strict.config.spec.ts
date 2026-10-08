@@ -1,7 +1,10 @@
+import { TSESLint } from '@typescript-eslint/utils'
 import { describe, expect, it } from 'vitest'
 
 import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
 import { DEFAULT_ARCHITECTURE } from '../../constants/index.js'
+import { nestjs } from '../../nestjs.config.js'
+import { recommended } from '../../recommended.config.js'
 import { strict } from '../../strict.config.js'
 
 describe('strict', () => {
@@ -105,5 +108,30 @@ describe('strict', () => {
     const [notes] = strict().filter(entry => entry.files?.includes('*.mts'))
 
     expect(notes?.rules?.['leandromatos/tsdoc-comment-form']).toBeDefined()
+  })
+
+  it('reads a package of a monorepo under its own directory, and leaves the layers of recommended to the root', () => {
+    const entries = strict({ basePath: 'packages/web' })
+    const [ignoring] = entries
+
+    expect(entries.length).toBe(strict().length - recommended().length + 1)
+    expect(ignoring?.ignores).toEqual(recommended()[0]?.ignores)
+    expect(entries.every(entry => entry.basePath === 'packages/web')).toBe(true)
+    expect(entries.map(entry => entry.name)).toContain('leandromatos/recommended')
+  })
+
+  it('lays a package over the root, so a file of the package is judged by the tier of the package', async () => {
+    const eslint = new TSESLint.ESLint({
+      cwd: '/repository',
+      overrideConfigFile: true,
+      baseConfig: [...strict(), ...nestjs({ basePath: 'apps/api' })],
+    })
+
+    const config: unknown = await eslint.calculateConfigForFile('/repository/apps/api/src/users/users.service.ts')
+
+    expect(config).toHaveProperty(
+      ['rules', 'leandromatos/architecture-method-order', 1, 'orderedSuffixes', 0],
+      'controller',
+    )
   })
 })

@@ -236,6 +236,7 @@ export default eslintConfig
 | -------------- | -------- | ---------------------------------------- | ------------------------------------------------ |
 | `files`        | No       | `src/` and `{apps,libs,packages}/*/src/` | The files the rules judge                        |
 | `ignores`      | No       | none                                     | What the linter never reads, beyond the defaults |
+| `basePath`     | No       | the repository                           | The package a tier reads, in a monorepo          |
 | `architecture` | No       | the default layout                       | Merged over the tier's architecture vocabulary   |
 | `naming`       | No       | the default words                        | Merged over the tier's naming vocabulary         |
 | `testing`      | No       | the default test tree                    | Merged over the tier's testing vocabulary        |
@@ -251,6 +252,23 @@ Names no declaration carries live in the naming group, and this package forbids 
 
 ```ts
 configs.strict({ naming: { forbiddenNames: [] } })
+```
+
+### A tier per package
+
+In a monorepo whose packages sit on different stacks, the root configuration takes `configs.strict` once, and each package takes the tier of its stack with `basePath`. The tier then reads its globs under that package, and leaves the layers of `recommended` to the root, which carries them once for the whole repository; only the entry that ignores what a tool writes comes along, under the package.
+
+```ts
+import type { Config } from '@leandromatos/eslint-config'
+import { configs } from '@leandromatos/eslint-config'
+
+const eslintConfig: Config[] = [
+  ...configs.strict(),
+  ...configs.nextjs({ basePath: 'packages/web' }),
+  ...configs.expo({ basePath: 'packages/mobile' }),
+]
+
+export default eslintConfig
 ```
 
 ### The plugin on its own

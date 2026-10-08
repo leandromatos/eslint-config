@@ -34,4 +34,10 @@ export interface StrictOptions {
   ignores?: string[]
   /** The files the rules judge, which defaults to the sources of a project. */
   files?: string[]
+  /**
+   * The directory of one package of a monorepo, from the root of the repository, such as `packages/web`. The tier then
+   * reads its globs under that package and leaves out the layers of `recommended`, which the root configuration
+   * carries once for the whole repository; only what ignores a file comes along. Defaults to the repository itself.
+   */
+  basePath?: string
 }

@@ -9,6 +9,7 @@ import {
 } from './constants/index.js'
 import { strict } from './strict.config.js'
 import type { Config, NextjsOptions } from './types/index.js'
+import { inPackage } from './utils/index.js'
 
 /**
  * All of {@link strict}, with the tree a React project writes.
@@ -33,7 +34,7 @@ export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
     },
     testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
   }),
-  catalog(),
+  ...inPackage([catalog(nextjsOptions.files ?? NEXTJS_FILES)], nextjsOptions.basePath),
 ]
 
 /**
@@ -43,10 +44,11 @@ export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
  * a build that did would carry the harness into production. The catalog itself is the one place allowed to, so
  * it is the only thing the entry leaves out.
  *
+ * @param files - The files the restriction reaches, which are the files the tier judges.
  * @returns The configuration entry.
  */
-const catalog = (): Config => ({
-  files: NEXTJS_FILES,
+const catalog = (files: string[]): Config => ({
+  files,
   ignores: SOURCE_ROOTS.flatMap(root => [
     `${root}/${STORYBOOK_FOLDER}/**/*.{ts,tsx}`,
     `${root}/**/*.${STORY_SUFFIX}.tsx`,
