@@ -12,6 +12,9 @@ Every tag opens with that type. A tag that opens with a sentence, such as
 writes before its text has no place after the type: `@throws NotFoundException When…`, not
 `@throws NotFoundException - When…`.
 
+A word is read as a type when its name ends in `Error` or `Exception`, or when the file or the
+runtime declares it, as an import or `TypeError` does. The first word of a sentence is neither.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:

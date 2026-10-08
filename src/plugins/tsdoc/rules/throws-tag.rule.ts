@@ -1,5 +1,5 @@
-import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
+import type { TSESTree } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES, AST_TOKEN_TYPES, TSESLint } from '@typescript-eslint/utils'
 
 import { childNodesOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
@@ -14,6 +14,9 @@ const THROWS_LINE_REG_EXP = /@throws(?=\s|$)([^\n]*)/g
 /** A type the way a tag names it: an identifier, qualified or not, that opens with a capital. */
 const TYPE_NAME_REG_EXP = /^[A-Z][\w$]*(?:\.[A-Za-z_$][\w$]*)*/
 
+/** How the name of an error type ends, which tells a type from the first word of a sentence. */
+const ERROR_NAME_REG_EXP = /(?:Error|Exception)$/
+
 /** What stands in for an expression of a template literal, so a title written with one still reads as a pattern. */
 const PLACEHOLDER = '{value}'
 
@@ -24,7 +27,9 @@ const PLACEHOLDER = '{value}'
  * braces is JSDoc, and a `{@link}` is a link, both of which the TSDoc parser reads as text.
  *
  * Every tag opens with that type. A tag that opens with a sentence names nothing a caller can
- * catch, and the hyphen a `@param` writes before its text has no place after the type.
+ * catch, and the hyphen a `@param` writes before its text has no place after the type. A word is
+ * read as a type when its name ends the way an error's does, or when the file or the runtime
+ * declares it.
  */
 export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
   meta: {
@@ -49,6 +54,7 @@ export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
   },
   create: context => {
     const { sourceCode } = context
+    const moduleNames = moduleNamesOf(sourceCode)
     const judge = (node: TSESTree.FunctionLike): void => {
       const documented = documentedOf(node)
       const comment = documented && sourceCode.getCommentsBefore(documented).at(-1)
@@ -90,12 +96,12 @@ export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
       const opening = text.trimStart()
       if (opening.startsWith('{')) return
       const type = TYPE_NAME_REG_EXP.exec(opening)?.[0]
-      const rest = opening.slice(type?.length ?? 0).trimStart()
-      if (!type || /^[a-z]/.test(rest)) {
+      if (!type || !isTypeName(type, moduleNames)) {
         context.report({ node: comment, messageId: 'untypedThrows', data: { text: text.trimEnd() } })
 
         return
       }
+      const rest = opening.slice(type.length).trimStart()
       if (rest !== '-' && !rest.startsWith('- ')) return
       const start = comment.range[0] + 2 + throwsLine.index
       const tag = throwsLine[0]
@@ -282,4 +288,34 @@ const suffixed = (condition: string): string => {
   if (!condition) return ''
 
   return ` ${condition}`
+}
+
+/**
+ * The names the file declares or imports at its top, which a tag may name as the type thrown.
+ *
+ * @param sourceCode - The source the comments are written in.
+ * @returns The names.
+ */
+const moduleNamesOf = (sourceCode: TSESLint.SourceCode): Set<string> => {
+  const names = new Set<string>()
+  /* v8 ignore next -- a file the parser read carries the scopes it analyzed */
+  for (const scope of sourceCode.scopeManager?.scopes ?? [])
+    if (scope.type === TSESLint.Scope.ScopeType.module) for (const name of scope.set.keys()) names.add(name)
+
+  return names
+}
+
+/**
+ * Whether the first word of a tag names a type: one whose name ends the way an error's does, or one the file or the
+ * runtime declares, such as `Error`.
+ *
+ * @param type - The word, qualified or not.
+ * @param moduleNames - The names the file declares or imports at its top.
+ * @returns Whether the word names a type.
+ */
+const isTypeName = (type: string, moduleNames: Set<string>): boolean => {
+  const [head = ''] = type.split('.')
+  if (ERROR_NAME_REG_EXP.test(type)) return true
+
+  return moduleNames.has(head) || Object.hasOwn(globalThis, head)
 }

@@ -10,10 +10,23 @@ ruleTester.run('throws-tag', throwsTag, {
   valid: [
     // A type, qualified or not, opens the tag, and the condition after it opens with a capital.
     {
-      code: '/**\n * Reads one user.\n *\n * @throws Errors.NotFound When the user is missing.\n */\nconst read = () => 1',
+      code: "import { Errors } from './errors.js'\n\n/**\n * Reads one user.\n *\n * @throws Errors.NotFound When the user is missing.\n */\nconst read = () => 1",
       options,
     },
     { code: '/**\n * Reads one user.\n *\n * @throws TypeError\n */\nconst read = () => 1', options },
+    // A type the runtime declares, one the file imports and one named the way an error is, whatever the condition says.
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws Error when the user is missing.\n */\nconst read = () => 1',
+      options,
+    },
+    {
+      code: "import { Problem } from './problem.js'\n\n/**\n * Reads one user.\n *\n * @throws Problem if the user is missing.\n */\nexport const read = () => 1",
+      options,
+    },
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws UnauthorizedException if the user is missing.\n */\nconst read = () => 1',
+      options,
+    },
     // A word that only contains the tag's name is no tag.
     { code: '/** Reads one user, and documents its failures with `@throws`. */\nconst read = () => 1', options },
     // A function that documents nothing, because nothing precedes it, carries no tag to check.
@@ -53,6 +66,12 @@ ruleTester.run('throws-tag', throwsTag, {
     },
   ],
   invalid: [
+    // A capital opens a sentence as well as a type, and a word nothing declares names no type.
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws The error, unless it is the one a rollback raises.\n */\nconst read = () => 1',
+      options,
+      errors: [{ messageId: 'untypedThrows' }],
+    },
     // A tag that opens with a sentence names no type a caller can catch.
     {
       code: '/**\n * Reads one user.\n *\n * @throws Will throw an error when the user is missing.\n */\nconst read = () => 1',
@@ -78,10 +97,11 @@ ruleTester.run('throws-tag', throwsTag, {
         '/**\n * Reads one user.\n *\n * @throws NotFoundException When the user is missing.\n */\nconst read = () => {\n  throw new NotFoundException()\n}',
     },
     {
-      code: '/**\n * Reads one user.\n *\n * @throws Errors.NotFound -\n */\nconst read = () => 1',
+      code: "import { Errors } from './errors.js'\n\n/**\n * Reads one user.\n *\n * @throws Errors.NotFound -\n */\nconst read = () => 1",
       options,
       errors: [{ messageId: 'hyphenatedThrows', data: { type: 'Errors.NotFound' } }],
-      output: '/**\n * Reads one user.\n *\n * @throws Errors.NotFound\n */\nconst read = () => 1',
+      output:
+        "import { Errors } from './errors.js'\n\n/**\n * Reads one user.\n *\n * @throws Errors.NotFound\n */\nconst read = () => 1",
     },
     // A comment that already ends with a tag takes the new one straight after it.
     {
