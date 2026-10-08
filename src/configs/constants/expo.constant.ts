@@ -10,6 +10,25 @@ import { NEXTJS_ARCHITECTURE } from './nextjs.constant.js'
 export const EXPO_FILES = ['src/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
 
 /**
+ * The files of {@link EXPO_FILES} that keep a layout of their own: a local Expo module, which `create-expo-module`
+ * names after the native module, and the catalog. The rules that judge every line of code read them; the rules that
+ * judge where a file sits and what it is called do not, because no standard describes their layout yet.
+ */
+export const EXPO_UNLAID_FILES = ['modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}']
+
+/** The rules that judge where a file sits, what it is called, and which layer it reaches through a barrel. */
+export const LAYOUT_RULES = [
+  'architecture-barrel-per-directory',
+  'architecture-import-boundaries',
+  'architecture-known-directory',
+  'architecture-known-suffix',
+  'architecture-mirrored-source',
+  'architecture-one-export-per-util',
+  'architecture-type-suffix',
+  'architecture-types-folder',
+]
+
+/**
  * What a React Native project never reads: what Expo and the catalog write, and what the native builds leave behind.
  *
  * A project that runs none of them ignores a directory that never appears, which costs it nothing.

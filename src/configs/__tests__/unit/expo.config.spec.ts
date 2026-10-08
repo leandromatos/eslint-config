@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ArchitectureOptions } from '../../../plugins/architecture/types/index.js'
+import { plugin } from '../../../plugins/index.js'
 import { moduleDepthOf } from '../../../plugins/shared/utils/index.js'
+import { LAYOUT_RULES } from '../../constants/index.js'
 import { expo } from '../../expo.config.js'
 
 describe('expo', () => {
@@ -53,6 +55,18 @@ describe('expo', () => {
     const [ownEntry] = expo().filter(entry => entry.name === 'leandromatos/recommended')
 
     expect(ownEntry?.files).toEqual(['src/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}'])
+  })
+
+  it('spares a local Expo module and the catalog the rules of the layout, and only those', () => {
+    const entry = expo().find(configEntry => configEntry.name === 'leandromatos/expo-unlaid')
+
+    expect(entry?.files).toEqual(['modules/**/*.{ts,tsx}', '.rnstorybook/**/*.{ts,tsx}'])
+    expect(Object.values(entry?.rules ?? {})).toEqual(LAYOUT_RULES.map(() => 'off'))
+    expect(Object.keys(entry?.rules ?? {})).not.toContain('leandromatos/tsdoc-documented-function')
+  })
+
+  it('names in the layout only rules the plugin carries', () => {
+    expect(LAYOUT_RULES.filter(rule => !(rule in (plugin.rules ?? {})))).toEqual([])
   })
 
   it('ignores the registry the catalog writes again on every run', () => {

@@ -74,8 +74,15 @@ its layout.
 | `expo`   | the sources, `modules/` and `.rnstorybook/`, and the root TypeScript files | `.expo`, `android`, `ios`, `expo-env.d.ts`, `.rnstorybook/storybook.requires.ts`                                 |
 
 `nextjs` adds one entry of its own: the catalog, which keeps a story and a component in step.
-`expo` adds one too: Jest's globals, because a React Native project's unit tests run on `jest-expo`
-rather than on Vitest.
+`expo` adds two: Jest's globals, because a React Native project's unit tests run on `jest-expo`
+rather than on Vitest, and one for `modules/` and `.rnstorybook/`.
+
+A local Expo module and the catalog are code the project writes, so every rule that judges code
+reads them: TSDoc, the TypeScript rules, the text rules. The rules of the layout do not
+(`known-suffix`, `known-directory`, `mirrored-source`, `barrel-per-directory`, `types-folder`,
+`type-suffix`, `one-export-per-util`, `import-boundaries`). `create-expo-module` names a module's
+files after the native module, as in `DpopKeyModule.ts`, and the layout of both trees is pending a
+decision in the Expo standard.
 
 ## ⚙️ Options
 

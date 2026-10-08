@@ -1,6 +1,13 @@
 import globals from 'globals'
 
-import { EXPO_ARCHITECTURE, EXPO_FILES, EXPO_IGNORED, EXPO_TESTING } from './constants/index.js'
+import {
+  EXPO_ARCHITECTURE,
+  EXPO_FILES,
+  EXPO_IGNORED,
+  EXPO_TESTING,
+  EXPO_UNLAID_FILES,
+  LAYOUT_RULES,
+} from './constants/index.js'
 import { strict } from './strict.config.js'
 import type { Config, ExpoOptions } from './types/index.js'
 
@@ -27,6 +34,7 @@ export const expo = (expoOptions: ExpoOptions = {}): Config[] => [
     testing: { ...EXPO_TESTING, ...expoOptions.testing },
   }),
   runner(expoOptions.files ?? EXPO_FILES),
+  unlaid(),
 ]
 
 /**
@@ -42,4 +50,16 @@ const runner = (files: string[]): Config => ({
   name: 'leandromatos/expo-runner',
   files,
   languageOptions: { globals: { ...globals.jest } },
+})
+
+/**
+ * What a local Expo module and the catalog are spared: the rules of the layout, which no standard describes for them.
+ * Every other rule reads them, the documentation rules first.
+ *
+ * @returns The configuration entry.
+ */
+const unlaid = (): Config => ({
+  name: 'leandromatos/expo-unlaid',
+  files: EXPO_UNLAID_FILES,
+  rules: Object.fromEntries(LAYOUT_RULES.map(rule => [`leandromatos/${rule}`, 'off'])),
 })
