@@ -4,8 +4,8 @@ import path from 'node:path'
 /** What a package answers with when it publishes nothing by path. */
 const NONE: string[] = []
 
-/** The directories each package publishes, by the directory the run was started from. */
-const byWorkingDirectory = new Map<string, string[]>()
+/** The directories each package publishes, by the directory of the package. */
+const byPackage = new Map<string, string[]>()
 
 /**
  * The directories a package publishes as entrypoints, read from its `package.json`.
@@ -13,17 +13,17 @@ const byWorkingDirectory = new Map<string, string[]>()
  * `"./cache"` and `"./cache/testing"` both name `cache`, and `"./schemas/*"` names `schemas`. `"."` names no
  * directory: it is the package itself. An application publishes nothing by path and gets an empty list.
  *
- * @param cwd - The directory the run was started from, which holds `package.json`.
+ * @param packageRoot - The directory of the package, which holds `package.json`.
  * @returns The directory names, each appearing once.
  */
-export const publishedDirectoriesOf = (cwd: string): string[] => {
-  const known = byWorkingDirectory.get(cwd)
+export const publishedDirectoriesOf = (packageRoot: string): string[] => {
+  const known = byPackage.get(packageRoot)
   if (known) return known
-  const manifest = path.join(cwd, 'package.json')
+  const manifest = path.join(packageRoot, 'package.json')
   if (!fs.existsSync(manifest)) return NONE
   const { exports: entrypoints } = JSON.parse(fs.readFileSync(manifest, 'utf8')) as { exports?: unknown }
   const directories = readDirectories(entrypoints)
-  byWorkingDirectory.set(cwd, directories)
+  byPackage.set(packageRoot, directories)
 
   return directories
 }

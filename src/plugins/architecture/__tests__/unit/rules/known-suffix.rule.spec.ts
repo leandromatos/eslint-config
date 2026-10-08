@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { knownSuffix } from '../../../rules/known-suffix.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -88,4 +88,39 @@ ruleTester.run('known-suffix, under a folder that mirrors the layers', knownSuff
     },
   ],
   invalid: [],
+})
+
+const monorepoRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'known-suffix-monorepo',
+)
+const monorepoRuleTester = fileRuleTester(monorepoRoot)
+
+monorepoRuleTester.run('known-suffix, in a repository of several packages', knownSuffix, {
+  valid: [
+    // The context is read under the package's own sources.
+    {
+      code: 'export const databaseConfig = () => 1',
+      filename: packageSourceFile('libs/core', 'config', 'database', 'database.config.ts'),
+      options,
+    },
+    { code: 'export const release = () => 1', filename: path.join('apps', 'api', 'scripts', 'release.ts'), options },
+  ],
+  invalid: [
+    {
+      code: 'export const looseConfig = () => 1',
+      filename: packageSourceFile('apps/api', 'config', 'loose', 'loose.config.ts'),
+      options,
+      errors: [{ messageId: 'wrongFolder' }],
+    },
+    {
+      code: 'export const read = () => 1',
+      filename: packageSourceFile('packages/web', 'users', 'read.ts'),
+      options,
+      errors: [{ messageId: 'noSuffix' }],
+    },
+  ],
 })

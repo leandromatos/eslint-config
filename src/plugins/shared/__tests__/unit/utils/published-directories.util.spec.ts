@@ -51,7 +51,7 @@ describe('publishedDirectoriesOf', () => {
     expect(publishedDirectoriesOf(cwd)).toEqual([])
   })
 
-  it('reads the manifest once per directory, and answers the next call from what it read', () => {
+  it('reads the manifest once per package, and answers the next call from what it read', () => {
     write({ exports: { './cache': {} } })
     const expectedAnswer = publishedDirectoriesOf(cwd)
     write({ exports: { './database': {} } })
@@ -59,6 +59,24 @@ describe('publishedDirectoriesOf', () => {
     const secondAnswer = publishedDirectoriesOf(cwd)
 
     expect(secondAnswer).toBe(expectedAnswer)
+  })
+
+  it.each(['apps/x', 'libs/x', 'packages/x'])('reads the manifest of the package at %s', packageDirectory => {
+    const packageRoot = path.join(cwd, packageDirectory)
+    fs.mkdirSync(packageRoot, { recursive: true })
+    fs.writeFileSync(path.join(packageRoot, 'package.json'), JSON.stringify({ exports: { './cache': {} } }))
+
+    expect(publishedDirectoriesOf(packageRoot)).toEqual(['cache'])
+  })
+
+  it('reads each package of one working directory by its own manifest', () => {
+    write({ exports: { './root': {} } })
+    fs.mkdirSync(path.join(cwd, 'libs', 'x'), { recursive: true })
+    fs.writeFileSync(path.join(cwd, 'libs', 'x', 'package.json'), JSON.stringify({ exports: { './database': {} } }))
+
+    const answers = [publishedDirectoriesOf(cwd), publishedDirectoriesOf(path.join(cwd, 'libs', 'x'))]
+
+    expect(answers).toEqual([['root'], ['database']])
   })
 
   it('answers with nothing where there is no manifest to read', () => {

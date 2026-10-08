@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { effectInHook } from '../../../rules/effect-in-hook.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -66,6 +66,25 @@ ruleTester.run('effect-in-hook', effectInHook, {
     {
       code: 'export const boot = () => {\n  useEffect(() => undefined, [])\n}',
       filename: sourceFile('boot.ts'),
+      options,
+      errors: [{ messageId: 'effectOutsideHook' }],
+    },
+  ],
+})
+
+ruleTester.run('effect-in-hook, in a repository of several packages', effectInHook, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: 'export const Card = () => {\n  useEffect(() => undefined, [])\n\n  return null\n}',
+      filename: 'libs/x/components/card.component.tsx',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'export const Card = () => {\n  useEffect(() => undefined, [])\n\n  return null\n}',
+      filename: packageSourceFile('libs/x', 'components', 'card.component.tsx'),
       options,
       errors: [{ messageId: 'effectOutsideHook' }],
     },

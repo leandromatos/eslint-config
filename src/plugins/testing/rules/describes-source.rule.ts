@@ -46,8 +46,7 @@ export const describesSource: TestingRule<SpecDescribesSourceMessageId> = {
     const kind = where.segments[at + 1]
     if (at < 0 || !kind || !mirroringTestKinds.includes(kind)) return {}
     const source = path.join(
-      context.cwd,
-      'src',
+      where.sourceRoot,
       ...where.segments.slice(0, at),
       ...where.segments.slice(at + 2),
       `${where.stem}.ts`,

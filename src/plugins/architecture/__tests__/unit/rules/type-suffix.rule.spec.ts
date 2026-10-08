@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { typeSuffix } from '../../../rules/type-suffix.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -52,6 +52,25 @@ ruleTester.run('type-suffix', typeSuffix, {
       filename: serviceType,
       options,
       errors: [{ messageId: 'suffixInside' }],
+    },
+  ],
+})
+
+ruleTester.run('type-suffix, in a repository of several packages', typeSuffix, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: 'export interface CreateUserInput {\n  name: string\n}',
+      filename: 'packages/x/types/services/user.service.type.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'export interface CreateUserInput {\n  name: string\n}',
+      filename: packageSourceFile('packages/x', 'users', 'types', 'services', 'user.service.type.ts'),
+      options,
+      errors: [{ messageId: 'wrongFolder' }],
     },
   ],
 })

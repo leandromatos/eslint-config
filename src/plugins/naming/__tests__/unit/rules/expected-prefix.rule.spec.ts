@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { expectedPrefix } from '../../../rules/expected-prefix.rule.js'
 import type { NamingOptions } from '../../../types/index.js'
@@ -75,6 +75,26 @@ ruleTester.run('expected-prefix', expectedPrefix, {
       options,
       errors: [{ messageId: 'missingPrefix' }],
       output: 'const expectedUser = {}\nexpect(result).toMatchObject(expectedUser)',
+    },
+  ],
+})
+
+ruleTester.run('expected-prefix, in a repository of several packages', expectedPrefix, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: 'const user = {}\nexpect(result).toEqual(user)',
+      filename: 'libs/x/__tests__/user.service.spec.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'const user = {}\nexpect(result).toEqual(user)',
+      filename: packageSourceFile('libs/x', 'users', '__tests__', 'user.service.spec.ts'),
+      options,
+      errors: [{ messageId: 'missingPrefix' }],
+      output: 'const expectedUser = {}\nexpect(result).toEqual(expectedUser)',
     },
   ],
 })

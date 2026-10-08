@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { oneExportPerUtil } from '../../../rules/one-export-per-util.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -54,6 +54,25 @@ ruleTester.run('one-export-per-util', oneExportPerUtil, {
     {
       code: 'export const hashPassword = () => 1\nexport const comparePassword = () => 1',
       filename: util,
+      options,
+      errors: [{ messageId: 'namedAfterOne' }],
+    },
+  ],
+})
+
+ruleTester.run('one-export-per-util, in a repository of several packages', oneExportPerUtil, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: 'export const hashPassword = () => 1\nexport const comparePassword = () => 1',
+      filename: 'libs/x/utils/hash-password.util.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'export const hashPassword = () => 1\nexport const comparePassword = () => 1',
+      filename: packageSourceFile('libs/x', 'users', 'utils', 'hash-password.util.ts'),
       options,
       errors: [{ messageId: 'namedAfterOne' }],
     },

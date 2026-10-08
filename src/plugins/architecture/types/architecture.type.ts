@@ -31,7 +31,7 @@ export interface ArchitectureOptions {
   barrelledContainers: string[]
   /** Folders that mirror the layer tree instead of being a layer, such as `types`. */
   mirrorFolders: string[]
-  /** Directories directly under `src/` that are contexts of their own, not modules. */
+  /** Directories directly under the source root that are contexts of their own, not modules. */
   rootContexts: string[]
   /** Folders whose files a runtime executes directly, so nothing imports them by name. */
   executedFolders: string[]

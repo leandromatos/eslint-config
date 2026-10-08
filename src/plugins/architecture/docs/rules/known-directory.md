@@ -29,13 +29,13 @@ src/users/
 
 ## Options
 
-| Option           | Type                     | What it decides                                                          |
-| ---------------- | ------------------------ | ------------------------------------------------------------------------ |
-| `suffixToFolder` | `Record<string, string>` | The folders a layer may have, one per suffix                             |
-| `mirrorFolders`  | `string[]`               | The folders that mirror the tree instead of being a layer                |
-| `rootContexts`   | `string[]`               | The directories under `src/` that are contexts of their own, not modules |
-| `testKinds`      | `string[]`               | The folders a test tree may hold                                         |
-| `mockFolder`     | `string`                 | The folder beside a module that holds its stand-in, known anywhere       |
+| Option           | Type                     | What it decides                                                                   |
+| ---------------- | ------------------------ | --------------------------------------------------------------------------------- |
+| `suffixToFolder` | `Record<string, string>` | The folders a layer may have, one per suffix                                      |
+| `mirrorFolders`  | `string[]`               | The folders that mirror the tree instead of being a layer                         |
+| `rootContexts`   | `string[]`               | The directories under the source root that are contexts of their own, not modules |
+| `testKinds`      | `string[]`               | The folders a test tree may hold                                                  |
+| `mockFolder`     | `string`                 | The folder beside a module that holds its stand-in, known anywhere                |
 
 ## Fixable
 

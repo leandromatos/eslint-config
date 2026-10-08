@@ -1,5 +1,6 @@
 export * from './file-rule-tester.util.js'
 export * from './first-lint-result.util.js'
+export * from './package-source-file.util.js'
 export * from './source-file.util.js'
 export * from './syntax-rule-tester.util.js'
 export * from './typed-rule-tester.util.js'

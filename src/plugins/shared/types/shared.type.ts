@@ -1,12 +1,16 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
-/** Where a file sits relative to `src/`, split into what the rules look at. */
+/** Where a file sits relative to its source root, split into what the rules look at. */
 export interface Location {
+  /** The package the file belongs to: the directory that holds the source root, and where its `package.json` sits. */
+  packageRoot: string
+  /** The outermost `src` directory between the working directory and the file, as an absolute path. */
+  sourceRoot: string
   /** The file name, suffix included. */
   file: string
-  /** The directories between `src/` and the file. */
+  /** The directories between the source root and the file. */
   segments: string[]
-  /** The first segment, or an empty string for a file at the root of `src/`. */
+  /** The first segment, or an empty string for a file at the root of the sources. */
   module: string
   /** The suffix the file name carries, and null for a file named without one. */
   suffix: string | null

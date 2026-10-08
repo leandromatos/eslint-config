@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { specBlocks } from '../../../rules/spec-blocks.rule.js'
 import type { TestingOptions } from '../../../types/index.js'
@@ -66,6 +66,27 @@ ruleTester.run('spec-blocks', specBlocks, {
       options,
       filename: spec,
       errors: [{ messageId: 'labelComment' }],
+    },
+  ],
+})
+
+ruleTester.run('spec-blocks, in a repository of several packages', specBlocks, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: "it('reads one user', async () => {\n  const userEntity = await read('1')\n  expect(userEntity.id).toBe('1')\n})",
+      filename: 'packages/x/__tests__/unit/user.service.spec.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: "it('reads one user', async () => {\n  const userEntity = await read('1')\n  expect(userEntity.id).toBe('1')\n})",
+      filename: packageSourceFile('packages/x', 'users', '__tests__', 'unit', 'user.service.spec.ts'),
+      options,
+      errors: [{ messageId: 'assertJoinsAct' }],
+      output:
+        "it('reads one user', async () => {\n  const userEntity = await read('1')\n\n  expect(userEntity.id).toBe('1')\n})",
     },
   ],
 })

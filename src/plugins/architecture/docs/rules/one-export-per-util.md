@@ -32,11 +32,11 @@ export const readExtension = (name: string): string => {}
 
 ## Options
 
-| Option         | Type       | What it decides                                    |
-| -------------- | ---------- | -------------------------------------------------- |
-| `rootContexts` | `string[]` | The directories under `src/` the rule leaves alone |
-| `testFolder`   | `string`   | The tree the rule leaves alone                     |
-| `mockFolder`   | `string`   | The stand-ins the rule leaves alone                |
+| Option         | Type       | What it decides                                             |
+| -------------- | ---------- | ----------------------------------------------------------- |
+| `rootContexts` | `string[]` | The directories under the source root the rule leaves alone |
+| `testFolder`   | `string`   | The tree the rule leaves alone                              |
+| `mockFolder`   | `string`   | The stand-ins the rule leaves alone                         |
 
 ## Fixable
 

@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { mirroredSource } from '../../../rules/mirrored-source.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -120,6 +120,47 @@ ruleTester.run('mirrored-source', mirroredSource, {
       filename: sourceFile('users', 'types', 'services', 'missing.service.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
+    },
+  ],
+})
+
+const monorepoRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'mirrored-source-monorepo',
+)
+const monorepoRuleTester = fileRuleTester(monorepoRoot)
+
+monorepoRuleTester.run('mirrored-source, in a repository of several packages', mirroredSource, {
+  valid: [
+    {
+      code: 'export interface FindOneUserParams {\n  userId: string\n}',
+      filename: packageSourceFile('apps/api', 'users', 'types', 'services', 'user.service.type.ts'),
+      options,
+    },
+    {
+      code: 'export interface MissingParams {}',
+      filename: path.join('apps', 'api', 'types', 'services', 'missing.service.type.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    // The expected path is written from the working directory, so it names the package the source belongs to.
+    {
+      code: 'export interface MissingParams {}',
+      filename: packageSourceFile('apps/api', 'users', 'types', 'services', 'missing.service.type.ts'),
+      options,
+      errors: [
+        {
+          messageId: 'noSource',
+          data: {
+            file: 'missing.service.type.ts',
+            expected: `${packageSourceFile('apps/api', 'users', 'services', 'missing.service.ts')} or ${packageSourceFile('apps/api', 'users', 'services', 'missing.service.tsx')}`,
+          },
+        },
+      ],
     },
   ],
 })

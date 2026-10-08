@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { methodResource } from '../../../rules/method-resource.rule.js'
 import type { NamingOptions } from '../../../types/index.js'
@@ -34,6 +34,21 @@ ruleTester.run('method-resource', methodResource, {
     {
       code: 'class UserRepository { create() {} }',
       filename: sourceFile('users', 'repositories', 'user.repository.ts'),
+      options,
+      errors: [{ messageId: 'missingResource' }],
+    },
+  ],
+})
+
+ruleTester.run('method-resource, in a repository of several packages', methodResource, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    { code: 'class UserService { findOne() {} }', filename: 'packages/x/services/user.service.ts', options },
+  ],
+  invalid: [
+    {
+      code: 'class UserService { findOne() {} }',
+      filename: packageSourceFile('packages/x', 'users', 'services', 'user.service.ts'),
       options,
       errors: [{ messageId: 'missingResource' }],
     },

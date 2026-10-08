@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { methodOrder } from '../../../rules/method-order.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -49,6 +49,26 @@ ruleTester.run('method-order', methodOrder, {
       options,
       errors: [{ messageId: 'privateBeforePublic' }],
       output: 'class UserService {\n  createUser() {}\n\n  private readUser() {}\n}',
+    },
+  ],
+})
+
+ruleTester.run('method-order, in a repository of several packages', methodOrder, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: 'class UserService {\n  findOneUser() {}\n\n  createUser() {}\n}',
+      filename: 'apps/x/services/user.service.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'class UserService {\n  findOneUser() {}\n\n  createUser() {}\n}',
+      filename: packageSourceFile('apps/x', 'users', 'services', 'user.service.ts'),
+      options,
+      errors: [{ messageId: 'outOfOrder' }],
+      output: 'class UserService {\n  createUser() {}\n\n  findOneUser() {}\n}',
     },
   ],
 })

@@ -30,7 +30,7 @@ src/users/services/__mocks__/users.service.ts ← a stand-in, read by the test r
 
 | Option            | Type       | What it decides                                                      |
 | ----------------- | ---------- | -------------------------------------------------------------------- |
-| `rootContexts`    | `string[]` | Directories under `src/` that are contexts of their own              |
+| `rootContexts`    | `string[]` | Directories under the source root that are contexts of their own     |
 | `executedFolders` | `string[]` | Folders a runtime executes directly, so nothing imports them by name |
 | `testFolder`      | `string`   | The tree that needs no barrel                                        |
 | `mockFolder`      | `string`   | The folder of stand-ins, which the test runner reads by module name  |

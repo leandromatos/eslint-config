@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { documentedType } from '../../../rules/documented-type.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
@@ -138,6 +138,21 @@ ruleTester.run('documented-type', documentedType, {
       filename: source,
       options,
       errors: [{ messageId: 'restatesName', data: { name: 'UserEntity' } }],
+    },
+  ],
+})
+
+ruleTester.run('documented-type, in a repository of several packages', documentedType, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    { code: 'export class UserFixture {}', filename: 'libs/x/types/users.type.ts', options },
+  ],
+  invalid: [
+    {
+      code: 'export class UserFixture {}',
+      filename: packageSourceFile('libs/x', 'users', 'types', 'users.type.ts'),
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'UserFixture' } }],
     },
   ],
 })

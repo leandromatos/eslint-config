@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { describesSource } from '../../../rules/describes-source.rule.js'
 import type { TestingOptions } from '../../../types/index.js'
@@ -59,6 +59,38 @@ ruleTester.run('describes-source', describesSource, {
       filename: sourceFile('users', '__tests__', 'unit', 'services', 'missing.service.spec.ts'),
       options,
       errors: [{ messageId: 'wrongSubject' }],
+    },
+  ],
+})
+
+const monorepoRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'describes-source-monorepo',
+)
+const monorepoRuleTester = fileRuleTester(monorepoRoot)
+const monorepoSpec = packageSourceFile('libs/core', 'users', '__tests__', 'unit', 'utils', 'read-user.util.spec.ts')
+
+monorepoRuleTester.run('describes-source, in a repository of several packages', describesSource, {
+  valid: [
+    // The source is read under the package's own sources, so the name it exports is the name the spec describes.
+    { code: "describe('readUsers', () => {})", filename: monorepoSpec, options },
+    {
+      code: "describe('Whatever', () => {})",
+      filename: path.join('libs', 'core', '__tests__', 'unit', 'utils', 'read-user.util.spec.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: "describe('ReadUser', () => {})",
+      filename: monorepoSpec,
+      options,
+      errors: [
+        { messageId: 'wrongSubject', data: { subject: 'ReadUser', stem: 'read-user.util', expected: 'readUsers' } },
+      ],
     },
   ],
 })

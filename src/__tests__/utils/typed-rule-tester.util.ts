@@ -2,7 +2,8 @@ import { RuleTester } from '@typescript-eslint/rule-tester'
 
 /**
  * The depths of the fixture tree the default project accepts, since a glob with `**` is refused. The root is listed
- * too, for a rule that leaves a file outside the sources alone.
+ * too, for a rule that leaves a file outside the sources alone, and so is the `src/` of a package one level under a
+ * workspace folder, such as `apps/x/src`.
  *
  * `.tsx` is listed beside `.ts`: without it a component fixture is refused by the project service, and a rule that
  * reads types is never tried against the syntax React writes.
@@ -19,6 +20,11 @@ const FIXTURE_DEPTHS = [
   'src/*/*/*.tsx',
   'src/*/*/*/*.tsx',
   'src/*/*/*/*/*.tsx',
+  '*/*/src/*.ts',
+  '*/*/src/*/*.ts',
+  '*/*/src/*/*/*.ts',
+  '*/*/src/*/*/*/*.ts',
+  '*/*/src/*/*/*/*/*.ts',
 ]
 
 /**

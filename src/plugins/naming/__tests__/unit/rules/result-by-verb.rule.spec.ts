@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { resultByVerb } from '../../../rules/result-by-verb.rule.js'
 import type { NamingOptions } from '../../../types/index.js'
@@ -83,6 +83,27 @@ ruleTester.run('result-by-verb', resultByVerb, {
       options,
       errors: [{ messageId: 'missingParticiple' }],
       output: 'const transformedActivityEntity = toActivityEntity(activity)',
+    },
+  ],
+})
+
+ruleTester.run('result-by-verb, in a repository of several packages', resultByVerb, {
+  valid: [
+    // A role name is what a spec calls its subject, and the test folder is read under the package's own sources.
+    {
+      code: 'const result = hashPassword(raw)',
+      filename: packageSourceFile('apps/x', 'users', '__tests__', 'user.service.spec.ts'),
+      options,
+    },
+  ],
+  invalid: [
+    // A file with no `src` in its path sits in no test folder, so the role name is read as any other.
+    {
+      code: 'const result = hashPassword(raw)',
+      filename: 'apps/x/__tests__/user.service.spec.ts',
+      options,
+      errors: [{ messageId: 'missingParticiple' }],
+      output: 'const hashedResult = hashPassword(raw)',
     },
   ],
 })

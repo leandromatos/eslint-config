@@ -34,6 +34,7 @@ export const typedFixture: TestingRule<TypedTestDataMessageId> = {
     const [{ testFolder }] = context.options
     if (!where || !where.segments.includes(testFolder)) return {}
     const { sourceCode } = context
+    const file = path.resolve(context.cwd, context.filename)
     const parserServicesWithTypeInformation = ESLintUtils.getParserServices(context)
     const typeChecker = parserServicesWithTypeInformation.program.getTypeChecker()
     const listener: TSESLint.RuleListener = {
@@ -49,7 +50,7 @@ export const typedFixture: TestingRule<TypedTestDataMessageId> = {
           node: identifier,
           messageId: 'anonymousData',
           data: { name: identifier.name, callee: usage.callee, type: declared.name },
-          fix: ruleFixer => annotate(ruleFixer, identifier, declared, sourceCode, context.cwd, context.filename),
+          fix: ruleFixer => annotate(ruleFixer, identifier, declared, sourceCode, where.sourceRoot, file),
         })
       },
     }
@@ -117,8 +118,8 @@ const declaredTypeOf = (
  * @param identifier - The fixture's name.
  * @param declared - The type the subject declares, and where it is declared.
  * @param sourceCode - The source the fixture is written in.
- * @param cwd - The directory ESLint runs in.
- * @param filename - The file being fixed.
+ * @param sourceRoot - The source root the file being fixed sits under.
+ * @param file - The absolute path of the file being fixed.
  * @returns The fixes, and null where the type cannot be reached by an import.
  */
 const annotate = (
@@ -126,8 +127,8 @@ const annotate = (
   identifier: TSESTree.Identifier,
   declared: { name: string; file: string },
   sourceCode: TSESLint.SourceCode,
-  cwd: string,
-  filename: string,
+  sourceRoot: string,
+  file: string,
 ): TSESLint.RuleFix[] | null => {
   const ruleFixes = [ruleFixer.insertTextAfter(identifier, `: ${declared.name}`)]
   const program = sourceCode.ast
@@ -138,8 +139,8 @@ const annotate = (
     importDeclaration.specifiers.some(specifier => specifier.local.name === declared.name),
   )
   /* A type the file declares itself is already in scope, and an import of it would point at the file itself. */
-  if (imported || path.resolve(cwd, declared.file) === path.resolve(cwd, filename)) return ruleFixes
-  const source = barrelOf(declared.file, cwd)
+  if (imported || path.resolve(declared.file) === file) return ruleFixes
+  const source = barrelOf(declared.file, sourceRoot)
   if (!source) return null
   const last = importDeclarations.at(-1)
   const line = `import type { ${declared.name} } from '${source}'\n`
@@ -150,15 +151,14 @@ const annotate = (
 }
 
 /**
- * `@/policies/dtos` for a type declared under `src/policies/dtos/`, and null for a file outside `src/`.
+ * `@/policies/dtos` for a type declared under `src/policies/dtos/`, and null for a file outside the source root.
  *
  * @param file - Where the type is declared.
- * @param cwd - The directory ESLint runs in.
+ * @param sourceRoot - The source root the alias reaches.
  * @returns The specifier the import is written with.
  */
-const barrelOf = (file: string, cwd: string): string | null => {
-  const relative = path.relative(path.join(cwd, 'src'), file)
-  /* v8 ignore next -- the type the checker resolved is declared under the source root the rule walks */
+const barrelOf = (file: string, sourceRoot: string): string | null => {
+  const relative = path.relative(sourceRoot, file)
   if (relative.startsWith('..')) return null
   const [module, folder] = relative.split(path.sep)
   if (!module || !folder || folder.endsWith('.ts')) return null

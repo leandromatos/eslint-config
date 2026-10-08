@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { constAssertionPair } from '../../../rules/const-assertion-pair.rule.js'
 import type { TypescriptOptions } from '../../../types/index.js'
@@ -114,6 +114,25 @@ ruleTester.run('const-assertion-pair', constAssertionPair, {
       filename: vocabulary,
       options,
       errors: [{ messageId: 'missingValue' }],
+    },
+  ],
+})
+
+ruleTester.run('const-assertion-pair, in a repository of several packages', constAssertionPair, {
+  valid: [
+    // A file with no `src` in its path carries no suffix the rule reads, so the pair may sit anywhere.
+    {
+      code: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
+      filename: 'apps/x/constants/oauth.constant.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
+      filename: packageSourceFile('apps/x', 'oauth', 'constants', 'oauth.constant.ts'),
+      options,
+      errors: [{ messageId: 'outsideTypes' }],
     },
   ],
 })

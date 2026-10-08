@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { importBoundaries } from '../../../rules/import-boundaries.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -267,6 +267,25 @@ ruleTester.run('import-boundaries, on a mock folder', importBoundaries, {
       code: "import { UsersService } from '@/authorizer/users/services/users.service'",
       filename: mock,
       options: testingOptions,
+      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
+    },
+  ],
+})
+
+ruleTester.run('import-boundaries, in a repository of several packages', importBoundaries, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: "import { UsersService } from '@/authorizer/users/services/users.service'",
+      filename: 'packages/x/entities/token.entity.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: "import { UsersService } from '@/authorizer/users/services/users.service'",
+      filename: packageSourceFile('packages/x', 'authorizer', 'tokens', 'entities', 'token.entity.ts'),
+      options,
       errors: [{ messageId: 'crossLayerNeedsBarrel' }],
     },
   ],

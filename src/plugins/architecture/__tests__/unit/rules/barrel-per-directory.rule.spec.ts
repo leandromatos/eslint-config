@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, sourceFile } from '../../../../../__tests__/utils/index.js'
+import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { barrelPerDirectory } from '../../../rules/barrel-per-directory.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -107,4 +107,48 @@ publishedRuleTester.run('barrel-per-directory, in a package that publishes its d
     { code: 'export * from "./user.service.js"', filename: sourceFile('users', 'services', 'index.ts'), options },
   ],
   invalid: [],
+})
+
+const monorepoRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'barrel-per-directory-monorepo',
+)
+const monorepoRuleTester = fileRuleTester(monorepoRoot)
+
+monorepoRuleTester.run('barrel-per-directory, in a repository of several packages', barrelPerDirectory, {
+  valid: [
+    // Each package reads its own manifest, which is where the directories it publishes are named.
+    {
+      code: 'export * from "./services/index.js"',
+      filename: packageSourceFile('libs/core', 'users', 'index.ts'),
+      options,
+    },
+    // A file outside every `src` belongs to no package's sources.
+    { code: 'export class UserService {}', filename: path.join('scripts', 'users', 'user.service.ts'), options },
+  ],
+  invalid: [
+    {
+      code: 'export class AccountRepository {}',
+      filename: packageSourceFile('apps/api', 'accounts', 'repositories', 'account.repository.ts'),
+      options,
+      errors: [{ messageId: 'missingBarrel', data: { directory: 'accounts/repositories' } }],
+    },
+    // The manifest at the root of the workspace publishes `users`, and it speaks for no package under it.
+    {
+      code: 'export * from "./services/index.js"',
+      filename: packageSourceFile('packages/web', 'users', 'index.ts'),
+      options,
+      errors: [{ messageId: 'barrelAtRoot', data: { module: 'users' } }],
+    },
+    // A module named `src` inside the sources is a module, so the outermost `src` stays the root.
+    {
+      code: 'export class UserService {}',
+      filename: sourceFile('a', 'src', 'services', 'user.service.ts'),
+      options,
+      errors: [{ messageId: 'missingBarrel', data: { directory: 'a/src/services' } }],
+    },
+  ],
 })

@@ -41,7 +41,7 @@ dependencies and the application fails at boot. Test code is exempt: a file in t
 spec anywhere, a file inside a testing folder, which is built out of other ones, and a file only a
 development tool loads, such as a story, which the catalogue renders and the application never
 imports. The mock folder is part of the test tree: a stand-in there may name any file a spec may,
-and production code imports the module it replaces, never the stand-in. A test setup sits in the test tree or outside `src/`, which the rule does not read.
+and production code imports the module it replaces, never the stand-in. A test setup sits in the test tree or outside every `src/`, which the rule does not read.
 
 Direct imports of a file that shares the caller's suffix are allowed only inside the caller's own
 layer directory. Matching on the suffix alone would let one `*.entity.ts` reach any other in the

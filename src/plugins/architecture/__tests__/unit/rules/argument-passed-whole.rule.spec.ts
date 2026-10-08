@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { argumentPassedWhole } from '../../../rules/argument-passed-whole.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -39,6 +39,25 @@ ruleTester.run('argument-passed-whole', argumentPassedWhole, {
     {
       code: 'class UserController {\n  findOneUser(params) {\n    return this.userService.findOneUser(params.userId)\n  }\n}',
       filename: controller,
+      options,
+      errors: [{ messageId: 'unwrapped' }],
+    },
+  ],
+})
+
+ruleTester.run('argument-passed-whole, in a repository of several packages', argumentPassedWhole, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: 'class UserController {\n  findOneUser(params) {\n    return this.userService.findOneUser(params.userId)\n  }\n}',
+      filename: 'apps/x/controllers/user.controller.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: 'class UserController {\n  findOneUser(params) {\n    return this.userService.findOneUser(params.userId)\n  }\n}',
+      filename: packageSourceFile('apps/x', 'users', 'controllers', 'user.controller.ts'),
       options,
       errors: [{ messageId: 'unwrapped' }],
     },

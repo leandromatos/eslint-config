@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { typedFixture } from '../../../rules/typed-fixture.rule.js'
 import type { TestingOptions } from '../../../types/index.js'
@@ -64,6 +64,40 @@ ruleTester.run('typed-fixture', typedFixture, {
       filename: spec,
       errors: [{ messageId: 'anonymousData' }],
       output: `${declaration}const input: CreateUserInput = { name: 'a' }\ncreateUser(input)`,
+    },
+  ],
+})
+
+const monorepoRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'typed-fixture-monorepo',
+)
+const monorepoRuleTester = typedRuleTester(monorepoRoot)
+const monorepoSpec = packageSourceFile('apps/api', 'users', '__tests__', 'unit', 'user.service.spec.ts')
+
+monorepoRuleTester.run('typed-fixture, in a repository of several packages', typedFixture, {
+  valid: [],
+  invalid: [
+    // The alias reaches the sources of the spec's own package, so the barrel is named from there.
+    {
+      code: "import { createUserFromDto } from '../../services/create-user.service.js'\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
+      options,
+      filename: monorepoSpec,
+      errors: [{ messageId: 'anonymousData' }],
+      output:
+        "import { createUserFromDto } from '../../services/create-user.service.js'\nimport type { CreateUserDto } from '@/users/dtos'\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
+    },
+
+    // A type another package declares is out of the alias's reach, so the fix writes nothing.
+    {
+      code: "import { createAccountFromDto } from '../../../../../../libs/core/src/accounts/services/create-account.service.js'\n\nconst input = { name: 'a' }\ncreateAccountFromDto(input)",
+      options,
+      filename: monorepoSpec,
+      errors: [{ messageId: 'anonymousData' }],
+      output: null,
     },
   ],
 })

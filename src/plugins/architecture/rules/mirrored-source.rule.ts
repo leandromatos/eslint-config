@@ -16,7 +16,7 @@ export const mirroredSource = fileRule(
   'A file under a mirror folder mirrors an existing file.',
   'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/mirrored-source.md',
   { noSource: '"{{file}}" mirrors no source: expected {{expected}}. Create it, or move the file.' },
-  ({ file, suffix, segments, module, stem }, architectureOptions, context) => {
+  ({ sourceRoot, file, suffix, segments, module, stem }, architectureOptions, context) => {
     const { suffixToFolder, mirrorFolders, testFolder, testKinds, mirroringTestKinds, mockFolder } = architectureOptions
     if (!suffix || segments.includes(mockFolder)) return []
     const mirror = suffixToFolder[suffix]
@@ -35,7 +35,7 @@ export const mirroredSource = fileRule(
     const kind = inner[0]
     if (mirror === testFolder && kind && !mirroringTestKinds.includes(kind)) return []
     const mirrorShape: MirrorShape = {
-      base: path.join(context.cwd, 'src', ...segments.slice(0, at)),
+      base: path.join(sourceRoot, ...segments.slice(0, at)),
       inner,
       stem,
       isTestTree: mirror === testFolder,

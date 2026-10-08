@@ -11,17 +11,17 @@ import path from 'node:path'
  * Both halves are needed. The name alone would take `particle-object.constant.ts` out of `constants/` for sitting
  * in a directory of the same name, and the responsibilities alone say nothing about which file is the root one.
  *
- * @param cwd - The directory the run was started from, which holds `src/`.
- * @param segments - Where the file sits under `src/`, as directory names.
+ * @param sourceRoot - The source root the file sits under.
+ * @param segments - Where the file sits under the source root, as directory names.
  * @param stem - The file name before its suffix.
  * @param folders - The directory names that hold a responsibility: the layers and the mirrors.
  * @returns Whether the file names the context it sits in, and that context carries responsibilities.
  */
-export const isContextRoot = (cwd: string, segments: string[], stem: string, folders: string[]): boolean => {
+export const isContextRoot = (sourceRoot: string, segments: string[], stem: string, folders: string[]): boolean => {
   const directory = segments[segments.length - 1]
   if (!directory || directory !== stem) return false
 
   return fs
-    .readdirSync(path.join(cwd, 'src', ...segments), { withFileTypes: true })
+    .readdirSync(path.join(sourceRoot, ...segments), { withFileTypes: true })
     .some(entry => entry.isDirectory() && folders.includes(entry.name))
 }

@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { linkSymbols } from '../../../rules/link-symbols.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
@@ -72,6 +72,26 @@ ruleTester.run('link-symbols', linkSymbols, {
       filename: source,
       options,
       errors: [{ messageId: 'linkToNothing' }],
+    },
+  ],
+})
+
+ruleTester.run('link-symbols, in a repository of several packages', linkSymbols, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    {
+      code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
+      filename: 'packages/x/services/user.service.ts',
+      options,
+    },
+  ],
+  invalid: [
+    {
+      code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
+      filename: packageSourceFile('packages/x', 'users', 'services', 'user.service.ts'),
+      options,
+      errors: [{ messageId: 'symbolInBackticks' }],
+      output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}',
     },
   ],
 })

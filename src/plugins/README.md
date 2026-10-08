@@ -103,6 +103,18 @@ What each field means is on the rule that reads it.
 | `tsdoc`        | `TsdocOptions`        | the comments of a file: form, presence, tags                |
 | `typescript`   | `TypescriptOptions`   | the constructs of the language itself                       |
 
+## 📂 Source root
+
+A rule that reads where a file sits judges it against its source root: the outermost `src`
+directory between the working directory and the file. `src/users/user.service.ts` is rooted at
+`src/`, and `apps/api/src/users/user.service.ts` at `apps/api/src/`, so each package of a monorepo
+or a serverless repository is judged under its own sources. A module named `src` inside the
+sources stays a module, and a file with no `src` in its path is left alone.
+
+The directory that holds the source root is the package. A rule that reads a manifest, such as
+`architecture-barrel-per-directory`, reads the `package.json` of that package and not the one of
+the working directory.
+
 ## 🚀 Quick Start
 
 Every tier from `configs` wires this for you. Taking the plugin alone, with every rule on and the

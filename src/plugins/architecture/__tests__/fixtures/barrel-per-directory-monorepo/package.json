@@ -1,0 +1,7 @@
+{
+  "name": "a-workspace",
+  "private": true,
+  "exports": {
+    "./users": {}
+  }
+}

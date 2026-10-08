@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { typesFolder } from '../../../rules/types-folder.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
@@ -92,4 +92,19 @@ ruleTester.run('types-folder, on an augmentation of another module', typesFolder
     },
   ],
   invalid: [],
+})
+
+ruleTester.run('types-folder, in a repository of several packages', typesFolder, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    { code: 'export type UserId = string', filename: 'apps/x/services/user.ts', options },
+  ],
+  invalid: [
+    {
+      code: 'export type UserId = string',
+      filename: packageSourceFile('apps/x', 'users', 'services', 'user.ts'),
+      options,
+      errors: [{ messageId: 'typeOutsideTypes' }],
+    },
+  ],
 })

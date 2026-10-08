@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
 import { documentedFunction } from '../../../rules/documented-function.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
@@ -177,6 +177,21 @@ ruleTester.run('documented-function', documentedFunction, {
       filename: source,
       options,
       errors: [{ messageId: 'restatesName' }],
+    },
+  ],
+})
+
+ruleTester.run('documented-function, in a repository of several packages', documentedFunction, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    { code: 'export const findOneUser = () => 1', filename: 'find-one-user.ts', options },
+  ],
+  invalid: [
+    {
+      code: 'export const findOneUser = () => 1',
+      filename: packageSourceFile('apps/x', 'users', 'services', 'user.service.ts'),
+      options,
+      errors: [{ messageId: 'undocumented' }],
     },
   ],
 })

@@ -16,9 +16,8 @@ export const knownDirectory = fileRule(
       'Directory "{{directory}}" is not on the list of responsibility directories. Add it to the structure options, or move its files.',
   },
   (
-    { file, segments, module },
+    { sourceRoot, file, segments, module },
     { suffixToFolder, mirrorFolders, testKinds, mockFolder, rootContexts, moduleContainers },
-    context,
   ) => {
     if (rootContexts.includes(module)) return []
     const known = new Set([...Object.values(suffixToFolder), ...mirrorFolders, ...testKinds, mockFolder])
@@ -28,7 +27,7 @@ export const knownDirectory = fileRule(
     if (offending.length === 0) return []
     /* v8 ignore next -- the list is not empty here: the rule returned already when it was */
     const nearest = segments.lastIndexOf(offending[offending.length - 1] ?? '')
-    const directory = path.join(context.cwd, 'src', ...segments.slice(0, nearest + 1))
+    const directory = path.join(sourceRoot, ...segments.slice(0, nearest + 1))
     const isReporter = file === firstSourceOf(directory) && segments.length === nearest + 1
     if (!isReporter) return []
 

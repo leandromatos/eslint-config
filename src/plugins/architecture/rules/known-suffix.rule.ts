@@ -11,9 +11,8 @@ export const knownSuffix = fileRule(
     wrongFolder: '"{{file}}" belongs under {{folder}}/, not {{actual}}/.',
   },
   (
-    { file, stem, suffix, segments },
+    { sourceRoot, file, stem, suffix, segments },
     { suffixToFolder, folderlessSuffixes, suffixFreeFolders, mirrorFolders },
-    context,
   ) => {
     if (file === 'index.ts' || file.endsWith('.d.ts') || segments.length === 0) return []
     /* A folder can say what its files are, which is how a React tree names a component after the function in it. */
@@ -27,7 +26,7 @@ export const knownSuffix = fileRule(
     if (segments.includes(folder)) return []
     /* A file named after the context it sits in is that context's root file, so it sits above the layers. */
     const folders = [...Object.values(suffixToFolder), ...mirrorFolders]
-    if (isContextRoot(context.cwd, segments, stem, folders)) return []
+    if (isContextRoot(sourceRoot, segments, stem, folders)) return []
 
     return [{ messageId: 'wrongFolder', data: { file, folder, actual: segments.join('/') } }]
   },

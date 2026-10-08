@@ -1,4 +1,4 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { e2eOverHttp } from '../../../rules/e2e-over-http.rule.js'
 import type { TestingOptions } from '../../../types/index.js'
@@ -49,5 +49,20 @@ ruleTester.run('e2e-over-http', e2eOverHttp, {
       errors: [{ messageId: 'noRequest' }],
     },
     { code: 'export const read = () => 1', options, filename: e2e, errors: [{ messageId: 'noRequest' }] },
+  ],
+})
+
+ruleTester.run('e2e-over-http, in a repository of several packages', e2eOverHttp, {
+  valid: [
+    // A file with no `src` in its path belongs to no package's sources.
+    { code: 'export const read = () => 1', filename: 'libs/x/__tests__/e2e/users.spec.ts', options },
+  ],
+  invalid: [
+    {
+      code: 'export const read = () => 1',
+      filename: packageSourceFile('libs/x', 'users', '__tests__', 'e2e', 'users.spec.ts'),
+      options,
+      errors: [{ messageId: 'noRequest' }],
+    },
   ],
 })
