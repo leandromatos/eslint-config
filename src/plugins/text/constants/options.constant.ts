@@ -10,7 +10,6 @@ import type { JSONSchema4 } from '@typescript-eslint/utils/json-schema'
 export const OPTIONS_SCHEMA: JSONSchema4 = {
   type: 'object',
   properties: {
-    spellingExceptions: { type: 'array', items: { type: 'string' } },
     stringPatterns: {
       type: 'array',
       items: {
@@ -28,6 +27,6 @@ export const OPTIONS_SCHEMA: JSONSchema4 = {
       },
     },
   },
-  required: ['stringPatterns', 'spellingExceptions'],
+  required: ['stringPatterns'],
   additionalProperties: false,
 }

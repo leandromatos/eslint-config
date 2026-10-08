@@ -59,10 +59,9 @@ how a spec is written and where it sits.
 
 the strings the product ships.
 
-| Rule                                                             | Description                                                                     | 💼  | 🔧  | 💭  |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------- | --- | --- | --- |
-| [`text/american-spelling`](text/docs/rules/american-spelling.md) | Every name, comment and string the code carries is spelled in American English. | ✅  |     |     |
-| [`text/string-pattern`](text/docs/rules/string-pattern.md)       | A string handed to a known call matches the pattern the options give for it.    | ✅  |     |     |
+| Rule                                                       | Description                                                                  | 💼  | 🔧  | 💭  |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------- | --- | --- | --- |
+| [`text/string-pattern`](text/docs/rules/string-pattern.md) | A string handed to a known call matches the pattern the options give for it. | ✅  |     |     |
 
 ### tsdoc
 
@@ -95,14 +94,14 @@ One object with a group per subject, and each rule reads the group of its own. E
 group is required, because the factory carries no defaults: the defaults are in `strict`.
 What each field means is on the rule that reads it.
 
-| Group          | Type                  | Judges                                                        |
-| -------------- | --------------------- | ------------------------------------------------------------- |
-| `architecture` | `ArchitectureOptions` | where a file lives, what it is called, what a layer exposes   |
-| `naming`       | `NamingOptions`       | what a value, a method and a spec fixture are called          |
-| `testing`      | `TestingOptions`      | how a spec is written and where it sits                       |
-| `text`         | `TextOptions`         | the strings the product ships, and the spelling of every word |
-| `tsdoc`        | `TsdocOptions`        | the comments of a file: form, presence, tags                  |
-| `typescript`   | `TypescriptOptions`   | the constructs of the language itself                         |
+| Group          | Type                  | Judges                                                      |
+| -------------- | --------------------- | ----------------------------------------------------------- |
+| `architecture` | `ArchitectureOptions` | where a file lives, what it is called, what a layer exposes |
+| `naming`       | `NamingOptions`       | what a value, a method and a spec fixture are called        |
+| `testing`      | `TestingOptions`      | how a spec is written and where it sits                     |
+| `text`         | `TextOptions`         | the strings the product ships                               |
+| `tsdoc`        | `TsdocOptions`        | the comments of a file: form, presence, tags                |
+| `typescript`   | `TypescriptOptions`   | the constructs of the language itself                       |
 
 ## 📂 Source root
 

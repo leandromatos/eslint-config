@@ -14,7 +14,7 @@ import {
 } from '../architecture/rules/index.js'
 import { expectedPrefix, forbiddenName, methodResource, resultByVerb, valueCase } from '../naming/rules/index.js'
 import { describesSource, e2eOverHttp, specBlocks, typedFixture } from '../testing/rules/index.js'
-import { americanSpelling, stringPattern } from '../text/rules/index.js'
+import { stringPattern } from '../text/rules/index.js'
 import {
   commentForm,
   descriptionSentence,
@@ -68,7 +68,6 @@ export const RULES = {
   'e2e-over-http': { rule: e2eOverHttp, group: 'testing' },
   'spec-blocks': { rule: specBlocks, group: 'testing' },
   'typed-fixture': { rule: typedFixture, group: 'testing' },
-  'american-spelling': { rule: americanSpelling, group: 'text' },
   'string-pattern': { rule: stringPattern, group: 'text' },
   'const-assertion-pair': { rule: constAssertionPair, group: 'typescript' },
 } as const satisfies Record<string, { rule: unknown; group: OptionsGroup }>
