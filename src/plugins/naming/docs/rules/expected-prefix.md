@@ -5,6 +5,10 @@ A value an assertion compares against is named `expected*`.
 The test then reads as what it checks: `expect(result).toEqual(expectedUserEntity)`. A literal or a
 call in that place needs no name, and a shared constant is not what one assertion expects.
 
+The prefix names a variable or a parameter the spec declares. A class, a function or an import
+compared by identity, as in `expect(resolve()).toBe(BullMqWorker)`, is declared for something else,
+so it keeps its name.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:

@@ -17,6 +17,15 @@ const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
 
 ruleTester.run('expected-prefix', expectedPrefix, {
   valid: [
+    // A class, a function and an import are compared as they are: the spec declares no variable to name.
+    {
+      code: "import { BullMqWorker } from './bullmq.worker.js'\nexpect(resolve()).toBe(BullMqWorker)",
+      filename: spec,
+      options,
+    },
+    { code: 'class UserEntity {}\nexpect(resolve()).toBe(UserEntity)', filename: spec, options },
+    { code: 'function build() {}\nexpect(resolve()).toBe(build)', filename: spec, options },
+    { code: 'expect(result).toEqual(undeclared)', filename: spec, options },
     // A matcher reached through a chain is the same assertion.
     { code: 'const expectedUser = {}\nexpect(result).resolves.toEqual(expectedUser)', filename: spec, options },
 

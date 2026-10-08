@@ -1,5 +1,5 @@
 import type { TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES, TSESLint } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES, ASTUtils, TSESLint } from '@typescript-eslint/utils'
 
 import { locate } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
@@ -8,9 +8,17 @@ import type { ExpectedPrefixMessageId, NamingRule } from '../types/index.js'
 const EXPECT = 'expect'
 const PREFIX = 'expected'
 
+/** What declares a name the spec chooses: a variable, or a parameter of a helper that takes the expected value. */
+const NAMED_DEFINITIONS = new Set<string>([
+  TSESLint.Scope.DefinitionType.Variable,
+  TSESLint.Scope.DefinitionType.Parameter,
+])
+
 /**
  * A value an assertion compares against is named `expected*`, so the test reads as what it
- * checks: `expect(result).toEqual(expectedUser)`. A literal or a call in that place needs no name.
+ * checks: `expect(result).toEqual(expectedUser)`. A literal or a call in that place needs no name, and neither does
+ * a class, a function or a name the spec imports: the spec declares no variable for those, so there is nothing to
+ * name.
  */
 export const expectedPrefix: NamingRule<ExpectedPrefixMessageId> = {
   meta: {
@@ -39,7 +47,7 @@ export const expectedPrefix: NamingRule<ExpectedPrefixMessageId> = {
         const compared = callExpression.arguments[0]
         if (!compared || compared.type !== AST_NODE_TYPES.Identifier || compared.name.startsWith(PREFIX)) return
         const name = compared.name
-        if (isConstantCase(name)) return
+        if (isConstantCase(name) || !isSpecVariable(compared, context.sourceCode)) return
         const expected = `${PREFIX}${capitalize(withoutParticiple(name, participles))}`
         context.report({
           node: compared,
@@ -52,6 +60,20 @@ export const expectedPrefix: NamingRule<ExpectedPrefixMessageId> = {
 
     return listener
   },
+}
+
+/**
+ * Whether the spec declares the name as a variable or a parameter, which is what the prefix names. A class, a
+ * function and an import are declared elsewhere, or for something other than the assertion.
+ *
+ * @param identifier - The name the assertion compares against.
+ * @param sourceCode - The source of the spec.
+ * @returns Whether a variable or a parameter of the spec holds it.
+ */
+const isSpecVariable = (identifier: TSESTree.Identifier, sourceCode: TSESLint.SourceCode): boolean => {
+  const variable = ASTUtils.findVariable(sourceCode.getScope(identifier), identifier)
+
+  return Boolean(variable?.defs.some(definition => NAMED_DEFINITIONS.has(definition.type)))
 }
 
 /**
