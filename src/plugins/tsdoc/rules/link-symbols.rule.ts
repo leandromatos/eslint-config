@@ -10,10 +10,9 @@ const CODE_SPAN_REG_EXP = /(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/g
 /** A name a span holds whole, which is the only span that can stand for a symbol. */
 const IDENTIFIER_REG_EXP = /^[A-Za-z_$][\w$]*$/
 
-/** The declarations a page documents by themselves: a class, a type, an enum and a function. */
-const DOCUMENTED_DEFINITIONS = new Set<string>([
+/** The declarations a page documents whatever their name: a class, a type and an enum. */
+const TYPE_DEFINITIONS = new Set<string>([
   TSESLint.Scope.DefinitionType.ClassName,
-  TSESLint.Scope.DefinitionType.FunctionName,
   TSESLint.Scope.DefinitionType.TSEnumName,
   TSESLint.Scope.DefinitionType.Type,
 ])
@@ -55,9 +54,11 @@ const SYSTEM_SELECTORS = new Set([
  * comment sits in is qualified by that class, as `Owner."type"`.
  *
  * A code span is read as a symbol only when it holds one name whole and that name is something a page documents: a
- * class, an interface, a type, an enum, a function, a method, or a name imported by name. A variable, a parameter,
- * a property and a default import name a value, a key or a package, so a span that spells one is left alone. What
- * the rule offers for a span is a suggestion, never a fix: whether the author meant the symbol is the author's call.
+ * class, an interface, a type, an enum, a method of the enclosing class, or a function or a name imported by name
+ * that opens in upper case. A name in lower case spells a value, a key or a CSS keyword as often as a function, and a
+ * variable, a parameter, a property and a default import name a value, a key or a package, so a span that spells one
+ * is left alone. What the rule offers for a span is a suggestion, never a fix: whether the author meant the symbol is
+ * the author's call.
  */
 export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
   meta: {
@@ -314,16 +315,19 @@ const isBound = (scope: TSESLint.Scope.Scope | null, name: string, isDocumentedO
 }
 
 /**
- * Whether a declaration is one a page documents: a class, a type, an enum, a function, a const holding a function or
- * a class, or a name imported by name. A variable holding a value, a parameter, and a default or namespace import,
- * which names a package, are not.
+ * Whether a declaration is one a page documents: a class, a type, an enum, and, when its name opens in upper case, a
+ * function, a const holding a function or a class, or a name imported by name. A variable holding a value, a
+ * parameter, and a default or namespace import, which names a package, are not.
  *
  * @param definition - How the scope declares the name.
  * @returns Whether a link to it lands on documentation.
  */
 const isDocumentedDefinition = (definition: TSESLint.Scope.Definition): boolean => {
   const { DefinitionType } = TSESLint.Scope
-  if (DOCUMENTED_DEFINITIONS.has(definition.type)) return true
+  if (TYPE_DEFINITIONS.has(definition.type)) return true
+  /* A name that opens in lower case spells a value, a key or a CSS keyword as often as a function. */
+  if (definition.name.type !== AST_NODE_TYPES.Identifier || !/^[A-Z]/.test(definition.name.name)) return false
+  if (definition.type === DefinitionType.FunctionName) return true
   if (definition.type === DefinitionType.ImportBinding) return definition.node.type === AST_NODE_TYPES.ImportSpecifier
   if (definition.type !== DefinitionType.Variable) return false
   const { init } = definition.node

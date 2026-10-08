@@ -8,11 +8,12 @@ promise the page cannot keep, and a symbol that is not in scope is named in pros
 only to link it is an unused import.
 
 A code span counts as a symbol only when it holds one name whole, between single backticks, and
-that name is something a page documents: a class, an interface, a type, an enum, a function (a
-`const` holding one included), a method of the enclosing class, or a name imported by name. A
-variable that holds a value, a parameter, a property, and a default or namespace import name a
-value, a key or a package, so `currentColor`, `tailwindcss` or `key` in code font stays code font
-even when a binding shares the name. A span of more than one backtick holds code, and a name inside
+that name is something a page documents: a class, an interface, a type, an enum, a method of the
+enclosing class, or a function (a `const` holding one included) or a name imported by name whose
+name opens in upper case. A name in lower case spells a value, a key or a CSS keyword as often as a
+function, and a variable that holds a value, a parameter, a property, and a default or namespace
+import name a value, a key or a package, so `currentColor`, `tailwindcss`, `platform` or `key` in
+code font stays code font even when a binding shares the name. A span of more than one backtick holds code, and a name inside
 it is part of that code.
 
 TSDoc reads ten names as selectors in a reference: `class`, `constructor`, `enum`, `function`,

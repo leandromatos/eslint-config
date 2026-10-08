@@ -149,22 +149,6 @@ ruleTester.run('link-symbols, on a name TSDoc keeps as a selector', linkSymbols,
       ],
     },
     {
-      code: 'function type() {}\n/** Reads `type`. */\nexport const read = () => type',
-      options,
-      errors: [
-        {
-          messageId: 'symbolInBackticks',
-          data: { name: 'type', target: '"type"' },
-          suggestions: [
-            {
-              messageId: 'linkSymbol',
-              output: 'function type() {}\n/** Reads {@link "type"}. */\nexport const read = () => type',
-            },
-          ],
-        },
-      ],
-    },
-    {
       code: 'class Activity {\n  type = 1\n\n  /** Reads {@link type}. */\n  read() {}\n}',
       options,
       errors: [{ messageId: 'unquotedSelector', data: { name: 'type', target: 'Activity."type"' } }],
@@ -214,6 +198,23 @@ ruleTester.run('link-symbols, on a span that names a value rather than a symbol'
       options,
     },
     { code: 'class Activity {\n  key = 1\n\n  /** Reads `key`. */\n  read() {}\n}', options },
+    // A function whose name opens in lower case spells a value, a key or a CSS keyword as often as itself.
+    {
+      code: 'function currentColor() {}\n/** Paints in `currentColor`. */\nexport const paint = () => currentColor',
+      options,
+    },
+    { code: 'function type() {}\n/** Reads `type`. */\nexport const read = () => type', options },
+    {
+      code: "import { platform } from './platform.js'\n/** Reads `platform`. */\nexport const read = () => platform",
+      options,
+    },
+    // A default import, a parameter and a variable with no value name a package or a value, whatever their case.
+    { code: "import Tailwind from 'tailwindcss'\n/** Runs `Tailwind`. */\nexport const run = () => Tailwind", options },
+    {
+      code: 'export function read(Key) {\n  /** Reads by `Key`. */\n  const inner = () => Key\n\n  return inner()\n}',
+      options,
+    },
+    { code: 'let Handler\n/** Calls `Handler`. */\nexport const call = () => Handler', options },
     // A parameter in scope, and a variable declared with no value, name values too.
     {
       code: 'export function read(key) {\n  /** Reads by `key`. */\n  const inner = () => key\n\n  return inner()\n}',
@@ -228,6 +229,22 @@ ruleTester.run('link-symbols, on a span that names a value rather than a symbol'
     { code: 'function gt() {}\n/** Sorts by `gt()`, which is code. */\nexport const sort = () => gt', options },
   ],
   invalid: [
+    {
+      code: 'function UserCard() {}\n/** Renders `UserCard`. */\nexport const render = () => UserCard()',
+      options,
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            {
+              messageId: 'linkSymbol',
+              output:
+                'function UserCard() {}\n/** Renders {@link UserCard}. */\nexport const render = () => UserCard()',
+            },
+          ],
+        },
+      ],
+    },
     // A name imported by name, and a const that holds a function, are symbols a page documents.
     {
       code: "import { UserService } from './user.service.js'\n/** Reads through `UserService`. */\nexport const read = () => UserService",
@@ -246,7 +263,7 @@ ruleTester.run('link-symbols, on a span that names a value rather than a symbol'
       ],
     },
     {
-      code: 'const findOneUser = () => 1\n/** Reads through `findOneUser`. */\nexport const read = () => findOneUser()',
+      code: 'const UserCard = () => null\n/** Renders through `UserCard`. */\nexport const render = () => UserCard()',
       options,
       errors: [
         {
@@ -255,7 +272,7 @@ ruleTester.run('link-symbols, on a span that names a value rather than a symbol'
             {
               messageId: 'linkSymbol',
               output:
-                'const findOneUser = () => 1\n/** Reads through {@link findOneUser}. */\nexport const read = () => findOneUser()',
+                'const UserCard = () => null\n/** Renders through {@link UserCard}. */\nexport const render = () => UserCard()',
             },
           ],
         },
