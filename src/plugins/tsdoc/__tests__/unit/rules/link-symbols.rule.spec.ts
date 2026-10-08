@@ -95,3 +95,53 @@ ruleTester.run('link-symbols, in a repository of several packages', linkSymbols,
     },
   ],
 })
+
+ruleTester.run('link-symbols, on a name TSDoc keeps as a selector', linkSymbols, {
+  valid: [
+    // The quoted forms parse, and each resolves to what it names.
+    { code: 'class Activity {\n  type = 1\n\n  /** Reads {@link Activity."type"}. */\n  read() {}\n}', options },
+    { code: 'const type = 1\n/** Reads {@link "type"}. */\nexport const read = () => type', options },
+    // A member of a class with no name cannot be qualified, so code font is the only way to write it.
+    { code: 'export const Activity = class {\n  type = 1\n\n  /** Reads `type`. */\n  read() {}\n}', options },
+  ],
+  invalid: [
+    {
+      code: 'class Activity {\n  type = 1\n\n  /** Reads `type`. */\n  read() {}\n}',
+      options,
+      errors: [{ messageId: 'symbolInBackticks', data: { name: 'type', target: 'Activity."type"' } }],
+      output: 'class Activity {\n  type = 1\n\n  /** Reads {@link Activity."type"}. */\n  read() {}\n}',
+    },
+    {
+      code: 'const type = 1\n/** Reads `type`. */\nexport const read = () => type',
+      options,
+      errors: [{ messageId: 'symbolInBackticks', data: { name: 'type', target: '"type"' } }],
+      output: 'const type = 1\n/** Reads {@link "type"}. */\nexport const read = () => type',
+    },
+    {
+      code: 'class Activity {\n  type = 1\n\n  /** Reads {@link type}. */\n  read() {}\n}',
+      options,
+      errors: [{ messageId: 'unquotedSelector', data: { name: 'type', target: 'Activity."type"' } }],
+      output: 'class Activity {\n  type = 1\n\n  /** Reads {@link Activity."type"}. */\n  read() {}\n}',
+    },
+    {
+      code: 'class Activity {\n  type = 1\n}\n/** Reads {@link Activity.type | the type}. */\nexport const read = () => 1',
+      options,
+      errors: [{ messageId: 'unquotedSelector', data: { name: 'type', target: 'Activity."type"' } }],
+      output:
+        'class Activity {\n  type = 1\n}\n/** Reads {@link Activity."type" | the type}. */\nexport const read = () => 1',
+    },
+    // A lone selector the scope binds is quoted, and so is one a class with no name holds, which nothing qualifies.
+    {
+      code: 'const type = 1\n/** Reads {@link type}. */\nexport const read = () => type',
+      options,
+      errors: [{ messageId: 'unquotedSelector' }],
+      output: 'const type = 1\n/** Reads {@link "type"}. */\nexport const read = () => type',
+    },
+    {
+      code: 'export const Activity = class {\n  type = 1\n\n  /** Reads {@link type}. */\n  read() {}\n}',
+      options,
+      errors: [{ messageId: 'unquotedSelector' }],
+      output: 'export const Activity = class {\n  type = 1\n\n  /** Reads {@link "type"}. */\n  read() {}\n}',
+    },
+  ],
+})
