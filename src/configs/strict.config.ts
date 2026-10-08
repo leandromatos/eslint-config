@@ -5,19 +5,16 @@ import { leandromatos, plugin as ownPlugin } from '../plugins/index.js'
 import type { TsdocOptions } from '../plugins/tsdoc/types/index.js'
 import {
   DEFAULT_ARCHITECTURE,
+  DEFAULT_FILES,
   DEFAULT_NAMING,
   DEFAULT_TESTING,
   DEFAULT_TEXT,
   DEFAULT_TSDOC,
   DEFAULT_TYPESCRIPT,
-  TS_SOURCES,
 } from './constants/index.js'
 import { recommended } from './recommended.config.js'
 import type { Config, StrictOptions } from './types/index.js'
 import { assertKnownFolders, inPackage } from './utils/index.js'
-
-/** The files a project's rules judge when it names none. */
-const DEFAULT_FILES = TS_SOURCES
 
 /** The files a spec is written in, where a matcher of the test runner is typed `any` by design. */
 const SPEC_FILES = ['**/*.spec.{ts,tsx}']

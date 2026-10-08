@@ -2,8 +2,11 @@ import { TSESLint } from '@typescript-eslint/utils'
 import { describe, expect, it } from 'vitest'
 
 import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
+import { DEFAULT_FILES, EXPO_FILES, NESTJS_FILES, NEXTJS_FILES } from '../../../index.js'
 import { DEFAULT_ARCHITECTURE } from '../../constants/index.js'
+import { expo } from '../../expo.config.js'
 import { nestjs } from '../../nestjs.config.js'
+import { nextjs } from '../../nextjs.config.js'
 import { recommended } from '../../recommended.config.js'
 import { strict } from '../../strict.config.js'
 
@@ -133,5 +136,15 @@ describe('strict', () => {
       ['rules', 'leandromatos/architecture-method-order', 1, 'orderedSuffixes', 0],
       'controller',
     )
+  })
+
+  it('hands out the files each tier judges, so a project adds a directory instead of retyping them', () => {
+    const filesOf = (entries: ReturnType<typeof strict>): string[] | undefined =>
+      entries.find(entry => entry.name === 'leandromatos/recommended')?.files?.flat()
+
+    expect(filesOf(strict())).toEqual(DEFAULT_FILES)
+    expect(filesOf(nestjs())).toEqual(NESTJS_FILES)
+    expect(filesOf(nextjs())).toEqual(NEXTJS_FILES)
+    expect(filesOf(expo())).toEqual(EXPO_FILES)
   })
 })

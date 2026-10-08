@@ -202,6 +202,7 @@ There is no default export: a project names the tier it takes.
 | the group option types | `ArchitectureOptions`, `NamingOptions`, `TestingOptions`, `TextOptions`, `TsdocOptions`, `TypescriptOptions` and what they are built from |
 | the `DEFAULT_*` values | the default vocabulary a tier merges over, to spread and extend                                                                           |
 | `SUFFIX_TO_FOLDER`     | the default map of layer suffix to folder, which every default that names a folder reads                                                  |
+| the `*_FILES` globs    | `DEFAULT_FILES` (strict and the plugin), `NESTJS_FILES`, `NEXTJS_FILES`, `EXPO_FILES`: what each tier judges by default, to extend        |
 | `PERIOD`, `NO_PERIOD`  | the two string patterns a text rule is written with                                                                                       |
 
 ## ⚙️ Configuration
@@ -318,6 +319,14 @@ export default configs.strict({
 ```
 
 Spread them; never mutate them. Every project in one ESLint process shares the object.
+
+The files a tier judges are exported the same way, so a project that keeps code outside `src/` adds the directory instead of retyping the tier's globs:
+
+```ts
+import { configs, NESTJS_FILES } from '@leandromatos/eslint-config'
+
+export default configs.nestjs({ files: [...NESTJS_FILES, 'scripts/**/*.ts', 'tests/**/*.ts'] })
+```
 
 A framework tier (`nestjs`, `nextjs`, `expo`) merges `architecture.suffixToFolder` into the map of the tier, so a project there names only the suffixes it adds: `configs.nestjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } })` keeps every layer the tier names.
 

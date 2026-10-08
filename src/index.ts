@@ -23,14 +23,21 @@ export const configs = {
  * factory is called.
  */
 
-/* The default vocabulary, to spread and extend rather than retype, and the dictionary that spells its folders. */
+/*
+ * The default vocabulary, to spread and extend rather than retype, the dictionary that spells its folders, and the
+ * files each tier judges, for a project that adds a directory to them.
+ */
 export {
   DEFAULT_ARCHITECTURE,
+  DEFAULT_FILES,
   DEFAULT_NAMING,
   DEFAULT_TESTING,
   DEFAULT_TEXT,
   DEFAULT_TSDOC,
   DEFAULT_TYPESCRIPT,
+  EXPO_FILES,
+  NESTJS_FILES,
+  NEXTJS_FILES,
   NO_PERIOD,
   PERIOD,
   SUFFIX_DICTIONARY,
