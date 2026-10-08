@@ -39,6 +39,24 @@ describe('publishedDirectoriesOf', () => {
     expect(publishedDirectoriesOf(cwd)).toEqual(['schemas'])
   })
 
+  it('reads the directory a target is built from, which names the barrel the package itself publishes', () => {
+    write({
+      exports: {
+        '.': { types: './dist/tokens/index.d.ts', import: './dist/tokens/index.js' },
+        './css': './dist/tokens/tokens.css',
+        './blocked': null,
+      },
+    })
+
+    expect(publishedDirectoriesOf(cwd)).toEqual(['css', 'blocked', 'tokens'])
+  })
+
+  it('names no directory for a target at the root of the build', () => {
+    write({ exports: { '.': './dist/index.js' } })
+
+    expect(publishedDirectoriesOf(cwd)).toEqual([])
+  })
+
   it('names no directory for the package itself', () => {
     write({ exports: { '.': {} } })
 
