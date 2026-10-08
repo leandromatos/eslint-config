@@ -8,6 +8,10 @@ view, and a private one is read by the next person to edit the class, who meets 
 Whether a name "already says it" is a judgement two authors make differently, so presence is not
 left to it. A summary that rewrites the name into a sentence is reported as if it were missing.
 
+A method an interface or a base class declares is no exception, with or without `override`. Its
+comment can take the contract's text with the inline tag TSDoc defines,
+`{@inheritDoc Owner.member}`, which counts as the comment.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:
@@ -20,6 +24,8 @@ export class UsersService {
   async findAllUsers(): Promise<PaginatedEntity<UserEntity>> {}
 
   private buildUserCacheKey(userId: string): string {}
+
+  override async onModuleInit(): Promise<void> {} // a contract's method is documented too
 }
 
 const toKebabCase = (name: string): string => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
@@ -45,8 +51,8 @@ export class UsersService {
    */
   private buildUserCacheKey(userId: string): string {}
 
-  /** @inheritDoc */
-  override async onModuleInit(): Promise<void> {} // an override keeps the contract's text
+  /** {@inheritDoc OnModuleInit.onModuleInit} */
+  override async onModuleInit(): Promise<void> {} // the inline tag takes the contract's text
 }
 
 /**

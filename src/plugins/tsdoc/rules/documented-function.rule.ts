@@ -1,6 +1,5 @@
-import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES, AST_TOKEN_TYPES, ESLintUtils } from '@typescript-eslint/utils'
-import type ts from 'typescript'
+import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
 
 import { isMethod, memberNameOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
@@ -13,8 +12,9 @@ import { restatesName } from '../utils/index.js'
  * public one is read at its call site, and whether a name "already answers" is a judgment two authors make differently,
  * so the presence is not left to it. What is left to the author is the text, and a text that only rewrites the name
  * into a sentence is reported, because it costs a read and goes stale on the next rename. A method an interface or a
- * base class declares is documented there, so it is not asked for again. A spec and a name a framework calls are
- * documented like any other. A function written inline as an argument is not a declaration and is left alone.
+ * base class declares is documented like any other, and `{@inheritDoc Owner.member}` is a comment that takes the text
+ * of the contract. A spec and a name a framework calls are documented like any other. A function written inline as
+ * an argument is not a declaration and is left alone.
  */
 export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
   meta: {
@@ -34,8 +34,6 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
   },
   create: context => {
     const { sourceCode } = context
-    const parserServicesWithTypeInformation = ESLintUtils.getParserServices(context)
-    const typeChecker = parserServicesWithTypeInformation.program.getTypeChecker()
     const judge = (documented: TSESTree.Node, name: string): void => {
       const comment = sourceCode.getCommentsBefore(documented).at(-1)
       if (!comment || comment.type !== AST_TOKEN_TYPES.Block || !comment.value.startsWith('*')) {
@@ -66,8 +64,7 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
     }
     const listener: TSESLint.RuleListener = {
       MethodDefinition: node => {
-        if (!isMethod(node) || node.override) return
-        if (implementsContract(node, parserServicesWithTypeInformation, typeChecker)) return
+        if (!isMethod(node)) return
         judge(node, memberNameOf(node))
       },
       Program: program => {
@@ -88,55 +85,3 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
     return listener
   },
 }
-
-/**
- * Whether the method is one an implemented interface or an extended class declares: the contract
- * is where that method is documented, and a comment here would repeat or contradict it.
- *
- * @param node - The method the rule judges.
- * @param parserServicesWithTypeInformations - What maps a node of the syntax tree onto the program.
- * @param typeChecker - What resolves a type of the program.
- * @returns Whether a contract declares it.
- */
-const implementsContract = (
-  node: TSESTree.MethodDefinition,
-  parserServicesWithTypeInformations: ParserServicesWithTypeInformation,
-  typeChecker: ts.TypeChecker,
-): boolean => {
-  const classNode = node.parent.parent
-  /* v8 ignore next -- a method is declared in a class, which is what holds its body */
-  if (classNode.type !== AST_NODE_TYPES.ClassDeclaration && classNode.type !== AST_NODE_TYPES.ClassExpression)
-    /* v8 ignore next -- a method is declared in a class, which is what holds its body */
-    return false
-  const name = memberNameOf(node)
-  const contracts = [
-    ...classNode.implements.map(clause => parserServicesWithTypeInformations.getTypeAtLocation(clause.expression)),
-    ...superClassesOf(classNode).flatMap(superClass =>
-      instanceTypesOf(parserServicesWithTypeInformations.getTypeAtLocation(superClass)),
-    ),
-  ]
-
-  return contracts.some(type => typeChecker.getPropertiesOfType(type).some(symbol => symbol.name === name))
-}
-
-/**
- * What the class extends, as a list, so a class extending nothing adds no contract.
- *
- * @param classNode - The class the member belongs to.
- * @returns The extended class, as a list of one, and none for a class extending nothing.
- */
-const superClassesOf = (classNode: TSESTree.ClassDeclaration | TSESTree.ClassExpression): TSESTree.Expression[] => {
-  if (!classNode.superClass) return []
-
-  return [classNode.superClass]
-}
-
-/**
- * The types an extended class builds, which hold the methods its instances carry. The expression a
- * class extends reads as its constructor, whose properties are only the static members.
- *
- * @param constructorType - The type of the expression the class extends.
- * @returns The instance type of each way the constructor can be called.
- */
-const instanceTypesOf = (constructorType: ts.Type): ts.Type[] =>
-  constructorType.getConstructSignatures().map(signature => signature.getReturnType())

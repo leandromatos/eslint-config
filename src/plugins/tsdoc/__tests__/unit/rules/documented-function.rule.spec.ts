@@ -20,16 +20,16 @@ ruleTester.run('documented-function', documentedFunction, {
       options,
     },
 
-    // A method of an object is no class member, and a class that extends an expression names no contract.
-    { code: 'export const service = {\n  findOneUser() {},\n}', filename: source, options },
+    // A constructor and an accessor are not methods, which is what this rule reads in a class.
     {
-      code: '/** Reads one user, or nothing when the account is closed. */\nclass UserService extends mixin(Base) {\n  /** Reads one user, or nothing when the account is closed. */\n  findOneUser() {}\n}',
+      code: 'export class UserService {\n  constructor() {}\n\n  get limit() {\n    return 1\n  }\n}',
       filename: source,
       options,
     },
-    // An interface the class implements documents the method it declares.
+    // A method of an object is no class member.
+    { code: 'export const service = {\n  findOneUser() {},\n}', filename: source, options },
     {
-      code: 'interface Reader {\n  findOneUser(): void\n}\nclass UserService implements Reader {\n  findOneUser() {}\n}',
+      code: '/** Reads one user, or nothing when the account is closed. */\nclass UserService extends mixin(Base) {\n  /** Reads one user, or nothing when the account is closed. */\n  findOneUser() {}\n}',
       filename: source,
       options,
     },
@@ -46,15 +46,9 @@ ruleTester.run('documented-function', documentedFunction, {
     // A summary that runs to no sentence end is read whole.
     { code: '/** Reads one user or nothing */\nexport const findOneUser = () => 1', filename: source, options },
 
-    // A method an abstract base class declares is documented there, without an override keyword.
+    // A method a contract declares takes the contract's text through the inline tag.
     {
-      code: 'abstract class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  protected abstract read(): void\n}\nclass UserService extends Base {\n  protected read() {}\n}',
-      filename: source,
-      options,
-    },
-    // A method a base class declares is documented there.
-    {
-      code: 'class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  read() {}\n}\nclass UserService extends Base {\n  override read() {}\n}',
+      code: 'interface Reader {\n  /** Reads one user, or nothing when the account is closed. */\n  findOneUser(): void\n}\nclass UserService implements Reader {\n  /** {@inheritDoc Reader.findOneUser} */\n  findOneUser() {}\n}',
       filename: source,
       options,
     },
@@ -78,13 +72,27 @@ ruleTester.run('documented-function', documentedFunction, {
     },
     // A function written inline as an argument is no declaration of the module.
     { code: '/** Lists the users. */\nexport const users = [1, 2].map(user => user * 2)', filename: source, options },
+  ],
+  invalid: [
+    // A method a contract declares is documented like any other: an interface, a base class, an abstract one.
     {
       code: 'interface Reader {\n  read(): void\n}\nclass UserService implements Reader {\n  read() {}\n}',
       filename: source,
       options,
+      errors: [{ messageId: 'undocumented', data: { name: 'read' } }],
     },
-  ],
-  invalid: [
+    {
+      code: 'class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  read() {}\n}\nclass UserService extends Base {\n  override read() {}\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'read' } }],
+    },
+    {
+      code: 'abstract class Base {\n  /** Reads whatever the subclass stores, which the contract does not name. */\n  protected abstract read(): void\n}\nclass UserService extends Base {\n  protected read() {}\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'read' } }],
+    },
     // A spec and a name a framework calls are documented like any other.
     { code: 'export const findOneUser = () => 1', filename: spec, options, errors: [{ messageId: 'undocumented' }] },
     {
