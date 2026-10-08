@@ -11,7 +11,14 @@ import type {
   TsdocRule,
 } from '../types/index.js'
 import { ParameterKind } from '../types/index.js'
-import { findDocBlock, inheritsDoc, lineLocationOf, parseDocBlock, readParameters } from '../utils/index.js'
+import {
+  findDocBlock,
+  inheritsDoc,
+  isOverloadImplementation,
+  lineLocationOf,
+  parseDocBlock,
+  readParameters,
+} from '../utils/index.js'
 
 /**
  * A documented function lists every parameter it takes in a `@param`, in the order of the signature, once, with a
@@ -46,7 +53,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
     const { sourceCode } = context
     const judge = (node: ParameterizedNode, declaredParameters: TSESTree.Parameter[]): void => {
       const comment = findDocBlock(sourceCode, node)
-      if (!comment) return
+      if (!comment || isOverloadImplementation(node)) return
       const docBlock = parseDocBlock(comment)
       const paramTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === 'param')
       const parameters = readParameters(declaredParameters)

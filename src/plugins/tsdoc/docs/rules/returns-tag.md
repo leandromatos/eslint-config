@@ -6,6 +6,8 @@ none when it does not.
 The return type says what comes back, and the tag says what it means. A function that hands nothing
 back has nothing to describe, so a tag there describes a value that does not exist.
 
+The implementation of an overloaded function is asked for no tag: each signature carries its own.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:

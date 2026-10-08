@@ -4,7 +4,7 @@ import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
 import { isMethod, memberNameOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { DocumentedFunctionMessageId, TsdocRule } from '../types/index.js'
-import { restatesName } from '../utils/index.js'
+import { isOverloadImplementation, restatesName } from '../utils/index.js'
 
 /**
  * Every method and every function a module declares carries a documentation comment, and the comment says what the name
@@ -45,7 +45,9 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
         context.report({ node: comment, messageId: 'restatesName', data: { name } })
     }
     const judgeFunctionsOf = (statement: TSESTree.Node, documented: TSESTree.Node): void => {
-      if (statement.type === AST_NODE_TYPES.FunctionDeclaration) judge(documented, statement.id?.name ?? 'default')
+      if (statement.type === AST_NODE_TYPES.TSDeclareFunction) judge(documented, statement.id?.name ?? 'default')
+      if (statement.type === AST_NODE_TYPES.FunctionDeclaration && !isOverloadImplementation(statement))
+        judge(documented, statement.id?.name ?? 'default')
       if (
         statement.type === AST_NODE_TYPES.ArrowFunctionExpression ||
         statement.type === AST_NODE_TYPES.FunctionExpression
@@ -64,7 +66,7 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
     }
     const listener: TSESLint.RuleListener = {
       MethodDefinition: node => {
-        if (!isMethod(node)) return
+        if (!isMethod(node) || isOverloadImplementation(node)) return
         judge(node, memberNameOf(node))
       },
       Program: program => {

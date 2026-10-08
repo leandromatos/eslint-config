@@ -8,6 +8,21 @@ const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('param-tag', paramTag, {
   valid: [
+    // A function declared in a block or under a case is no overload of what sits around it.
+    {
+      code: 'switch (kind) {\n  case 1:\n    /**\n     * Reads.\n     *\n     * @param id - The ID.\n     */\n    function read(id) {}\n}',
+      options,
+    },
+    { code: '{\n  /**\n   * Reads.\n   *\n   * @param id - The ID.\n   */\n  function read(id) {}\n}', options },
+    // A comment over the implementation of an overload is a note for the next editor, and asks for no tag.
+    {
+      code: '/**\n * Reads one attribute.\n *\n * @param name - The attribute.\n * @returns The value.\n */\nexport function attribute(name: string): string\n/**\n * Reads one attribute, or its fallback.\n *\n * @param name - The attribute.\n * @param fallback - What answers when the attribute is missing.\n * @returns The value.\n */\nexport function attribute(name: string, fallback: string): string\n/** The body both signatures share. */\nexport function attribute(name: string, fallback?: string): string {\n  return fallback ?? name\n}',
+      options,
+    },
+    {
+      code: 'class Span {\n  /**\n   * Reads one attribute.\n   *\n   * @param name - The attribute.\n   */\n  attribute(name)\n\n  /** The body. */\n  attribute(name, fallback) {}\n}',
+      options,
+    },
     // Every parameter carries a tag, in order, with text.
     {
       code: '/**\n * Sums two numbers.\n *\n * @param left - The first.\n * @param right - The second.\n */\nconst sum = (left, right) => left + right',

@@ -13,6 +13,23 @@ const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
 
 ruleTester.run('documented-function', documentedFunction, {
   valid: [
+    // An overload the module keeps to itself reads the same way.
+    {
+      code: '/** Answers the value it was handed, untouched. */\nfunction pick(value: string): string\nfunction pick(value: string): string {\n  return value\n}',
+      filename: source,
+      options,
+    },
+    // The caller reads the overload it calls, so each signature is documented and the implementation is not.
+    {
+      code: '/**\n * Reads one attribute.\n *\n * @param name - The attribute.\n * @returns The value.\n */\nexport function attribute(name: string): string\n/**\n * Reads one attribute, or its fallback.\n *\n * @param name - The attribute.\n * @param fallback - What answers when the attribute is missing.\n * @returns The value.\n */\nexport function attribute(name: string, fallback: string): string\nexport function attribute(name: string, fallback?: string): string {\n  return fallback ?? name\n}',
+      filename: source,
+      options,
+    },
+    {
+      code: 'class Span {\n  /**\n   * Reads one attribute.\n   *\n   * @param name - The attribute.\n   * @returns The value.\n   */\n  attribute(name: string): string\n\n  attribute(name: string): string {\n    return name\n  }\n}',
+      filename: source,
+      options,
+    },
     // A method of an object literal is no member of a class, so no contract declares it.
     {
       code: 'export const service = {\n  /** Reads one user, or nothing when the account is closed. */\n  findOneUser() {},\n}',
@@ -74,6 +91,32 @@ ruleTester.run('documented-function', documentedFunction, {
     { code: '/** Lists the users. */\nexport const users = [1, 2].map(user => user * 2)', filename: source, options },
   ],
   invalid: [
+    // A method under a computed key names no overload, so a signature before it does not stand for it.
+    {
+      code: 'class Span {\n  /** Reads one. */\n  [one](): void\n\n  [two]() {}\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    {
+      code: "class Span {\n  /** Reads one. */\n  'read'(): void\n\n  'read'() {}\n}",
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented' }],
+    },
+    {
+      code: 'export default function (value: string): string',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'default' } }],
+    },
+    // A signature of an overload is what the caller reads, so it carries a comment like any function.
+    {
+      code: 'export function attribute(name: string): string\nexport function attribute(name: string, fallback?: string): string {\n  return fallback ?? name\n}',
+      filename: source,
+      options,
+      errors: [{ messageId: 'undocumented', data: { name: 'attribute' } }],
+    },
     // A method a contract declares is documented like any other: an interface, a base class, an abstract one.
     {
       code: 'interface Reader {\n  read(): void\n}\nclass UserService implements Reader {\n  read() {}\n}',

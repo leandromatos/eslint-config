@@ -7,6 +7,9 @@ The signature gives the name and the type of each parameter, and the tag is the 
 what the caller hands over. A tag that names a parameter the function no longer takes, or names them
 out of order, tells the caller something the code does not do.
 
+The implementation of an overloaded function is asked for no tag: each signature carries its own,
+and a comment over the implementation is a note for the next person to edit it.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:

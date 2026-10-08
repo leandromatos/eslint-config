@@ -8,6 +8,7 @@ import {
   handsValueBack,
   inheritsDoc,
   isConstructor,
+  isOverloadImplementation,
   lineLocationOf,
   parseDocBlock,
 } from '../utils/index.js'
@@ -45,7 +46,7 @@ export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
     const parserServices = ESLintUtils.getParserServices(context)
     const judge = (documented: DocumentedNode, node: ReturningNode): void => {
       const comment = findDocBlock(sourceCode, documented)
-      if (!comment || isConstructor(node)) return
+      if (!comment || isConstructor(node) || isOverloadImplementation(node)) return
       const docBlock = parseDocBlock(comment)
       const returnsTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === 'returns')
       for (const returnsTag of returnsTags.filter(docBlockTag => docBlockTag.description === ''))

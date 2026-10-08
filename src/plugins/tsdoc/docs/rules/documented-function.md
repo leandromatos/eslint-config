@@ -12,6 +12,9 @@ A method an interface or a base class declares is no exception, with or without 
 comment can take the contract's text with the inline tag TSDoc defines,
 `{@inheritDoc Owner.member}`, which counts as the comment.
 
+An overloaded function is documented on each signature, which is what the caller reads. The
+implementation below them is reached by no signature of its own, so it is asked for nothing.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:

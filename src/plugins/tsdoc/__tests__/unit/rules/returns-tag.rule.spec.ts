@@ -13,6 +13,11 @@ const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('returns-tag', returnsTag, {
   valid: withFilename([
+    // A comment over the implementation of an overload asks for no tag.
+    {
+      code: '/**\n * Reads one attribute.\n *\n * @param name - The attribute.\n * @returns The value.\n */\nexport function attribute(name: string): string\n/**\n * Reads one attribute, or its fallback.\n *\n * @param name - The attribute.\n * @param fallback - What answers when the attribute is missing.\n * @returns The value.\n */\nexport function attribute(name: string, fallback: string): string\n/** The body both signatures share. */\nexport function attribute(name: string, fallback?: string): string {\n  return fallback ?? name\n}',
+      options,
+    },
     // A value comes back and the comment says what it is.
     { code: '/**\n * Counts the users.\n *\n * @returns How many there are.\n */\nconst count = () => 1', options },
     // Nothing comes back and the comment says nothing about it.
