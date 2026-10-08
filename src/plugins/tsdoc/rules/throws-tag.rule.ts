@@ -8,6 +8,12 @@ import type { TsdocRule, TsdocThrowsMessageId } from '../types/index.js'
 const THROWS_TAG_REG_EXP = /@throws\s+(?:\{(?:@link\s+)?(\w+)\}|(\w+))/g
 const INTERNAL_TITLE_REG_EXP = /^Error while (.+)\.$/
 
+/** A `@throws` tag and the rest of its line, which opens with the type and goes on with the condition. */
+const THROWS_LINE_REG_EXP = /@throws(?=\s|$)([^\n]*)/g
+
+/** A type the way a tag names it: an identifier, qualified or not, that opens with a capital. */
+const TYPE_NAME_REG_EXP = /^[A-Z][\w$]*(?:\.[A-Za-z_$][\w$]*)*/
+
 /** What stands in for an expression of a template literal, so a title written with one still reads as a pattern. */
 const PLACEHOLDER = '{value}'
 
@@ -16,6 +22,9 @@ const PLACEHOLDER = '{value}'
  * spells it: the type bare, then the condition. The signature says nothing about what a function
  * throws, so the tag is the only place a caller learns it without reading the body; a type in
  * braces is JSDoc, and a `{@link}` is a link, both of which the TSDoc parser reads as text.
+ *
+ * Every tag opens with that type. A tag that opens with a sentence names nothing a caller can
+ * catch, and the hyphen a `@param` writes before its text has no place after the type.
  */
 export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
   meta: {
@@ -30,6 +39,10 @@ export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
       missingThrows: 'This function constructs {{type}} and its documentation carries no @throws for it.',
       bracedThrows:
         '"@throws {{{type}}}" is JSDoc, and "@throws {@link {{type}}}" a link. TSDoc spells it "@throws {{type}}".',
+      untypedThrows:
+        '"@throws{{text}}" names no type. Open the tag with the type the function throws, then the condition.',
+      hyphenatedThrows:
+        '"@throws {{type}} -" carries the hyphen of a @param. TSDoc writes the condition right after the type.',
     },
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
@@ -55,6 +68,7 @@ export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
             ),
         })
       }
+      for (const throwsLine of comment.value.matchAll(THROWS_LINE_REG_EXP)) judgeLine(throwsLine, comment)
       const declaredTypes = new Set(
         /* v8 ignore next -- the pattern matches one of the two groups */
         regExpExecArrays.map(regExpExecArray => regExpExecArray[1] ?? regExpExecArray[2] ?? ''),
@@ -69,6 +83,29 @@ export const throwsTag: TsdocRule<TsdocThrowsMessageId> = {
           fix: ruleFixer => appendTag(ruleFixer, comment, thrown),
         })
       }
+    }
+    const judgeLine = (throwsLine: RegExpExecArray, comment: TSESTree.Comment): void => {
+      /* v8 ignore next -- the pattern always captures the rest of the line, empty or not */
+      const text = throwsLine[1] ?? ''
+      const opening = text.trimStart()
+      if (opening.startsWith('{')) return
+      const type = TYPE_NAME_REG_EXP.exec(opening)?.[0]
+      const rest = opening.slice(type?.length ?? 0).trimStart()
+      if (!type || /^[a-z]/.test(rest)) {
+        context.report({ node: comment, messageId: 'untypedThrows', data: { text: text.trimEnd() } })
+
+        return
+      }
+      if (rest !== '-' && !rest.startsWith('- ')) return
+      const start = comment.range[0] + 2 + throwsLine.index
+      const tag = throwsLine[0]
+      const unhyphenated = tag.replace(new RegExp(`(${type})\\s+-\\s*`), '$1 ').trimEnd()
+      context.report({
+        node: comment,
+        messageId: 'hyphenatedThrows',
+        data: { type },
+        fix: ruleFixer => ruleFixer.replaceTextRange([start, start + tag.length], unhyphenated),
+      })
     }
     const listener: TSESLint.RuleListener = { ':function': judge }
 

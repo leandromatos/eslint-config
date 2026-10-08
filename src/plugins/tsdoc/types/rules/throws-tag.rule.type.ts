@@ -1,2 +1,2 @@
 /** The messages `tsdoc-throws` reports. */
-export type TsdocThrowsMessageId = 'missingThrows' | 'bracedThrows'
+export type TsdocThrowsMessageId = 'missingThrows' | 'bracedThrows' | 'untypedThrows' | 'hyphenatedThrows'

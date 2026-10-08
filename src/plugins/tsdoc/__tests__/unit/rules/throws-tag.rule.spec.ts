@@ -8,6 +8,14 @@ const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('throws-tag', throwsTag, {
   valid: [
+    // A type, qualified or not, opens the tag, and the condition after it opens with a capital.
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws Errors.NotFound When the user is missing.\n */\nconst read = () => 1',
+      options,
+    },
+    { code: '/**\n * Reads one user.\n *\n * @throws TypeError\n */\nconst read = () => 1', options },
+    // A word that only contains the tag's name is no tag.
+    { code: '/** Reads one user, and documents its failures with `@throws`. */\nconst read = () => 1', options },
     // A function that documents nothing, because nothing precedes it, carries no tag to check.
     { code: 'export const service = {\n  read: () => {\n    throw new NotFoundException()\n  },\n}', options },
 
@@ -45,6 +53,36 @@ ruleTester.run('throws-tag', throwsTag, {
     },
   ],
   invalid: [
+    // A tag that opens with a sentence names no type a caller can catch.
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws Will throw an error when the user is missing.\n */\nconst read = () => 1',
+      options,
+      errors: [{ messageId: 'untypedThrows', data: { text: ' Will throw an error when the user is missing.' } }],
+    },
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws\n */\nconst read = () => 1',
+      options,
+      errors: [{ messageId: 'untypedThrows' }],
+    },
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws when the user is missing.\n */\nconst read = () => 1',
+      options,
+      errors: [{ messageId: 'untypedThrows' }],
+    },
+    // The hyphen of a @param has no place after the type, with a condition or without one.
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws NotFoundException - When the user is missing.\n */\nconst read = () => {\n  throw new NotFoundException()\n}',
+      options,
+      errors: [{ messageId: 'hyphenatedThrows', data: { type: 'NotFoundException' } }],
+      output:
+        '/**\n * Reads one user.\n *\n * @throws NotFoundException When the user is missing.\n */\nconst read = () => {\n  throw new NotFoundException()\n}',
+    },
+    {
+      code: '/**\n * Reads one user.\n *\n * @throws Errors.NotFound -\n */\nconst read = () => 1',
+      options,
+      errors: [{ messageId: 'hyphenatedThrows', data: { type: 'Errors.NotFound' } }],
+      output: '/**\n * Reads one user.\n *\n * @throws Errors.NotFound\n */\nconst read = () => 1',
+    },
     // A comment that already ends with a tag takes the new one straight after it.
     {
       code: '/**\n * Reads one user.\n *\n * @param id - The ID of the user.\n */\nconst read = (id) => {\n  throw new NotFoundException()\n}',
