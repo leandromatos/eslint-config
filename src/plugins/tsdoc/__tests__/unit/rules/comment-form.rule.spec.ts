@@ -130,3 +130,38 @@ ruleTester.run('comment-form, between the summary and the first tag', commentFor
     },
   ],
 })
+
+ruleTester.run('comment-form, rewrapping what a documentation comment holds', commentForm, {
+  valid: [],
+  invalid: [
+    // A fenced example is code, and the rewrap keeps its lines and their indentation as written.
+    {
+      code: `/**\n * ${WORDS}\n *\n * @example\n * \`\`\`ts\n * const user = read({\n *   id: '1',\n * })\n * \`\`\`\n */\nconst read = value => value`,
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n *\n * @example\n * \`\`\`ts\n * const user = read({\n *   id: '1',\n * })\n * \`\`\`\n */\nconst read = value => value`,
+    },
+    // A sentence written across two lines is joined back before it is wrapped again.
+    {
+      code: `/**\n * ${WORDS}\n * end\n */\nconst read = value => value`,
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL} end\n */\nconst read = value => value`,
+    },
+    // An inline tag is one word, so a link moves to the next line whole.
+    {
+      code: '/**\n * word word word word word word word word word {@link UserService | the service} end\n */\nconst read = value => value',
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output:
+        '/**\n * word word word word word word word word word\n * {@link UserService | the service} end\n */\nconst read = value => value',
+    },
+    // A paragraph after a fence keeps the blank line it was written with, and one written against the fence keeps none.
+    {
+      code: `/**\n * ${WORDS}\n *\n * \`\`\`ts\n * read()\n * \`\`\`\n * Then it reads.\n *\n * And again.\n */\nconst read = value => value`,
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n *\n * \`\`\`ts\n * read()\n * \`\`\`\n * Then it reads.\n *\n * And again.\n */\nconst read = value => value`,
+    },
+  ],
+})

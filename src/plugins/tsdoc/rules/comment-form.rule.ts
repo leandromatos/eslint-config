@@ -2,7 +2,7 @@ import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_TOKEN_TYPES } from '@typescript-eslint/utils'
 
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { CommentFormMessageId, TsdocRule } from '../types/index.js'
+import type { CommentFormMessageId, CommentParagraph, TsdocRule } from '../types/index.js'
 
 /**
  * A comment the tooling reads rather than a person: it is a line by contract.
@@ -261,9 +261,9 @@ const rewrapped = (comment: TSESTree.Comment, commentWidth: number): string => {
   const indent = ' '.repeat(comment.loc.start.column)
   const opening = openingOf(comment)
   const width = commentWidth - indent.length - BLOCK_PREFIX_WIDTH
-  const lines = paragraphsOf(comment).flatMap((paragraph, index, paragraphs) =>
-    wrappedParagraph(paragraph, index, width, paragraphs[index - 1]),
-  )
+  const paragraphs = paragraphsOf(comment)
+  const firstTag = paragraphs.findIndex(paragraph => TAG_REG_EXP.test(paragraph.text))
+  const lines = paragraphs.flatMap((paragraph, index) => wrappedParagraph(paragraph, index, width, index === firstTag))
 
   return [opening, ...lines.map(line => `${indent} *${spaced(line)}`), `${indent} */`].join('\n')
 }
@@ -281,48 +281,78 @@ const openingOf = (comment: TSESTree.Comment): string => {
 }
 
 /**
- * The paragraphs of a block comment: what a blank line separates, and every tag on its own.
+ * The paragraphs of a block comment: what a blank line separates, every tag on its own, and every fenced block.
  *
  * A wrapped line is joined back to the one above it, because a break inside a sentence is where
- * the previous column fell rather than something the author meant.
+ * the previous column fell rather than something the author meant. A fenced block is code, so its
+ * lines are kept as written, indentation included.
  *
  * @param comment - The comment being rewritten.
  * @returns The paragraphs, in order.
  */
-const paragraphsOf = (comment: TSESTree.Comment): string[] => {
-  const paragraphs: string[] = []
-  for (const line of comment.value.replace(/^\*/, '').split('\n').map(stripMarker)) {
-    const opensParagraph = !line || TAG_REG_EXP.test(line) || !paragraphs.length || !paragraphs.at(-1)
-    if (opensParagraph) paragraphs.push(line)
-    /* v8 ignore next -- the line joins a paragraph, which is what the branch above opened */
-    /* v8 ignore start -- the line joins the paragraph the branch above opened */
-    else paragraphs[paragraphs.length - 1] = `${paragraphs.at(-1) ?? ''} ${line}`.trim()
-    /* v8 ignore stop */
+const paragraphsOf = (comment: TSESTree.Comment): CommentParagraph[] => {
+  const paragraphs: CommentParagraph[] = []
+  let fence: CommentParagraph | null = null
+  let isAfterBlank = false
+  for (const rawLine of comment.value.replace(/^\*/, '').split('\n')) {
+    const line = stripMarker(rawLine)
+    const last = paragraphs.at(-1)
+    if (fence) {
+      fence.verbatim.push(verbatimOf(rawLine))
+      if (FENCE_REG_EXP.test(line)) fence = null
+      continue
+    }
+    if (FENCE_REG_EXP.test(line)) {
+      fence = { text: '', verbatim: [verbatimOf(rawLine)], isAfterBlank }
+      paragraphs.push(fence)
+      isAfterBlank = false
+      continue
+    }
+    if (!line) {
+      isAfterBlank = paragraphs.length > 0
+      continue
+    }
+    if (!last || isAfterBlank || last.verbatim.length || TAG_REG_EXP.test(line))
+      paragraphs.push({ text: line, verbatim: [], isAfterBlank })
+    else last.text = `${last.text} ${line}`
+    isAfterBlank = false
   }
 
-  return paragraphs.filter((paragraph, index) => paragraph || (index > 0 && index < paragraphs.length - 1))
+  return paragraphs
 }
 
 /**
  * One paragraph as lines, with the blank line that opens it.
  *
- * The first paragraph opens the comment, so it carries none. A tag below another tag opens a paragraph of its own
- * without one, and the first tag below the text keeps the blank line that separates it from the summary.
+ * The first paragraph opens the comment, so it carries none. The first tag keeps the blank line that separates it
+ * from the summary, a tag below another tag carries none, and any other paragraph keeps the one it was written with.
  *
- * @param paragraph - The paragraph's text.
+ * @param paragraph - The paragraph.
  * @param index - Where it sits in the comment.
  * @param width - The column the text is wrapped at.
- * @param previous - The paragraph above it, and nothing for the first one.
+ * @param isFirstTag - Whether it is the first tag of the comment.
  * @returns The lines.
  */
-const wrappedParagraph = (paragraph: string, index: number, width: number, previous: string | undefined): string[] => {
-  /* A blank paragraph is the separator itself, and the paragraph below it opens with one; emitting both doubles it. */
-  if (!paragraph) return []
-  const wrapped = wrap(paragraph, width)
-  if (!index) return wrapped
-  if (TAG_REG_EXP.test(paragraph) && (!previous || TAG_REG_EXP.test(previous))) return wrapped
+const wrappedParagraph = (paragraph: CommentParagraph, index: number, width: number, isFirstTag: boolean): string[] => {
+  const lines = linesOf(paragraph, width)
+  if (!index) return lines
+  if (isFirstTag) return ['', ...lines]
+  if (TAG_REG_EXP.test(paragraph.text) || !paragraph.isAfterBlank) return lines
 
-  return ['', ...wrapped]
+  return ['', ...lines]
+}
+
+/**
+ * The lines of a paragraph: a fenced block as written, and text wrapped at the column.
+ *
+ * @param paragraph - The paragraph.
+ * @param width - The column the text is wrapped at.
+ * @returns The lines.
+ */
+const linesOf = (paragraph: CommentParagraph, width: number): string[] => {
+  if (paragraph.verbatim.length) return paragraph.verbatim
+
+  return wrap(paragraph.text, width)
 }
 
 /**
@@ -346,6 +376,14 @@ const spaced = (line: string): string => {
 const stripMarker = (line: string): string => line.replace(/^\s*\*\s?/, '').trim()
 
 /**
+ * A line of a fenced block without its `*` marker, its indentation kept.
+ *
+ * @param line - The line as it stands.
+ * @returns The code it carries.
+ */
+const verbatimOf = (line: string): string => line.replace(/^\s*\* ?/, '').trimEnd()
+
+/**
  * The text of a run, as one paragraph.
  *
  * @param run - The comments of one run.
@@ -357,7 +395,7 @@ const textOf = (run: TSESTree.Comment[]): string => run.map(comment => comment.v
  * The text as lines no longer than the width, breaking between words.
  *
  * A code span is one word: TSDoc closes a span on the line it opens, so a span broken across two lines is a span that
- * never closes. A span longer than the width stays whole and runs past it.
+ * never closes. So is an inline tag. A word longer than the width stays whole and runs past it.
  *
  * @param text - The paragraph's text.
  * @param width - The column the text is wrapped at.
@@ -381,7 +419,8 @@ const wrap = (text: string, width: number): string[] => {
 }
 
 /**
- * The words of a paragraph, with every code span held together as one, its spaces kept.
+ * The words of a paragraph, with every code span and every inline tag held together as one, its spaces kept: a
+ * link broken across two lines is one TSDoc reads as two words.
  *
  * @param text - The paragraph's text.
  * @returns The words, in order.
@@ -391,7 +430,7 @@ const wordsOf = (text: string): string[] => {
   let span = ''
   for (const token of text.split(/\s+/).filter(Boolean)) {
     span = joined(span, token)
-    if (countBackticks(span) % 2 === 0) {
+    if (countOf(span, '`') % 2 === 0 && countOf(span, '{') <= countOf(span, '}')) {
       words.push(span)
       span = ''
     }
@@ -415,9 +454,11 @@ const joined = (line: string, word: string): string => {
 }
 
 /**
- * How many backticks a piece of text holds, which says whether a code span it opened is closed.
+ * How many times a piece of text holds a character, which says whether a code span or an inline tag it opened is
+ * closed.
  *
  * @param text - The text.
+ * @param character - The character, a backtick or a brace.
  * @returns The count.
  */
-const countBackticks = (text: string): number => [...text].filter(character => character === '`').length
+const countOf = (text: string, character: string): number => [...text].filter(each => each === character).length
