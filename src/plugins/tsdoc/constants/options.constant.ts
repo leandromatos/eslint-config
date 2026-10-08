@@ -13,7 +13,8 @@ export const OPTIONS_SCHEMA: JSONSchema4 = {
     commentWidth: { type: 'integer', minimum: 1 },
     testFolder: { type: 'string' },
     frameworkSymbols: { type: 'array', items: { type: 'string' } },
+    requiredTagContexts: { type: 'array', items: { type: 'string' } },
   },
-  required: ['commentWidth', 'testFolder', 'frameworkSymbols'],
+  required: ['commentWidth', 'testFolder', 'frameworkSymbols', 'requiredTagContexts'],
   additionalProperties: false,
 }

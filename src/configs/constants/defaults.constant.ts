@@ -84,12 +84,24 @@ export const DEFAULT_NAMING: NamingOptions = {
   testFolder: SUFFIX_TO_FOLDER.spec,
 }
 
+/**
+ * The functions whose comment lists every parameter and says what comes back: every function with a body, and a
+ * declared one. An interface method and an abstract one are left to the class that implements them.
+ */
+const REQUIRED_TAG_CONTEXTS = [
+  'ArrowFunctionExpression',
+  'FunctionDeclaration',
+  'FunctionExpression',
+  'TSDeclareFunction',
+]
+
 /** How a comment is written, which depends on the formatter and on nothing else. */
 export const DEFAULT_TSDOC: TsdocOptions = {
   commentWidth: COMMENT_WIDTH,
   testFolder: SUFFIX_TO_FOLDER.spec,
   /* A project on no framework has none: every exported name is one a caller imports. */
   frameworkSymbols: [],
+  requiredTagContexts: REQUIRED_TAG_CONTEXTS,
 }
 
 /**

@@ -57,10 +57,26 @@ describe('strict', () => {
     expect(ownEntry?.files).toEqual(['lib/**/*.ts'])
   })
 
-  it('turns the documentation rules on, which this package does not carry itself', () => {
-    const [documentation] = strict().filter(entry => entry.rules?.['jsdoc/require-param'])
+  it('checks the grammar of a comment with the TSDoc parser, which this package does not carry itself', () => {
+    const [documentation] = strict().filter(entry => entry.rules?.['tsdoc/syntax'])
 
-    expect(documentation?.rules?.['jsdoc/require-returns']).toBe('error')
+    expect(documentation?.rules?.['tsdoc/syntax']).toBe('error')
+  })
+
+  it('asks every function for its parameters and its value, in the contexts the defaults name', () => {
+    const [ownEntry] = strict().filter(entry => entry.name === 'leandromatos/recommended')
+
+    expect(ownEntry?.rules?.['leandromatos/tsdoc-param-tag']).toEqual([
+      'error',
+      expect.objectContaining({
+        requiredTagContexts: [
+          'ArrowFunctionExpression',
+          'FunctionDeclaration',
+          'FunctionExpression',
+          'TSDeclareFunction',
+        ],
+      }),
+    ])
   })
 
   it('reaches the configuration files with the comment rule, which reads no type', () => {

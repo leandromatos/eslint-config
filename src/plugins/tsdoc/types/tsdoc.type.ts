@@ -8,6 +8,11 @@ export interface TsdocOptions {
   testFolder: string
   /** The names a framework calls rather than a caller imports, which document nothing to anybody. */
   frameworkSymbols: string[]
+  /**
+   * The kinds of node whose comment has to list every parameter and say what comes back, by the type the parser gives
+   * them: `FunctionDeclaration`, `ArrowFunctionExpression`, `TSMethodSignature`.
+   */
+  requiredTagContexts: string[]
 }
 
 /** A rule of this plugin: one options object, the vocabulary above. */

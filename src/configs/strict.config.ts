@@ -1,4 +1,4 @@
-import jsdoc from 'eslint-plugin-jsdoc'
+import tsdoc from 'eslint-plugin-tsdoc'
 
 import { leandromatos, plugin as ownPlugin } from '../plugins/index.js'
 import type { TsdocOptions } from '../plugins/tsdoc/types/index.js'
@@ -57,36 +57,19 @@ export const strict = (strictOptions: StrictOptions = {}): Config[] => {
 }
 
 /**
- * What `eslint-plugin-jsdoc` holds, which is the half of a documentation comment this package does not.
+ * The grammar of a documentation comment, as TSDoc defines it.
  *
- * A comment lists every parameter and, when something comes back, what it is; a function returning void carries no
- * `@returns`, so a missing tag never means a forgotten one. Every description starts with a capital and ends with a
- * period, in TSDoc syntax.
+ * `eslint-plugin-tsdoc` parses every comment with the parser TSDoc publishes, so a tag outside the standard, a type in
+ * braces or a name the grammar refuses is reported where it is written. What a comment has to say is the business of
+ * the rules of this package; this is what it has to be written as.
  *
- * @param files - The files the rules judge.
+ * @param files - The files the rule judges.
  * @returns The configuration entry.
  */
 const documentation = (files: string[]): Config => ({
   files,
-  plugins: { jsdoc },
-  // `@typeParam` is the TSDoc spelling; the plugin's TypeScript preference is `@template`.
-  settings: { jsdoc: { mode: 'typescript', tagNamePreference: { template: 'typeParam' } } },
-  rules: {
-    'jsdoc/check-param-names': ['error', { checkDestructured: false }],
-    'jsdoc/check-tag-names': ['error', { typed: true }],
-    'jsdoc/match-description': ['error', { tags: { param: true, returns: true, throws: true } }],
-    'jsdoc/no-types': 'error',
-    /*
-     * Reported and not fixed. The fixer writes the tag and leaves the description empty, which trades one finding
-     * for two: the empty tag then fails `require-param-description`, and a reader is handed a comment that says
-     * the parameter's name and nothing else.
-     */
-    'jsdoc/require-param': ['error', { checkDestructured: false, checkDestructuredRoots: false, enableFixer: false }],
-    'jsdoc/require-param-description': 'error',
-    'jsdoc/require-returns': 'error',
-    'jsdoc/require-returns-check': 'error',
-    'jsdoc/require-returns-description': 'error',
-  },
+  plugins: { tsdoc },
+  rules: { 'tsdoc/syntax': 'error' },
 })
 
 /**

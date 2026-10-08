@@ -4,7 +4,9 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 60, testFolder: '__tests__', frameworkSymbols: [] }]
+const options: [TsdocOptions] = [
+  { commentWidth: 60, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
+]
 
 /** Fourteen words, which run past the column the options set. */
 const WORDS = 'word '.repeat(14).trim()
@@ -52,6 +54,20 @@ ruleTester.run('comment-form', commentForm, {
       options,
       errors: [{ messageId: 'pastWidth' }],
       output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n * @param value - The value.\n */\nconst read = value => value`,
+    },
+    // A code span stays on one line, so a span that does not fit moves whole to the next.
+    {
+      code: `/*\n * ${'word '.repeat(10).trim()} \`one two\` end end\n */\nconst a = 1`,
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output: `/*\n * ${'word '.repeat(10).trim()}\n * \`one two\` end end\n */\nconst a = 1`,
+    },
+    // A span that never closes keeps the rest of the paragraph with it.
+    {
+      code: `/*\n * ${'word '.repeat(10).trim()} \`one two end end\n */\nconst a = 1`,
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output: `/*\n * ${'word '.repeat(10).trim()}\n * \`one two end end\n */\nconst a = 1`,
     },
     {
       code: '// A note that runs\n// across two lines\nconst a = 1',

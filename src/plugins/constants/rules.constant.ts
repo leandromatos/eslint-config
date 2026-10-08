@@ -15,7 +15,16 @@ import {
 import { expectedPrefix, forbiddenName, methodResource, resultByVerb, valueCase } from '../naming/rules/index.js'
 import { describesSource, e2eOverHttp, specBlocks, typedFixture } from '../testing/rules/index.js'
 import { stringPattern } from '../text/rules/index.js'
-import { commentForm, documentedFunction, linkSymbols, throwsTag } from '../tsdoc/rules/index.js'
+import {
+  commentForm,
+  descriptionSentence,
+  documentedFunction,
+  linkSymbols,
+  paramTag,
+  returnsTag,
+  throwsTag,
+  typelessTag,
+} from '../tsdoc/rules/index.js'
 import type { OptionsGroup } from '../types/index.js'
 import { constAssertionPair } from '../typescript/rules/index.js'
 
@@ -47,6 +56,10 @@ export const RULES = {
   'link-symbols': { rule: linkSymbols, group: 'tsdoc' },
   'documented-function': { rule: documentedFunction, group: 'tsdoc' },
   'throws-tag': { rule: throwsTag, group: 'tsdoc' },
+  'param-tag': { rule: paramTag, group: 'tsdoc' },
+  'returns-tag': { rule: returnsTag, group: 'tsdoc' },
+  'description-sentence': { rule: descriptionSentence, group: 'tsdoc' },
+  'typeless-tag': { rule: typelessTag, group: 'tsdoc' },
   'describes-source': { rule: describesSource, group: 'testing' },
   'e2e-over-http': { rule: e2eOverHttp, group: 'testing' },
   'spec-blocks': { rule: specBlocks, group: 'testing' },

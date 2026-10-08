@@ -4,8 +4,8 @@ export type StringPatternMessageId = 'mustMatch' | 'mustNotMatch'
 /**
  * A string the code hands to a known call, and what it has to look like.
  *
- * The anchor is the callee as written, `this.logger.warn` or `ApiProperty` or `new
- * NotFoundException`; the string is the first argument, or the named property of it when the
+ * The anchor is the callee as written, `this.logger.warn` or `ApiProperty` or
+ * `new NotFoundException`; the string is the first argument, or the named property of it when the
  * first argument is an object. A template literal is judged with each expression replaced by
  * a placeholder.
  */

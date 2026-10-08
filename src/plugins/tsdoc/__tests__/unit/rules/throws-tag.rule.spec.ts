@@ -4,7 +4,9 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const ruleTester = syntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [] }]
+const options: [TsdocOptions] = [
+  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
+]
 
 ruleTester.run('throws-tag', throwsTag, {
   valid: [

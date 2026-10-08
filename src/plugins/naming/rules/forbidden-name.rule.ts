@@ -8,8 +8,8 @@ import type { ForbiddenNameMessageId, NamingRule } from '../types/index.js'
  * A name the conventions forbid outright, wherever the author chose it.
  *
  * What the author chooses is a declaration: a variable, a parameter, a function, a class, a property of a class. A
- * key of an object literal is not one of those. It is half of a contract the code is filling in, and `report({ data
- * })` spells `data` because ESLint asked for it, not because anybody named a value that way.
+ * key of an object literal is not one of those. It is half of a contract the code is filling in, and
+ * `report({ data })` spells `data` because ESLint asked for it, not because anybody named a value that way.
  */
 export const forbiddenName: NamingRule<ForbiddenNameMessageId> = {
   meta: {

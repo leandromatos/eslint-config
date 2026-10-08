@@ -45,7 +45,8 @@ console.log(message) // a directive is a line by contract
 
 Yes. The fix joins the lines into a block and rewraps it; inside a documentation comment a blank
 line and a tag each open a paragraph of their own, so a `@param` is never folded into the sentence
-above it.
+above it. A code span in backticks moves to the next line whole, because TSDoc closes a span on the
+line it opens on.
 
 ## When not to use it
 

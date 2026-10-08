@@ -1,4 +1,8 @@
 export type * from './comment-form.rule.type.js'
+export type * from './description-sentence.rule.type.js'
 export type * from './documented-function.rule.type.js'
 export type * from './link-symbols.rule.type.js'
+export type * from './param-tag.rule.type.js'
+export type * from './returns-tag.rule.type.js'
 export type * from './throws-tag.rule.type.js'
+export type * from './typeless-tag.rule.type.js'

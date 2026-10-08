@@ -7,12 +7,14 @@ import type { TsdocOptions } from '../../../types/index.js'
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'documented-function')
 const ruleTester = typedRuleTester(root)
-const options: [TsdocOptions] = [{ commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [] }]
+const options: [TsdocOptions] = [
+  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: [], requiredTagContexts: [] },
+]
 const defaultFrameworkOptions: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['default'] },
+  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['default'], requiredTagContexts: [] },
 ]
 const frameworkOptions: [TsdocOptions] = [
-  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['generateMetadata'] },
+  { commentWidth: 120, testFolder: '__tests__', frameworkSymbols: ['generateMetadata'], requiredTagContexts: [] },
 ]
 const source = sourceFile('users', 'services', 'user.service.ts')
 const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')

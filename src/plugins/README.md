@@ -67,12 +67,16 @@ the strings the product ships.
 
 the comments of a file: their form, their presence and their tags.
 
-| Rule                                                                   | Description                                                                                | 💼  | 🔧  | 💭  |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | --- | --- | --- |
-| [`tsdoc/comment-form`](tsdoc/docs/rules/comment-form.md)               | A note that runs to a paragraph is a block comment, wrapped at the configured column.      | ✅  | 🔧  |     |
-| [`tsdoc/link-symbols`](tsdoc/docs/rules/link-symbols.md)               | A symbol in scope is linked with {@link}, never set in backticks; a link resolves.         | ✅  | 🔧  |     |
-| [`tsdoc/documented-function`](tsdoc/docs/rules/documented-function.md) | A method or a function a module declares carries a comment that says what its name cannot. | ✅  |     | 💭  |
-| [`tsdoc/throws-tag`](tsdoc/docs/rules/throws-tag.md)                   | A documented function carries a @throws tag for every exception type it constructs.        | ✅  | 🔧  |     |
+| Rule                                                                     | Description                                                                                                   | 💼  | 🔧  | 💭  |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | --- | --- | --- |
+| [`tsdoc/comment-form`](tsdoc/docs/rules/comment-form.md)                 | A note that runs to a paragraph is a block comment, wrapped at the configured column.                         | ✅  | 🔧  |     |
+| [`tsdoc/link-symbols`](tsdoc/docs/rules/link-symbols.md)                 | A symbol in scope is linked with {@link}, never set in backticks; a link resolves.                            | ✅  | 🔧  |     |
+| [`tsdoc/documented-function`](tsdoc/docs/rules/documented-function.md)   | A method or a function a module declares carries a comment that says what its name cannot.                    | ✅  |     | 💭  |
+| [`tsdoc/throws-tag`](tsdoc/docs/rules/throws-tag.md)                     | A documented function carries a @throws tag for every exception type it constructs.                           | ✅  | 🔧  |     |
+| [`tsdoc/param-tag`](tsdoc/docs/rules/param-tag.md)                       | A documented function lists every parameter in a @param, in order, once, with a description.                  | ✅  |     |     |
+| [`tsdoc/returns-tag`](tsdoc/docs/rules/returns-tag.md)                   | A documented function carries one @returns with a description when it hands a value back, and none otherwise. | ✅  |     |     |
+| [`tsdoc/description-sentence`](tsdoc/docs/rules/description-sentence.md) | The description of a documented function and the text of its tags read as sentences.                          | ✅  |     |     |
+| [`tsdoc/typeless-tag`](tsdoc/docs/rules/typeless-tag.md)                 | A @param or a @returns carries no type in braces.                                                             | ✅  | 🔧  |     |
 
 ### typescript
 

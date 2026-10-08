@@ -1,3 +1,4 @@
+import type { TsdocOptions } from '../plugins/tsdoc/types/index.js'
 import {
   NEXTJS_ARCHITECTURE,
   NEXTJS_FILES,
@@ -32,39 +33,40 @@ const DOCUMENTED_CONTEXTS = ['ArrowFunctionExpression', 'FunctionExpression', 'T
  * @param nextjsOptions - What this project says on top of the tier.
  * @returns The configuration, to export from `eslint.config.mts`.
  */
-export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => [
-  ...strict({
-    ...nextjsOptions,
-    files: nextjsOptions.files ?? NEXTJS_FILES,
-    ignores: [...NEXTJS_IGNORED, ...(nextjsOptions.ignores ?? [])],
-    architecture: { ...NEXTJS_ARCHITECTURE, ...nextjsOptions.architecture },
-    testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
-    tsdoc: { ...NEXTJS_TSDOC, ...nextjsOptions.tsdoc },
-  }),
-  components(),
-  catalogue(),
-]
+export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => {
+  const tsdocOptions = { ...NEXTJS_TSDOC, ...nextjsOptions.tsdoc }
+
+  return [
+    ...strict({
+      ...nextjsOptions,
+      files: nextjsOptions.files ?? NEXTJS_FILES,
+      ignores: [...NEXTJS_IGNORED, ...(nextjsOptions.ignores ?? [])],
+      architecture: { ...NEXTJS_ARCHITECTURE, ...nextjsOptions.architecture },
+      testing: { ...NEXTJS_TESTING, ...nextjsOptions.testing },
+      tsdoc: tsdocOptions,
+    }),
+    components(tsdocOptions),
+    catalogue(),
+  ]
+}
 
 /**
  * What a component's comment is not asked for.
  *
+ * @param tsdocOptions - The comment vocabulary of the project, which the entry narrows for a component.
  * @returns The configuration entry.
  */
-const components = (): Config => ({
-  files: COMPONENT_FILES,
-  rules: {
-    'jsdoc/require-param': [
-      'error',
-      {
-        checkDestructured: false,
-        checkDestructuredRoots: false,
-        enableFixer: false,
-        contexts: DOCUMENTED_CONTEXTS,
-      },
-    ],
-    'jsdoc/require-returns': ['error', { contexts: DOCUMENTED_CONTEXTS }],
-  },
-})
+const components = (tsdocOptions: TsdocOptions): Config => {
+  const componentTsdocOptions = { ...tsdocOptions, requiredTagContexts: DOCUMENTED_CONTEXTS }
+
+  return {
+    files: COMPONENT_FILES,
+    rules: {
+      'leandromatos/tsdoc-param-tag': ['error', componentTsdocOptions],
+      'leandromatos/tsdoc-returns-tag': ['error', componentTsdocOptions],
+    },
+  }
+}
 
 /**
  * What keeps the catalogue out of the application.

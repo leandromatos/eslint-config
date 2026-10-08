@@ -54,13 +54,13 @@ mechanism and a rule of the plugin would say the same thing twice.
 
 In this order. The last entry to match a file wins, which is what lets a project append its own.
 
-| Entry                   | What it is                                                                                                            |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `recommended`           | every layer of it, with whatever the project added to `ignores`                                                       |
-| the plugin              | every rule of `eslint-plugin-leandromatos`, each reading the group of its own subject                                 |
-| the documentation rules | what `eslint-plugin-jsdoc` holds and this package does not                                                            |
-| the comment rule        | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches           |
-| the cycle rule          | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only |
+| Entry            | What it is                                                                                                            |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `recommended`    | every layer of it, with whatever the project added to `ignores`                                                       |
+| the plugin       | every rule of `eslint-plugin-leandromatos`, each reading the group of its own subject                                 |
+| the syntax rule  | `tsdoc/syntax`, from `eslint-plugin-tsdoc`: every documentation comment parses as TSDoc, with its standard tags only  |
+| the comment rule | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches           |
+| the cycle rule   | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only |
 
 ### The framework tiers
 
@@ -74,8 +74,10 @@ its layout.
 | `expo`   | the sources and the root TypeScript files | `.expo`, `android`, `ios`, `expo-env.d.ts`                                                                       |
 
 `nextjs` adds two entries of its own: the component rules, which judge what a `.tsx` declares and
-how, and the catalogue, which keeps a story and a component in step. `expo` adds one: Jest's
-globals, because a React Native project's unit tests run on `jest-expo` rather than on Vitest.
+how, and the catalogue, which keeps a story and a component in step. The component rules ask no
+`function` declaration for `@param` or `@returns`, because a component is written as one and both
+tags would restate its props and its markup. `expo` adds one: Jest's globals, because a React
+Native project's unit tests run on `jest-expo` rather than on Vitest.
 
 ## ⚙️ Options
 
@@ -105,7 +107,7 @@ retyping it, and never mutates one: every project in an ESLint process shares th
 | `DEFAULT_NAMING`       | the participles, the roles a spec names by, the names no declaration carries          |
 | `DEFAULT_TESTING`      | the test kinds, and the client an end-to-end spec sends requests with                 |
 | `DEFAULT_TEXT`         | the shapes the package gives a Swagger description, an exception title and a log line |
-| `DEFAULT_TSDOC`        | the column a comment is wrapped at                                                    |
+| `DEFAULT_TSDOC`        | the column a comment is wrapped at, and the kinds of function asked for their tags    |
 | `DEFAULT_TYPESCRIPT`   | the suffix a type file carries                                                        |
 | `PERIOD`, `NO_PERIOD`  | the two patterns a text rule names a sentence and a label with                        |
 

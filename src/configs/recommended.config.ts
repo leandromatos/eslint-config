@@ -85,8 +85,7 @@ const IGNORED = ['**/.claude', '**/coverage', '**/dist']
  *
  * @param recommendedOptions - What this project says on top of the defaults.
  * @returns The configuration, to export from `eslint.config.mts`.
- * @author Leandro Matos
- * @see {@link https://github.com/leandromatos/eslint-config GitHub} for more information.
+ * @see {@link https://github.com/leandromatos/eslint-config | GitHub} for more information.
  */
 export const recommended = (recommendedOptions: RecommendedOptions = {}): Config[] =>
   defineConfig(

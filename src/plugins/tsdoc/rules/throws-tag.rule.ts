@@ -1,7 +1,7 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
 
-import { asList } from '../../shared/utils/index.js'
+import { childNodesOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { TsdocRule, TsdocThrowsMessageId } from '../types/index.js'
 
@@ -114,7 +114,7 @@ const thrownOf = (
       current.argument.callee.type === AST_NODE_TYPES.Identifier
     )
       found.push({ node: current.argument, type: current.argument.callee.name, title: titleOf(current.argument) })
-    for (const child of childrenOf(current)) visit(child)
+    for (const child of childNodesOf(current)) visit(child)
   }
   visit(node)
 
@@ -192,18 +192,6 @@ const placeholderAt = (index: number, templateLiteral: TSESTree.TemplateLiteral)
 
   return ''
 }
-
-/**
- * The AST nodes a node holds, whatever their keys.
- *
- * @param node - The node the walk reads.
- * @returns The nodes it holds.
- */
-const childrenOf = (node: TSESTree.Node): TSESTree.Node[] =>
-  Object.entries(node)
-    .filter(([key]) => key !== 'parent')
-    .flatMap(([, value]): unknown[] => asList(value))
-    .filter((value): value is TSESTree.Node => typeof value === 'object' && value !== null && 'type' in value)
 
 /**
  * Adds the tag as the last line of the comment, after a blank line when the comment carried

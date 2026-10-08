@@ -297,6 +297,9 @@ const textOf = (run: TSESTree.Comment[]): string => run.map(comment => comment.v
 /**
  * The text as lines no longer than the width, breaking between words.
  *
+ * A code span is one word: TSDoc closes a span on the line it opens, so a span broken across two lines is a span that
+ * never closes. A span longer than the width stays whole and runs past it.
+ *
  * @param text - The paragraph's text.
  * @param width - The column the text is wrapped at.
  * @returns The lines.
@@ -304,7 +307,7 @@ const textOf = (run: TSESTree.Comment[]): string => run.map(comment => comment.v
 const wrap = (text: string, width: number): string[] => {
   const lines: string[] = []
   let line = ''
-  for (const word of text.split(/\s+/).filter(Boolean)) {
+  for (const word of wordsOf(text)) {
     if (line && `${line} ${word}`.length > width) {
       lines.push(line)
       line = word
@@ -319,6 +322,27 @@ const wrap = (text: string, width: number): string[] => {
 }
 
 /**
+ * The words of a paragraph, with every code span held together as one, its spaces kept.
+ *
+ * @param text - The paragraph's text.
+ * @returns The words, in order.
+ */
+const wordsOf = (text: string): string[] => {
+  const words: string[] = []
+  let span = ''
+  for (const token of text.split(/\s+/).filter(Boolean)) {
+    span = joined(span, token)
+    if (countBackticks(span) % 2 === 0) {
+      words.push(span)
+      span = ''
+    }
+  }
+  if (span) words.push(span)
+
+  return words
+}
+
+/**
  * The word added to the line, or the word alone when the line is empty.
  *
  * @param line - The line as it stands.
@@ -330,3 +354,11 @@ const joined = (line: string, word: string): string => {
 
   return `${line} ${word}`
 }
+
+/**
+ * How many backticks a piece of text holds, which says whether a code span it opened is closed.
+ *
+ * @param text - The text.
+ * @returns The count.
+ */
+const countBackticks = (text: string): number => [...text].filter(character => character === '`').length
