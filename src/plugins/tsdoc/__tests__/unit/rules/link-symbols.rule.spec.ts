@@ -54,17 +54,32 @@ ruleTester.run('link-symbols', linkSymbols, {
       code: 'class UserService {\n  /** Reads through `findOneUser`. */\n  read() {\n    return this.findOneUser()\n  }\n\n  findOneUser() {}\n}',
       filename: source,
       options,
-      errors: [{ messageId: 'symbolInBackticks' }],
-      output:
-        'class UserService {\n  /** Reads through {@link findOneUser}. */\n  read() {\n    return this.findOneUser()\n  }\n\n  findOneUser() {}\n}',
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            {
+              messageId: 'linkSymbol',
+              output:
+                'class UserService {\n  /** Reads through {@link findOneUser}. */\n  read() {\n    return this.findOneUser()\n  }\n\n  findOneUser() {}\n}',
+            },
+          ],
+        },
+      ],
     },
 
     {
       code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
       filename: source,
       options,
-      errors: [{ messageId: 'symbolInBackticks' }],
-      output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}',
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            { messageId: 'linkSymbol', output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}' },
+          ],
+        },
+      ],
     },
     {
       code: '/** Reads a {@link MissingEntity}. */\nexport const read = () => 1',
@@ -83,15 +98,27 @@ ruleTester.run('link-symbols, in a repository of several packages', linkSymbols,
       code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
       filename: '.rnstorybook/utils/story-users.util.ts',
       options,
-      errors: [{ messageId: 'symbolInBackticks' }],
-      output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}',
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            { messageId: 'linkSymbol', output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}' },
+          ],
+        },
+      ],
     },
     {
       code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
       filename: packageSourceFile('packages/x', 'users', 'services', 'user.service.ts'),
       options,
-      errors: [{ messageId: 'symbolInBackticks' }],
-      output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}',
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            { messageId: 'linkSymbol', output: '/** Reads a {@link UserEntity}. */\nexport class UserEntity {}' },
+          ],
+        },
+      ],
     },
   ],
 })
@@ -100,22 +127,42 @@ ruleTester.run('link-symbols, on a name TSDoc keeps as a selector', linkSymbols,
   valid: [
     // The quoted forms parse, and each resolves to what it names.
     { code: 'class Activity {\n  type = 1\n\n  /** Reads {@link Activity."type"}. */\n  read() {}\n}', options },
-    { code: 'const type = 1\n/** Reads {@link "type"}. */\nexport const read = () => type', options },
+    { code: 'function type() {}\n/** Reads {@link "type"}. */\nexport const read = () => type', options },
     // A member of a class with no name cannot be qualified, so code font is the only way to write it.
-    { code: 'export const Activity = class {\n  type = 1\n\n  /** Reads `type`. */\n  read() {}\n}', options },
+    { code: 'export const Activity = class {\n  type() {}\n\n  /** Reads `type`. */\n  read() {}\n}', options },
   ],
   invalid: [
     {
-      code: 'class Activity {\n  type = 1\n\n  /** Reads `type`. */\n  read() {}\n}',
+      code: 'class Activity {\n  type() {}\n\n  /** Reads `type`. */\n  read() {}\n}',
       options,
-      errors: [{ messageId: 'symbolInBackticks', data: { name: 'type', target: 'Activity."type"' } }],
-      output: 'class Activity {\n  type = 1\n\n  /** Reads {@link Activity."type"}. */\n  read() {}\n}',
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          data: { name: 'type', target: 'Activity."type"' },
+          suggestions: [
+            {
+              messageId: 'linkSymbol',
+              output: 'class Activity {\n  type() {}\n\n  /** Reads {@link Activity."type"}. */\n  read() {}\n}',
+            },
+          ],
+        },
+      ],
     },
     {
-      code: 'const type = 1\n/** Reads `type`. */\nexport const read = () => type',
+      code: 'function type() {}\n/** Reads `type`. */\nexport const read = () => type',
       options,
-      errors: [{ messageId: 'symbolInBackticks', data: { name: 'type', target: '"type"' } }],
-      output: 'const type = 1\n/** Reads {@link "type"}. */\nexport const read = () => type',
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          data: { name: 'type', target: '"type"' },
+          suggestions: [
+            {
+              messageId: 'linkSymbol',
+              output: 'function type() {}\n/** Reads {@link "type"}. */\nexport const read = () => type',
+            },
+          ],
+        },
+      ],
     },
     {
       code: 'class Activity {\n  type = 1\n\n  /** Reads {@link type}. */\n  read() {}\n}',
@@ -142,6 +189,77 @@ ruleTester.run('link-symbols, on a name TSDoc keeps as a selector', linkSymbols,
       options,
       errors: [{ messageId: 'unquotedSelector' }],
       output: 'export const Activity = class {\n  type = 1\n\n  /** Reads {@link "type"}. */\n  read() {}\n}',
+    },
+  ],
+})
+
+ruleTester.run('link-symbols, on a span that names a value rather than a symbol', linkSymbols, {
+  valid: [
+    // A value, a package, a key, a story and a parameter share a name with a binding, and a span spells the value.
+    {
+      code: "const currentColor = 'red'\n/** Paints in `currentColor`. */\nexport const paint = () => currentColor",
+      options,
+    },
+    {
+      code: "import tailwindcss from 'tailwindcss'\n/** Runs `tailwindcss` over the sheet. */\nexport const run = () => tailwindcss",
+      options,
+    },
+    {
+      code: "import * as platform from './platform.js'\n/** Reads `platform`. */\nexport const read = () => platform",
+      options,
+    },
+    { code: "/** The story named `Demo`. */\nexport const Demo = { args: { label: 'a' } }", options },
+    {
+      code: '/**\n * Reads by `key`.\n *\n * @param key - The key.\n */\nexport function read(key) {\n  return key\n}',
+      options,
+    },
+    { code: 'class Activity {\n  key = 1\n\n  /** Reads `key`. */\n  read() {}\n}', options },
+    // A parameter in scope, and a variable declared with no value, name values too.
+    {
+      code: 'export function read(key) {\n  /** Reads by `key`. */\n  const inner = () => key\n\n  return inner()\n}',
+      options,
+    },
+    { code: 'let handler\n/** Calls `handler`. */\nexport const call = () => handler', options },
+    // A span of more than one backtick holds code, and a name inside it is part of that code.
+    {
+      code: 'function gt() {}\n/** Sorts by `` `gt` for ascending, `lt` `` in the query. */\nexport const sort = () => gt',
+      options,
+    },
+    { code: 'function gt() {}\n/** Sorts by `gt()`, which is code. */\nexport const sort = () => gt', options },
+  ],
+  invalid: [
+    // A name imported by name, and a const that holds a function, are symbols a page documents.
+    {
+      code: "import { UserService } from './user.service.js'\n/** Reads through `UserService`. */\nexport const read = () => UserService",
+      options,
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            {
+              messageId: 'linkSymbol',
+              output:
+                "import { UserService } from './user.service.js'\n/** Reads through {@link UserService}. */\nexport const read = () => UserService",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: 'const findOneUser = () => 1\n/** Reads through `findOneUser`. */\nexport const read = () => findOneUser()',
+      options,
+      errors: [
+        {
+          messageId: 'symbolInBackticks',
+          suggestions: [
+            {
+              messageId: 'linkSymbol',
+              output:
+                'const findOneUser = () => 1\n/** Reads through {@link findOneUser}. */\nexport const read = () => findOneUser()',
+            },
+          ],
+        },
+      ],
     },
   ],
 })

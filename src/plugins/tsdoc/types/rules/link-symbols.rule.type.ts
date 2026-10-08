@@ -1,2 +1,2 @@
 /** The messages `tsdoc-link-symbols` reports. */
-export type TsdocLinkSymbolsMessageId = 'symbolInBackticks' | 'linkToNothing' | 'unquotedSelector'
+export type TsdocLinkSymbolsMessageId = 'symbolInBackticks' | 'linkSymbol' | 'linkToNothing' | 'unquotedSelector'

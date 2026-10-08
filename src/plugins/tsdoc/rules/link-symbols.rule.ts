@@ -4,7 +4,26 @@ import { AST_NODE_TYPES, AST_TOKEN_TYPES, TSESLint } from '@typescript-eslint/ut
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { TsdocLinkSymbolsMessageId, TsdocRule } from '../types/index.js'
 
-const BACKTICKED_WORD_REG_EXP = /`([A-Za-z_$][\w$]*)`/g
+/** A code span as Markdown reads one: a run of backticks, the text, and a run of the same length that closes it. */
+const CODE_SPAN_REG_EXP = /(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/g
+
+/** A name a span holds whole, which is the only span that can stand for a symbol. */
+const IDENTIFIER_REG_EXP = /^[A-Za-z_$][\w$]*$/
+
+/** The declarations a page documents by themselves: a class, a type, an enum and a function. */
+const DOCUMENTED_DEFINITIONS = new Set<string>([
+  TSESLint.Scope.DefinitionType.ClassName,
+  TSESLint.Scope.DefinitionType.FunctionName,
+  TSESLint.Scope.DefinitionType.TSEnumName,
+  TSESLint.Scope.DefinitionType.Type,
+])
+
+/** What a const holds when it declares a function or a class rather than a value. */
+const DOCUMENTED_INITIALIZERS = new Set<string>([
+  AST_NODE_TYPES.ArrowFunctionExpression,
+  AST_NODE_TYPES.ClassExpression,
+  AST_NODE_TYPES.FunctionExpression,
+])
 const LINK_REG_EXP = /\{@link\s+([^}|\s]+)/g
 const URL_OR_PACKAGE_REG_EXP = /^(?:https?:|[@\w-]+\/|[\w-]+#)/
 
@@ -34,6 +53,11 @@ const SYSTEM_SELECTORS = new Set([
  *
  * A name TSDoc keeps as a selector, such as `type` or `class`, is linked in quotes, and a member of the class the
  * comment sits in is qualified by that class, as `Owner."type"`.
+ *
+ * A code span is read as a symbol only when it holds one name whole and that name is something a page documents: a
+ * class, an interface, a type, an enum, a function, a method, or a name imported by name. A variable, a parameter,
+ * a property and a default import name a value, a key or a package, so a span that spells one is left alone. What
+ * the rule offers for a span is a suggestion, never a fix: whether the author meant the symbol is the author's call.
  */
 export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
   meta: {
@@ -44,8 +68,10 @@ export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
       dialects: ['TypeScript'],
     },
     fixable: 'code',
+    hasSuggestions: true,
     messages: {
       symbolInBackticks: '"{{name}}" is a symbol in scope. Link it: {@link {{target}}}.',
+      linkSymbol: 'Link "{{name}}": {@link {{target}}}.',
       linkToNothing: '"{@link {{name}}}" resolves to nothing in scope.',
       unquotedSelector: '"{{name}}" is a TSDoc selector, so a link names it in quotes: {@link {{target}}}.',
     },
@@ -63,19 +89,28 @@ export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
         for (const comment of sourceCode.getAllComments()) {
           if (comment.type !== AST_TOKEN_TYPES.Block || !comment.value.startsWith('*')) continue
           const classBody = enclosingClassBodyOf(comment, classBodies)
-          const resolves = resolverFor(comment, sourceCode, classBody)
+          const resolves = resolverFor(comment, sourceCode, classBody, false)
+          const documents = resolverFor(comment, sourceCode, classBody, true)
           const targetOf = targetFor(classBody)
-          for (const regExpExecArray of comment.value.matchAll(BACKTICKED_WORD_REG_EXP)) {
+          for (const regExpExecArray of comment.value.matchAll(CODE_SPAN_REG_EXP)) {
             /* v8 ignore next -- the group is what the pattern matched on */
-            const name = regExpExecArray[1] ?? ''
+            const name = regExpExecArray[2] ?? ''
+            if (regExpExecArray[1] !== '`' || !IDENTIFIER_REG_EXP.test(name)) continue
             const target = targetOf(name)
-            if (!resolves(name) || !target) continue
+            if (!documents(name) || !target) continue
             const start = comment.range[0] + 2 + regExpExecArray.index
+            const link = { name, target }
             context.report({
               node: comment,
               messageId: 'symbolInBackticks',
-              data: { name, target },
-              fix: ruleFixer => ruleFixer.replaceTextRange([start, start + name.length + 2], `{@link ${target}}`),
+              data: link,
+              suggest: [
+                {
+                  messageId: 'linkSymbol',
+                  data: link,
+                  fix: ruleFixer => ruleFixer.replaceTextRange([start, start + name.length + 2], `{@link ${target}}`),
+                },
+              ],
             })
           }
           for (const regExpExecArray of comment.value.matchAll(LINK_REG_EXP)) {
@@ -139,7 +174,7 @@ const enclosingClassBodyOf = (
  * @returns What answers the target for a name, and null where no link can name it.
  */
 const targetFor = (classBody: TSESTree.ClassBody | undefined): ((name: string) => string | null) => {
-  const members = classMemberNamesOf(classBody)
+  const members = classMemberNamesOf(classBody, false)
   const owner = classBody?.parent.id?.name
 
   return name => {
@@ -193,12 +228,15 @@ const unquoted = (segment: string): string => segment.replace(/^"(.*)"$/, '$1')
  * @param comment - The comment the rule reads.
  * @param sourceCode - The source it is written in.
  * @param classBody - The body of the class the comment sits in, when it sits in one.
+ * @param isDocumentedOnly - Whether only what a page documents counts: a declaration of a type, a class, an enum or a
+ * function, a method, or a name imported by name.
  * @returns What answers whether a name resolves.
  */
 const resolverFor = (
   comment: TSESTree.Comment,
   sourceCode: TSESLint.SourceCode,
   classBody: TSESTree.ClassBody | undefined,
+  isDocumentedOnly: boolean,
 ): ((name: string) => boolean) => {
   const [at] = comment.range
   const scopes = sourceCode.scopeManager?.scopes.filter(
@@ -212,10 +250,10 @@ const resolverFor = (
     scopes
       ?.filter(candidateScope => encloses(candidateScope.block, at))
       .sort((leftScope, rightScope) => rightScope.block.range[0] - leftScope.block.range[0])[0] ?? scopes?.[0]
-  const members = classMemberNamesOf(classBody)
+  const members = classMemberNamesOf(classBody, isDocumentedOnly)
 
   /* v8 ignore next -- a file the parser read has a scope of its own */
-  return name => members.has(name) || isBound(scope ?? null, name)
+  return name => members.has(name) || isBound(scope ?? null, name, isDocumentedOnly)
 }
 
 /**
@@ -231,24 +269,29 @@ const encloses = (node: TSESTree.Node, at: number): boolean => node.range[0] <= 
  * The names the enclosing class declares, and none where the comment sits in no class.
  *
  * @param classBody - The body of the class the comment sits in, when it sits in one.
+ * @param isDocumentedOnly - Whether only the methods count.
  * @returns The names.
  */
-const classMemberNamesOf = (classBody: TSESTree.ClassBody | undefined): Set<string> => {
+const classMemberNamesOf = (classBody: TSESTree.ClassBody | undefined, isDocumentedOnly: boolean): Set<string> => {
   if (!classBody) return new Set<string>()
 
-  return memberNamesOf(classBody)
+  return memberNamesOf(classBody, isDocumentedOnly)
 }
 
 /**
  * The names of the members of a class.
  *
  * @param classBody - The body of the class.
+ * @param isDocumentedOnly - Whether only the methods count: a property holds a value, which a span names as a key.
  * @returns The names.
  */
-const memberNamesOf = (classBody: TSESTree.ClassBody): Set<string> => {
+const memberNamesOf = (classBody: TSESTree.ClassBody, isDocumentedOnly: boolean): Set<string> => {
   const names = new Set<string>()
-  for (const member of classBody.body)
-    if ('key' in member && member.key.type === AST_NODE_TYPES.Identifier) names.add(member.key.name)
+  for (const member of classBody.body) {
+    if (!('key' in member) || member.key.type !== AST_NODE_TYPES.Identifier) continue
+    if (isDocumentedOnly && member.type !== AST_NODE_TYPES.MethodDefinition) continue
+    names.add(member.key.name)
+  }
 
   return names
 }
@@ -258,11 +301,32 @@ const memberNamesOf = (classBody: TSESTree.ClassBody): Set<string> => {
  *
  * @param scope - The scope the search starts from.
  * @param name - The name.
+ * @param isDocumentedOnly - Whether only a declaration a page documents counts.
  * @returns Whether a scope declares it.
  */
-const isBound = (scope: TSESLint.Scope.Scope | null, name: string): boolean => {
-  for (let current = scope; current && current.type !== TSESLint.Scope.ScopeType.global; current = current.upper)
-    if (current.set.has(name)) return true
+const isBound = (scope: TSESLint.Scope.Scope | null, name: string, isDocumentedOnly: boolean): boolean => {
+  for (let current = scope; current && current.type !== TSESLint.Scope.ScopeType.global; current = current.upper) {
+    const variable = current.set.get(name)
+    if (variable) return !isDocumentedOnly || variable.defs.some(isDocumentedDefinition)
+  }
 
   return false
+}
+
+/**
+ * Whether a declaration is one a page documents: a class, a type, an enum, a function, a const holding a function or
+ * a class, or a name imported by name. A variable holding a value, a parameter, and a default or namespace import,
+ * which names a package, are not.
+ *
+ * @param definition - How the scope declares the name.
+ * @returns Whether a link to it lands on documentation.
+ */
+const isDocumentedDefinition = (definition: TSESLint.Scope.Definition): boolean => {
+  const { DefinitionType } = TSESLint.Scope
+  if (DOCUMENTED_DEFINITIONS.has(definition.type)) return true
+  if (definition.type === DefinitionType.ImportBinding) return definition.node.type === AST_NODE_TYPES.ImportSpecifier
+  if (definition.type !== DefinitionType.Variable) return false
+  const { init } = definition.node
+
+  return Boolean(init && DOCUMENTED_INITIALIZERS.has(init.type))
 }
