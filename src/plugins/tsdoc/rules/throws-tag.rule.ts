@@ -11,8 +11,12 @@ const INTERNAL_TITLE_REG_EXP = /^Error while (.+)\.$/
 /** A `@throws` tag and the rest of its line, which opens with the type and goes on with the condition. */
 const THROWS_LINE_REG_EXP = /@throws(?=\s|$)([^\n]*)/g
 
-/** A type the way a tag names it: `unknown`, or an identifier, qualified or not, that opens with a capital. */
-const TYPE_NAME_REG_EXP = /^(?:unknown(?![\w$])|[A-Z][\w$]*(?:\.[A-Za-z_$][\w$]*)*)/
+/**
+ * A type the way a tag names it: an identifier that opens with a capital, qualified or not, or one qualified by a
+ * namespace, whatever the case of the namespace, as `errors.InvalidGrant`.
+ */
+const TYPE_NAME_REG_EXP =
+  /^(?:unknown(?![\w$])|[A-Z][\w$]*(?:\.[A-Za-z_$][\w$]*)*|[a-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+)/
 
 /** The type of a value a function throws on without knowing it, such as what a callback it calls throws. */
 const UNKNOWN = 'unknown'
@@ -357,7 +361,8 @@ const moduleNamesOf = (sourceCode: TSESLint.SourceCode): Set<string> => {
 
 /**
  * Whether the first word of a tag names a type: `unknown`, for a value thrown on without a type to name, one whose
- * name ends the way an error's does, or one the file or the runtime declares, such as `Error`.
+ * name ends the way an error's does, a capitalized member of a namespace, as `errors.InvalidGrant`, or one the file or
+ * the runtime declares, such as `Error`.
  *
  * @param type - The word, qualified or not.
  * @param moduleNames - The names the file declares or imports at its top.
@@ -366,6 +371,8 @@ const moduleNamesOf = (sourceCode: TSESLint.SourceCode): Set<string> => {
 const isTypeName = (type: string, moduleNames: Set<string>): boolean => {
   const [head = ''] = type.split('.')
   if (type === UNKNOWN || ERROR_NAME_REG_EXP.test(type)) return true
+  /* A name a namespace qualifies is a member of that namespace, and one that opens with a capital is a type of it. */
+  if (/\.[A-Z][\w$]*$/.test(type)) return true
 
   return moduleNames.has(head) || Object.hasOwn(globalThis, head)
 }

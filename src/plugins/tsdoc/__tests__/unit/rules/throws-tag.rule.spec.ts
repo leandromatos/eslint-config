@@ -46,6 +46,15 @@ ruleTester.run('throws-tag', throwsTag, {
       code: "/**\n * Runs the hook.\n *\n * @throws unknown Whatever the caller's onError throws, thrown on as it was.\n */\nconst run = () => 1",
       options,
     },
+    // A type a namespace qualifies is read whole, whatever the case of the namespace.
+    {
+      code: "import { errors } from 'oidc-provider'\n\n/**\n * Exchanges the grant.\n *\n * @throws errors.InvalidGrant When the code was already spent.\n */\nexport const exchange = () => {\n  throw new errors.InvalidGrant()\n}",
+      options,
+    },
+    {
+      code: '/**\n * Exchanges the grant.\n *\n * @throws oidc.errors.InvalidGrant\n */\nconst exchange = () => 1',
+      options,
+    },
     // A word that only contains the tag's name is no tag.
     { code: '/** Reads one user, and documents its failures with `@throws`. */\nconst read = () => 1', options },
     // A function that documents nothing, because nothing precedes it, carries no tag to check.
@@ -85,6 +94,12 @@ ruleTester.run('throws-tag', throwsTag, {
     },
   ],
   invalid: [
+    // A qualified word whose last segment is no type, such as an abbreviation, names none.
+    {
+      code: '/**\n * Exchanges the grant.\n *\n * @throws e.g. when the code was spent.\n */\nconst exchange = () => 1',
+      options,
+      errors: [{ messageId: 'untypedThrows' }],
+    },
     // A word that only opens with the name of the type is no type.
     {
       code: '/**\n * Runs the hook.\n *\n * @throws unknownly when it fails.\n */\nconst run = () => 1',

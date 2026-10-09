@@ -16,7 +16,9 @@ An exception a `try` throws stops at its `catch`, unless the `catch` throws the 
 what leaves the function is what the `catch` throws, and that is the type the tag names.
 
 A word is read as a type when its name ends in `Error` or `Exception`, or when the file or the
-runtime declares it, as an import or `TypeError` does. The first word of a sentence is neither.
+runtime declares it, as an import or `TypeError` does. A type a namespace qualifies is read whole,
+whatever the case of the namespace: `@throws errors.InvalidGrant`. The first word of a sentence is
+neither.
 A value the function throws on without a type to name, such as what a callback it calls throws,
 is `unknown`, as TypeScript calls it: `@throws unknown Whatever onError throws.`
 
