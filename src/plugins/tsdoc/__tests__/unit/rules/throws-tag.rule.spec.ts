@@ -41,6 +41,11 @@ ruleTester.run('throws-tag', throwsTag, {
       code: '/** Sends the mail. */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch (error) {\n    const report = () => {\n      throw error\n    }\n    return report\n  } finally {\n    close()\n  }\n}',
       options,
     },
+    // A value thrown on without a type to name is unknown, which TypeScript calls it.
+    {
+      code: "/**\n * Runs the hook.\n *\n * @throws unknown Whatever the caller's onError throws, thrown on as it was.\n */\nconst run = () => 1",
+      options,
+    },
     // A word that only contains the tag's name is no tag.
     { code: '/** Reads one user, and documents its failures with `@throws`. */\nconst read = () => 1', options },
     // A function that documents nothing, because nothing precedes it, carries no tag to check.
@@ -80,6 +85,12 @@ ruleTester.run('throws-tag', throwsTag, {
     },
   ],
   invalid: [
+    // A word that only opens with the name of the type is no type.
+    {
+      code: '/**\n * Runs the hook.\n *\n * @throws unknownly when it fails.\n */\nconst run = () => 1',
+      options,
+      errors: [{ messageId: 'untypedThrows' }],
+    },
     // A catch that throws the error on lets what the try throws leave, and a finally keeps nothing in.
     {
       code: '/** Sends the mail. */\nconst send = () => {\n  try {\n    throw new ProviderError()\n  } catch (error) {\n    log(error)\n    throw error\n  }\n}',

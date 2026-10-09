@@ -17,6 +17,8 @@ what leaves the function is what the `catch` throws, and that is the type the ta
 
 A word is read as a type when its name ends in `Error` or `Exception`, or when the file or the
 runtime declares it, as an import or `TypeError` does. The first word of a sentence is neither.
+A value the function throws on without a type to name, such as what a callback it calls throws,
+is `unknown`, as TypeScript calls it: `@throws unknown Whatever onError throws.`
 
 ## Rule details
 

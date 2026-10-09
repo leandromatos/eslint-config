@@ -11,8 +11,11 @@ const INTERNAL_TITLE_REG_EXP = /^Error while (.+)\.$/
 /** A `@throws` tag and the rest of its line, which opens with the type and goes on with the condition. */
 const THROWS_LINE_REG_EXP = /@throws(?=\s|$)([^\n]*)/g
 
-/** A type the way a tag names it: an identifier, qualified or not, that opens with a capital. */
-const TYPE_NAME_REG_EXP = /^[A-Z][\w$]*(?:\.[A-Za-z_$][\w$]*)*/
+/** A type the way a tag names it: `unknown`, or an identifier, qualified or not, that opens with a capital. */
+const TYPE_NAME_REG_EXP = /^(?:unknown(?![\w$])|[A-Z][\w$]*(?:\.[A-Za-z_$][\w$]*)*)/
+
+/** The type of a value a function throws on without knowing it, such as what a callback it calls throws. */
+const UNKNOWN = 'unknown'
 
 /** How the name of an error type ends, which tells a type from the first word of a sentence. */
 const ERROR_NAME_REG_EXP = /(?:Error|Exception)$/
@@ -353,8 +356,8 @@ const moduleNamesOf = (sourceCode: TSESLint.SourceCode): Set<string> => {
 }
 
 /**
- * Whether the first word of a tag names a type: one whose name ends the way an error's does, or one the file or the
- * runtime declares, such as `Error`.
+ * Whether the first word of a tag names a type: `unknown`, for a value thrown on without a type to name, one whose
+ * name ends the way an error's does, or one the file or the runtime declares, such as `Error`.
  *
  * @param type - The word, qualified or not.
  * @param moduleNames - The names the file declares or imports at its top.
@@ -362,7 +365,7 @@ const moduleNamesOf = (sourceCode: TSESLint.SourceCode): Set<string> => {
  */
 const isTypeName = (type: string, moduleNames: Set<string>): boolean => {
   const [head = ''] = type.split('.')
-  if (ERROR_NAME_REG_EXP.test(type)) return true
+  if (type === UNKNOWN || ERROR_NAME_REG_EXP.test(type)) return true
 
   return moduleNames.has(head) || Object.hasOwn(globalThis, head)
 }
