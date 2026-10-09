@@ -2,7 +2,7 @@ import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA, SENTENCE_TAGS } from '../constants/index.js'
-import type { DescriptionSentenceMessageId, DocumentedNode, TsdocRule } from '../types/index.js'
+import type { DescriptionSentenceMessageId, DocBlockTag, DocumentedNode, TsdocRule } from '../types/index.js'
 import { findDocBlock, inheritsDoc, lineLocationOf, parseDocBlock } from '../utils/index.js'
 
 /**
@@ -51,7 +51,7 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
         })
       for (const docBlockTag of docBlock.tags) {
         if (!SENTENCE_TAGS.has(docBlockTag.tag) || docBlockTag.description === '-') continue
-        if (SENTENCE_REG_EXP.test(docBlockTag.description)) continue
+        if (SENTENCE_REG_EXP.test(sentenceOf(docBlockTag))) continue
         context.report({
           loc: lineLocationOf(docBlockTag.line),
           messageId: 'notSentence',
@@ -71,4 +71,18 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
 
     return listener
   },
+}
+
+/**
+ * The text of a tag that reads as a sentence. A `@throws` opens with the type it names, which a namespace or the word
+ * `unknown` may write in lower case, so its sentence is the condition after it. A type in braces is read apart by
+ * the parser already, and what follows it is the sentence as written.
+ *
+ * @param docBlockTag - The tag.
+ * @returns The text the sentence rule reads.
+ */
+const sentenceOf = (docBlockTag: DocBlockTag): string => {
+  if (docBlockTag.tag !== 'throws' || docBlockTag.type !== null) return docBlockTag.description
+
+  return docBlockTag.description.replace(/^\S+\s*/, '')
 }

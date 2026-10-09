@@ -6,6 +6,9 @@ read as sentences.
 A sentence opens with a capital and closes with its punctuation, so a reader meets the same shape in
 every comment and in every tag.
 
+The sentence of a `@throws` is the condition after its type, so a type a namespace or the word
+`unknown` writes in lower case, as in `@throws errors.InvalidGrant When…`, opens no sentence.
+
 ## Rule details
 
 👎 Examples of **incorrect** code:

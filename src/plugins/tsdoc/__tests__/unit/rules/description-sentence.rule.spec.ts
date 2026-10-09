@@ -8,6 +8,15 @@ const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
 
 ruleTester.run('description-sentence', descriptionSentence, {
   valid: [
+    // The sentence of a throws tag is the condition after its type, which may open in lower case.
+    {
+      code: '/**\n * Runs.\n *\n * @throws unknown Whatever the hook throws, as it was.\n */\nfunction run() {}',
+      options,
+    },
+    {
+      code: '/**\n * Runs.\n *\n * @throws errors.InvalidGrant When the code was spent.\n * @throws Error\n */\nfunction run() {}',
+      options,
+    },
     // A comment that inherits its documentation takes its summary from there.
     { code: '/** {@inheritDoc Reader.read} */\nfunction read(id) {}', options },
     // A sentence, with sentences in its tags.
@@ -41,6 +50,11 @@ ruleTester.run('description-sentence', descriptionSentence, {
     { code: 'interface Options {\n  /** lowercase value */\n  limit: number\n}', options },
   ],
   invalid: [
+    {
+      code: '/**\n * Runs.\n *\n * @throws errors.InvalidGrant when the code was spent\n */\nfunction run() {}',
+      options,
+      errors: [{ messageId: 'notSentence', data: { part: 'text of @throws' } }],
+    },
     // The tags a comment writes beside the inherited summary are its own, and read as any other.
     {
       code: '/**\n * {@inheritDoc Reader.read}\n *\n * @throws NotFoundException when nobody has it\n */\nfunction read(id) {}',
