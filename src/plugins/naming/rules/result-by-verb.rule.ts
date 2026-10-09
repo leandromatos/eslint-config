@@ -1,9 +1,10 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
+import { buildRuleDocsUrl, locateFile, readCalleeName, toUpperFirst, unwrapAwait } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { NamingRule, ResultNamedByVerbMessageId } from '../types/index.js'
+import type { NamingRule, ResultByVerbMessageId } from '../types/index.js'
+import { removeParticiple, writeRename } from '../utils/index.js'
 
 /**
  * A variable holding what a call produced opens with the participle of the verb that produced it:
@@ -16,12 +17,12 @@ import type { NamingRule, ResultNamedByVerbMessageId } from '../types/index.js'
  * test gives by role, `result` or `expected*` from the options, is what the test reads by; and a
  * name that leaves as a shorthand property is fixed by the key, which is the reader's contract.
  */
-export const resultByVerb: NamingRule<ResultNamedByVerbMessageId> = {
+export const resultByVerb: NamingRule<ResultByVerbMessageId> = {
   meta: {
     type: 'problem',
     docs: {
       description: 'A variable holding what a producing verb returned opens with its participle.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/naming/docs/rules/result-by-verb.md',
+      url: buildRuleDocsUrl('naming', 'result-by-verb'),
       dialects: ['TypeScript'],
     },
     fixable: 'code',
@@ -34,22 +35,23 @@ export const resultByVerb: NamingRule<ResultNamedByVerbMessageId> = {
   },
   create: context => {
     const [{ verbParticiples, roleNames, testFolder }] = context.options
-    const where = locate(context)
+    const where = locateFile(context)
     const isNamedByRole = (name: string): boolean =>
-      Boolean(where?.segments.includes(testFolder)) && roleNames.some(role => opensWith(name, role))
+      Boolean(where?.segments.includes(testFolder)) && roleNames.some(role => startsWithWord(name, role))
     const verbs = Object.keys(verbParticiples).sort((left, right) => right.length - left.length)
     const listener: TSESLint.RuleListener = {
       VariableDeclarator: node => {
         if (node.id.type !== AST_NODE_TYPES.Identifier || isExported(node, context.sourceCode)) return
         if (isNamedByRole(node.id.name) || isRendered(node, context.sourceCode)) return
-        const callee = calleeNameOf(node.init)
-        const verb = callee && verbs.find(each => opensWith(callee, each))
+        const callee = readInitCallee(node.init)
+        if (!callee) return
+        const verb = verbs.find(each => startsWithWord(callee, each))
         if (!verb) return
         const participle = verbParticiples[verb]
-        if (!participle || opensWith(node.id.name, participle)) return
+        if (!participle || startsWithWord(node.id.name, participle)) return
         const identifier = node.id
-        const bare = withoutParticiple(identifier.name, Object.values(verbParticiples))
-        const expected = `${participle}${bare.charAt(0).toUpperCase()}${bare.slice(1)}`
+        const bare = removeParticiple(identifier.name, Object.values(verbParticiples))
+        const expected = `${participle}${toUpperFirst(bare)}`
         if (isTaken(expected, node, context.sourceCode) || isShorthandKey(node, context.sourceCode)) return
         context.report({
           node: identifier,
@@ -62,21 +64,6 @@ export const resultByVerb: NamingRule<ResultNamedByVerbMessageId> = {
 
     return listener
   },
-}
-
-/**
- * `activity` for `createdActivity`: a participle of another verb is replaced, not stacked under.
- *
- * @param name - The name as it is declared.
- * @param participles - The participles a producing verb gives its result.
- * @returns The name without the participle.
- */
-const withoutParticiple = (name: string, participles: string[]): string => {
-  const worn = participles.find(each => name.startsWith(each) && /[A-Z]/.test(name.charAt(each.length)))
-  if (!worn) return name
-  const rest = name.slice(worn.length)
-
-  return rest.charAt(0).toLowerCase() + rest.slice(1)
 }
 
 /**
@@ -146,7 +133,8 @@ const isTaken = (name: string, declarator: TSESTree.VariableDeclarator, sourceCo
   sourceCode.getScope(declarator).set.has(name)
 
 /**
- * Renames the declaration and every reference to it; `{ user }` becomes `{ user: createdUser }`.
+ * Renames the declaration and every reference to it. A name that leaves as a shorthand property is refused before
+ * the rule reports, so every place is the bare name.
  *
  * @param ruleFixer - What writes the fix.
  * @param declarator - The declaration the rule judges.
@@ -162,38 +150,26 @@ const renameVariable = (
   expected: string,
   sourceCode: TSESLint.SourceCode,
 ): TSESLint.RuleFix[] => {
-  const variable = sourceCode.getDeclaredVariables(declarator).find(each => each.name !== expected)
-  /* v8 ignore next -- the declaration declares the variable the rule is renaming */
-  const references = variable?.references.map(reference => reference.identifier) ?? []
+  const references = sourceCode
+    .getDeclaredVariables(declarator)
+    .flatMap(variable => variable.references.map(reference => reference.identifier))
 
-  return [identifier, ...references]
-    .filter((node, index, all) => all.indexOf(node) === index)
-    .map(node => {
-      const parent = node.parent
-      /* v8 ignore next -- a name that leaves as a shorthand property is refused before the rule reports */
-      if (parent?.type === AST_NODE_TYPES.Property && parent.shorthand && parent.value === node)
-        /* v8 ignore next -- a name that leaves as a shorthand property is refused before the rule reports */
-        return ruleFixer.replaceText(parent, `${sourceCode.getText(parent.key)}: ${expected}`)
-
-      return ruleFixer.replaceTextRange([node.range[0], node.range[0] + node.name.length], expected)
-    })
+  return writeRename(ruleFixer, [identifier, ...references], expected, sourceCode)
 }
 
 /**
- * `toActivityEntity` for `this.transformer.toActivityEntity(x)`, awaited or not, and null otherwise.
+ * Reads the name of the call an initializer makes, awaited or not: `toActivityEntity` for
+ * `await this.transformer.toActivityEntity(x)`.
  *
  * @param init - What the declaration holds.
- * @returns The callee's name.
+ * @returns The callee's name, and null for an initializer that calls nothing it names.
  */
-const calleeNameOf = (init: TSESTree.Expression | null): string | null => {
+const readInitCallee = (init: TSESTree.Expression | null): string | null => {
+  if (!init) return null
   const expression = unwrapAwait(init)
-  if (expression?.type !== AST_NODE_TYPES.CallExpression) return null
-  const { callee } = expression
-  if (callee.type === AST_NODE_TYPES.Identifier) return callee.name
-  if (callee.type === AST_NODE_TYPES.MemberExpression && callee.property.type === AST_NODE_TYPES.Identifier)
-    return callee.property.name
+  if (expression.type !== AST_NODE_TYPES.CallExpression) return null
 
-  return null
+  return readCalleeName(expression)
 }
 
 /**
@@ -203,17 +179,5 @@ const calleeNameOf = (init: TSESTree.Expression | null): string | null => {
  * @param word - The word it is compared against.
  * @returns Whether the name opens with it.
  */
-const opensWith = (name: string, word: string): boolean =>
+const startsWithWord = (name: string, word: string): boolean =>
   name.startsWith(word) && (name.length === word.length || /[A-Z0-9]/.test(name.charAt(word.length)))
-
-/**
- * What an initializer produces, past an await.
- *
- * @param init - What the declaration holds.
- * @returns The expression underneath.
- */
-const unwrapAwait = (init: TSESTree.Expression | null): TSESTree.Expression | null => {
-  if (init?.type === AST_NODE_TYPES.AwaitExpression) return init.argument
-
-  return init
-}

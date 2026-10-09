@@ -4,53 +4,63 @@ import type { ParserServicesWithTypeInformation, TSESLint, TSESTree } from '@typ
 import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils'
 import type ts from 'typescript'
 
-import { locate } from '../../shared/utils/index.js'
+import { buildRuleDocsUrl, locateFile } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { TestingRule, TypedTestDataMessageId } from '../types/index.js'
+import type {
+  ArgumentUsage,
+  DeclaredType,
+  FixtureFixOrigin,
+  TestingRule,
+  TypedFixtureMessageId,
+} from '../types/index.js'
+
+/** The name TypeScript gives the symbol of a type written as a literal, which carries no name to import. */
+const ANONYMOUS_TYPE = '__type'
 
 /**
  * A fixture built as an object literal and handed to the subject carries the type the subject
  * declares for it. An anonymous literal drifts in silence when the contract changes; the
  * annotation makes the test fail at compile time instead of passing on a shape nothing checks.
  */
-export const typedFixture: TestingRule<TypedTestDataMessageId> = {
+export const typedFixture: TestingRule<TypedFixtureMessageId> = {
   meta: {
     type: 'problem',
     docs: {
       description: 'A fixture handed to the subject carries the type the subject declares for it.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/testing/docs/rules/typed-fixture.md',
+      url: buildRuleDocsUrl('testing', 'typed-fixture'),
       dialects: ['TypeScript'],
     },
     fixable: 'code',
     messages: {
-      anonymousData:
+      anonymousFixture:
         '"{{name}}" is an anonymous literal handed to "{{callee}}", which declares it as {{type}}. Annotate it.',
     },
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
-    const [{ testFolder }] = context.options
+    const where = locateFile(context)
+    const [{ testFolder, alias }] = context.options
     if (!where || !where.segments.includes(testFolder)) return {}
     const { sourceCode } = context
     const file = path.resolve(context.cwd, context.filename)
-    const parserServicesWithTypeInformation = ESLintUtils.getParserServices(context)
-    const typeChecker = parserServicesWithTypeInformation.program.getTypeChecker()
+    const fixOrigin: FixtureFixOrigin = { sourceRoot: where.sourceRoot, file, alias }
+    const parserServices = ESLintUtils.getParserServices(context)
+    const typeChecker = parserServices.program.getTypeChecker()
     const listener: TSESLint.RuleListener = {
       VariableDeclarator: node => {
         if (node.id.type !== AST_NODE_TYPES.Identifier || node.id.typeAnnotation) return
         if (node.init?.type !== AST_NODE_TYPES.ObjectExpression) return
-        const usage = argumentUsageOf(node, sourceCode)
+        const usage = findArgumentUsage(node, sourceCode)
         if (!usage) return
-        const declared = declaredTypeOf(usage, parserServicesWithTypeInformation, typeChecker)
+        const declared = readDeclaredType(usage, parserServices, typeChecker)
         if (!declared) return
         const identifier = node.id
         context.report({
           node: identifier,
-          messageId: 'anonymousData',
+          messageId: 'anonymousFixture',
           data: { name: identifier.name, callee: usage.callee, type: declared.name },
-          fix: ruleFixer => annotate(ruleFixer, identifier, declared, sourceCode, where.sourceRoot, file),
+          fix: ruleFixer => annotateFixture(ruleFixer, identifier, declared, sourceCode, fixOrigin),
         })
       },
     }
@@ -66,22 +76,20 @@ export const typedFixture: TestingRule<TypedTestDataMessageId> = {
  * @param sourceCode - The source the fixture is written in.
  * @returns Where it is handed to the subject, and null where it is handed to nothing.
  */
-const argumentUsageOf = (
+const findArgumentUsage = (
   declarator: TSESTree.VariableDeclarator,
   sourceCode: TSESLint.SourceCode,
-): { call: TSESTree.CallExpression; index: number; callee: string } | null => {
-  for (const variable of sourceCode.getDeclaredVariables(declarator)) {
+): ArgumentUsage | null => {
+  for (const variable of sourceCode.getDeclaredVariables(declarator))
     for (const reference of variable.references) {
       const { identifier } = reference
       const { parent } = identifier
-      if (identifier.type !== AST_NODE_TYPES.Identifier || parent?.type !== AST_NODE_TYPES.CallExpression) continue
-      const index = parent.arguments.indexOf(identifier)
-      /* v8 ignore next -- the reference the walk found is the argument it was looking for */
-      if (index < 0) continue
+      if (parent?.type !== AST_NODE_TYPES.CallExpression || parent.callee === identifier) continue
+      const index = parent.arguments.findIndex(argument => argument === identifier)
+      const argumentUsage: ArgumentUsage = { call: parent, index, callee: sourceCode.getText(parent.callee) }
 
-      return { call: parent, index, callee: sourceCode.getText(parent.callee) }
+      return argumentUsage
     }
-  }
 
   return null
 }
@@ -90,25 +98,26 @@ const argumentUsageOf = (
  * The named type the callee declares for that argument, with the file that declares it.
  *
  * @param usage - Where the fixture is handed to the subject.
- * @param parserServicesWithTypeInformations - What maps a node of the syntax tree onto the program.
+ * @param parserServices - What maps a node of the syntax tree onto the program.
  * @param typeChecker - What resolves a type of the program.
  * @returns The type's name and where it is declared, and null for a shape that carries no name.
  */
-const declaredTypeOf = (
-  usage: { call: TSESTree.CallExpression; index: number },
-  parserServicesWithTypeInformations: ParserServicesWithTypeInformation,
+const readDeclaredType = (
+  usage: ArgumentUsage,
+  parserServices: ParserServicesWithTypeInformation,
   typeChecker: ts.TypeChecker,
-): { name: string; file: string } | null => {
-  const callExpression = parserServicesWithTypeInformations.esTreeNodeToTSNodeMap.get(usage.call)
+): DeclaredType | null => {
+  const callExpression = parserServices.esTreeNodeToTSNodeMap.get(usage.call)
   const signature = typeChecker.getResolvedSignature(callExpression)
   const parameter = signature?.getParameters()[usage.index]
   if (!parameter) return null
   const type = typeChecker.getTypeOfSymbol(parameter)
   const symbol = type.aliasSymbol ?? type.getSymbol()
   const declaration = symbol?.declarations?.[0]
-  if (!symbol || !declaration || !/^[A-Z]/.test(symbol.name) || symbol.name === '__type') return null
+  if (!symbol || !declaration || !/^[A-Z]/.test(symbol.name) || symbol.name === ANONYMOUS_TYPE) return null
+  const declaredType: DeclaredType = { name: symbol.name, file: declaration.getSourceFile().fileName }
 
-  return { name: symbol.name, file: declaration.getSourceFile().fileName }
+  return declaredType
 }
 
 /**
@@ -118,17 +127,15 @@ const declaredTypeOf = (
  * @param identifier - The fixture's name.
  * @param declared - The type the subject declares, and where it is declared.
  * @param sourceCode - The source the fixture is written in.
- * @param sourceRoot - The source root the file being fixed sits under.
- * @param file - The absolute path of the file being fixed.
+ * @param fixOrigin - The file being fixed, and how it names a barrel.
  * @returns The fixes, and null where the type cannot be reached by an import.
  */
-const annotate = (
+const annotateFixture = (
   ruleFixer: TSESLint.RuleFixer,
   identifier: TSESTree.Identifier,
-  declared: { name: string; file: string },
+  declared: DeclaredType,
   sourceCode: TSESLint.SourceCode,
-  sourceRoot: string,
-  file: string,
+  fixOrigin: FixtureFixOrigin,
 ): TSESLint.RuleFix[] | null => {
   const ruleFixes = [ruleFixer.insertTextAfter(identifier, `: ${declared.name}`)]
   const program = sourceCode.ast
@@ -138,30 +145,50 @@ const annotate = (
   const imported = importDeclarations.some(importDeclaration =>
     importDeclaration.specifiers.some(specifier => specifier.local.name === declared.name),
   )
-  /* A type the file declares itself is already in scope, and an import of it would point at the file itself. */
-  if (imported || path.resolve(declared.file) === file) return ruleFixes
-  const source = barrelOf(declared.file, sourceRoot)
+  // A type the file declares itself is already in scope, and an import of it would point at the file itself.
+  if (imported || path.resolve(declared.file) === fixOrigin.file) return ruleFixes
+  const source = readTypeBarrel(declared.file, fixOrigin)
   if (!source) return null
-  const last = importDeclarations.at(-1)
-  const line = `import type { ${declared.name} } from '${source}'\n`
-  /* v8 ignore next -- a file that hands a fixture to a subject imports that subject */
-  if (!last) return [...ruleFixes, ruleFixer.insertTextBefore(program, line)]
+  const line = `import type { ${declared.name} } from '${source}'`
+  const importFix = writeImportFix(ruleFixer, importDeclarations.at(-1), program, line)
 
-  return [...ruleFixes, ruleFixer.insertTextAfter(last, `\n${line.trimEnd()}`)]
+  return [...ruleFixes, importFix]
 }
 
 /**
- * `@/policies/dtos` for a type declared under `src/policies/dtos/`, and null for a file outside the source root.
+ * Reads the barrel a type is imported from, which is the one of the directory that declares it: `@/policies/dtos` for
+ * a type declared under `src/policies/dtos/`, and null for a file outside the source root or at its root, where no
+ * barrel sits.
  *
  * @param file - Where the type is declared.
- * @param sourceRoot - The source root the alias reaches.
+ * @param fixOrigin - The source root the alias reaches, and the alias.
  * @returns The specifier the import is written with.
  */
-const barrelOf = (file: string, sourceRoot: string): string | null => {
-  const relative = path.relative(sourceRoot, file)
+const readTypeBarrel = (file: string, fixOrigin: FixtureFixOrigin): string | null => {
+  const relative = path.relative(fixOrigin.sourceRoot, file)
   if (relative.startsWith('..')) return null
-  const [module, folder] = relative.split(path.sep)
-  if (!module || !folder || folder.endsWith('.ts')) return null
+  const directories = relative.split(path.sep).slice(0, -1)
+  if (directories.length === 0) return null
 
-  return `@/${module}/${folder}`
+  return [fixOrigin.alias, ...directories].join('/')
+}
+
+/**
+ * Writes the fix that imports the type: after the last import of the file, or at its top when it has none.
+ *
+ * @param ruleFixer - What writes the fix.
+ * @param lastImport - The last import declaration of the file, when it has one.
+ * @param program - The file.
+ * @param line - The import to add.
+ * @returns The fix.
+ */
+const writeImportFix = (
+  ruleFixer: TSESLint.RuleFixer,
+  lastImport: TSESTree.ImportDeclaration | undefined,
+  program: TSESTree.Program,
+  line: string,
+): TSESLint.RuleFix => {
+  if (!lastImport) return ruleFixer.insertTextBefore(program, `${line}\n`)
+
+  return ruleFixer.insertTextAfter(lastImport, `\n${line}`)
 }

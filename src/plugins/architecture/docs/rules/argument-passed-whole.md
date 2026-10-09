@@ -1,44 +1,50 @@
-# architecture/argument-passed-whole
+# leandromatos/architecture-argument-passed-whole
 
 A layer that receives an object the options name passes it on whole, never a field of it.
 
-`service.deleteUser(params)` survives the route growing a second parameter, and every call site
-keeps saying which layer it is talking to; `service.deleteUser(params.userId)` does neither.
+`service.deleteUser(params)` survives the route growing a second parameter, and every call site keeps saying which
+layer it is talking to. `service.deleteUser(params.userId)` does neither.
 
 ## Rule details
 
-👎 Examples of **incorrect** code:
+👎 Examples of **incorrect** code, in a file of the `controller` suffix that passes `params`, `query` and `body` whole:
 
 ```typescript
-@Delete('users/:userId')
-async deleteUser(@Param() params: DeleteUserParams): Promise<void> {
+async deleteUser(params: DeleteUserParams): Promise<void> {
   await this.usersService.deleteUser(params.userId)
+}
+
+async findAllUsers(query: FindAllUsersQuery): Promise<UserEntity[]> {
+  return this.usersService.findAllUsers(query.limit)
 }
 ```
 
 👍 Examples of **correct** code:
 
 ```typescript
-@Delete('users/:userId')
-async deleteUser(@Param() deleteUserParams: DeleteUserParams): Promise<void> {
-  await this.usersService.deleteUser(deleteUserParams)
+async deleteUser(params: DeleteUserParams): Promise<void> {
+  await this.usersService.deleteUser(params)
 }
 
-@Post('users')
-async createUser(@Body() createUserBody: CreateUserBody, @Request() request: RequestWithUserEntity) {
-  await this.usersService.createUser(createUserBody, request.user) // the request is the exception
+// A field of something the options do not name is read freely.
+async findOneUser(params: FindOneUserParams): Promise<UserEntity> {
+  return this.usersService.findOneUser(params, this.tenantId)
 }
 ```
 
 ## Options
 
-| Option           | Type              | What it decides                                                            |
-| ---------------- | ----------------- | -------------------------------------------------------------------------- |
-| `wholeArguments` | `WholeArgument[]` | `{ suffix, objects }`: in files of one suffix, the objects passed on whole |
+Read from the `architecture` group of the options.
+
+| Option           | Type              | What it decides                                                             |
+| ---------------- | ----------------- | --------------------------------------------------------------------------- |
+| `wholeArguments` | `WholeArgument[]` | `{ suffix, objects }`: in the files of one suffix, the objects passed whole |
+
+The `nestjs` tier names `params`, `query` and `body` for the `controller` suffix.
 
 ## Fixable
 
-No. Which method the call should reach, and with what, is the author's call.
+No. Which method the call reaches, and with what, is the author's to decide.
 
 ## When not to use it
 

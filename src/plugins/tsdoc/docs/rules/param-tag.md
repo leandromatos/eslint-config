@@ -1,14 +1,14 @@
-# tsdoc/param-tag
+# leandromatos/tsdoc-param-tag
 
-A documented function lists every parameter it takes in a `@param`, in the order of the signature,
-once, with a description.
+A documented function lists every parameter it takes in a `@param`, in the order of the signature, once, with a
+description.
 
-The signature gives the name and the type of each parameter, and the tag is the only place that says
-what the caller hands over. A tag that names a parameter the function no longer takes, or names them
-out of order, tells the caller something the code does not do.
+The signature gives the name and the type of each parameter, and the tag is the only place that says what the caller
+hands over. A tag that names a parameter the function no longer takes, or names them out of order, tells the caller
+something the code does not do.
 
-The implementation of an overloaded function is asked for no tag: each signature carries its own,
-and a comment over the implementation is a note for the next person to edit it.
+The implementation of an overloaded function is asked for no tag: each signature carries its own, and a comment over
+the implementation is a note for the next person to edit it.
 
 ## Rule details
 
@@ -62,15 +62,15 @@ class Repository {
 }
 ```
 
-Every function is asked: one with a body, a declared one, a setter, a method without a body, an
-overload, an interface method and an interface property typed as a function. A destructured
-parameter carries one `@param` for the whole object, under any name, because TSDoc writes no path
-into it. A parameter typed by an object literal is a named one. `this` is the receiver and takes
-none, and a comment carrying `{@inheritDoc}` documents nothing here, so it is not asked.
+Every function is asked: one with a body, a declared one, a setter, a method without a body, an overload, an interface
+method and an interface property typed as a function. A destructured parameter carries one `@param` for the whole
+object, under any name, because TSDoc writes no path into it; when the tags are out of order, the report lists it as
+`{…}`. A parameter typed by an object literal is a named one. `this` is the receiver and takes none, and a comment
+carrying `{@inheritDoc}` documents nothing here, so it is not asked.
 
-The comment is the `/**` block right above the statement that holds the function: the declaration,
-the export, the variable, the member, the return, or the assignment. A function handed straight to a
-call carries it right before itself.
+The comment is the `/**` block right above the statement that holds the function: the declaration, the export, the
+variable, the member, the return, or the assignment. A function handed straight to a call carries it right before
+itself.
 
 ## Options
 

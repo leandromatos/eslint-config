@@ -1,8 +1,7 @@
-import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES } from '@typescript-eslint/utils'
+import type { TSESLint } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { buildRuleDocsUrl, listExportedNames, locateFile, toKebabCase } from '../../shared/utils/index.js'
+import { EMPTY_OPTIONS, OPTIONS_SCHEMA, UTIL_SUFFIX } from '../constants/index.js'
 import type { ArchitectureRule, OneExportPerUtilMessageId } from '../types/index.js'
 
 /**
@@ -16,7 +15,7 @@ export const oneExportPerUtil: ArchitectureRule<OneExportPerUtilMessageId> = {
     type: 'problem',
     docs: {
       description: 'A utility file named after a function exports that function alone.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/one-export-per-util.md',
+      url: buildRuleDocsUrl('architecture', 'one-export-per-util'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -27,14 +26,14 @@ export const oneExportPerUtil: ArchitectureRule<OneExportPerUtilMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [options] = context.options
-    if (!where || where.suffix !== 'util' || options.rootContexts.includes(where.module)) return {}
+    if (!where || where.suffix !== UTIL_SUFFIX || options.rootContexts.includes(where.module)) return {}
     if (where.segments.includes(options.testFolder) || where.segments.includes(options.mockFolder)) return {}
     const exported: string[] = []
     const listener: TSESLint.RuleListener = {
       ExportNamedDeclaration: node => {
-        exported.push(...exportedNamesOf(node))
+        exported.push(...listExportedNames(node))
       },
       'Program:exit': program => {
         if (exported.length <= 1) return
@@ -48,30 +47,3 @@ export const oneExportPerUtil: ArchitectureRule<OneExportPerUtilMessageId> = {
     return listener
   },
 }
-
-/**
- * The names an export declaration publishes, by declaration or by variable.
- *
- * @param node - The export declaration.
- * @returns The names, and none for an export that declares nothing named.
- */
-const exportedNamesOf = (node: TSESTree.ExportNamedDeclaration): string[] => {
-  const declaration = node.declaration
-  if (!declaration) return []
-  if (declaration.type === AST_NODE_TYPES.FunctionDeclaration && declaration.id) return [declaration.id.name]
-  if (declaration.type !== AST_NODE_TYPES.VariableDeclaration) return []
-
-  return declaration.declarations.flatMap(declarator => {
-    if (declarator.id.type !== AST_NODE_TYPES.Identifier) return []
-
-    return [declarator.id.name]
-  })
-}
-
-/**
- * Writes a camel-case name the way a file name spells it, as `removeExtension` for `remove-extension`.
- *
- * @param name - The name in camel case.
- * @returns The name in kebab case.
- */
-const toKebabCase = (name: string): string => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()

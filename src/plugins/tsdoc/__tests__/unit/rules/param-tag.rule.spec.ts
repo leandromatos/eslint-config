@@ -1,10 +1,11 @@
-import { syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { paramTag } from '../../../rules/param-tag.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
 
 ruleTester.run('param-tag', paramTag, {
   valid: [
@@ -266,7 +267,7 @@ ruleTester.run('param-tag', paramTag, {
       code: '/**\n * Reads.\n *\n * @param query - The query.\n */\nfunction read(id, { limit }) {}',
       options,
       errors: [
-        { messageId: 'paramOrder', data: { got: 'query', expected: 'id, ' } },
+        { messageId: 'paramOrder', data: { got: 'query', expected: 'id, {…}' } },
         { messageId: 'missingParam', data: { name: 'id' } },
         { messageId: 'missingDestructuredParam', data: { position: '2' } },
       ],

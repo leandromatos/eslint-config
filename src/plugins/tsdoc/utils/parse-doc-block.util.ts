@@ -1,5 +1,6 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 
+import { TSDOC_TAG } from '../constants/index.js'
 import type { DocBlock, DocBlockTag, NamedTagContent, TypedTagContent } from '../types/index.js'
 
 /** A line that opens a block tag: an at sign at the start of the text, and the name up to the next space. */
@@ -34,11 +35,10 @@ export const parseDocBlock = (comment: TSESTree.Comment): DocBlock => {
     readTag(lines.slice(tagStart, tagStarts[position + 1] ?? lines.length), startLine + tagStart, tagStart),
   )
 
-  return {
-    description: descriptionLines.join('\n').trim(),
-    descriptionLine: startLine + Math.max(descriptionOffset, 0),
-    tags,
-  }
+  const description = descriptionLines.join('\n').trim()
+  const descriptionLine = startLine + Math.max(descriptionOffset, 0)
+
+  return { description, descriptionLine, tags }
 }
 
 /**
@@ -64,19 +64,21 @@ const stripLine = (rawLine: string, index: number): string => {
  * @returns The tag.
  */
 const readTag = (tagLines: string[], line: number, lineIndex: number): DocBlockTag => {
-  /* v8 ignore next -- the caller hands only the lines that open with a tag */
-  const [, tag = '', rest = ''] = TAG_LINE_REG_EXP.exec(tagLines[0] ?? '') ?? []
-  const content = [rest, ...tagLines.slice(1)].join('\n').trimStart()
-  const typed = readType(content)
-  if (tag !== 'param') {
-    const description = readDescription(typed.rest, tag === 'returns')
+  const [opening, ...following] = tagLines
+  const tag = String(opening).replace(TAG_LINE_REG_EXP, '$1')
+  const rest = String(opening).replace(TAG_LINE_REG_EXP, '$2')
+  const content = [rest, ...following].join('\n').trimStart()
+  const { type, rest: afterType } = readType(content)
+  if (tag !== TSDOC_TAG.param) {
+    const parameterName = ''
+    const description = readDescription(afterType, tag === TSDOC_TAG.returns)
 
-    return { tag, line, lineIndex, type: typed.type, parameterName: '', description }
+    return { tag, line, lineIndex, type, parameterName, description }
   }
-  const named = readParameterName(typed.rest)
-  const description = readDescription(named.rest, true)
+  const { name: parameterName, rest: afterName } = readParameterName(afterType)
+  const description = readDescription(afterName, true)
 
-  return { tag, line, lineIndex, type: typed.type, parameterName: named.name, description }
+  return { tag, line, lineIndex, type, parameterName, description }
 }
 
 /**
@@ -86,7 +88,7 @@ const readTag = (tagLines: string[], line: number, lineIndex: number): DocBlockT
  * @returns The type, null when the content opens with no brace, and what follows it.
  */
 const readType = (content: string): TypedTagContent => {
-  if (!content.startsWith('{')) return { type: null, rest: content }
+  if (!content.startsWith('{')) return readUntypedContent(content)
   let depth = 0
   for (const [index, character] of [...content].entries()) {
     if (character === '{') depth += 1
@@ -99,8 +101,22 @@ const readType = (content: string): TypedTagContent => {
     }
   }
   const type = content.slice(1)
+  const rest = ''
 
-  return { type, rest: '' }
+  return { type, rest }
+}
+
+/**
+ * Reads the content of a tag that opens with no brace: no type, and the whole content after the name.
+ *
+ * @param content - What follows the tag name.
+ * @returns The content, with no type.
+ */
+const readUntypedContent = (content: string): TypedTagContent => {
+  const type = null
+  const rest = content
+
+  return { type, rest }
 }
 
 /**
@@ -124,8 +140,7 @@ const readDescription = (content: string, isHyphenated: boolean): string => {
  */
 const readParameterName = (content: string): NamedTagContent => {
   if (content.startsWith('[')) return readBracketedName(content)
-  /* v8 ignore next -- the pattern matches the empty string too */
-  const name = /^\S*/.exec(content)?.[0] ?? ''
+  const name = content.replace(/\s[\s\S]*$/, '')
   const rest = content.slice(name.length).trimStart()
 
   return { name, rest }
@@ -140,11 +155,12 @@ const readParameterName = (content: string): NamedTagContent => {
 const readBracketedName = (content: string): NamedTagContent => {
   const closing = content.indexOf(']')
   if (closing < 0) {
-    const name = nameBeforeDefault(content.slice(1))
+    const name = stripParameterDefault(content.slice(1))
+    const rest = ''
 
-    return { name, rest: '' }
+    return { name, rest }
   }
-  const name = nameBeforeDefault(content.slice(1, closing))
+  const name = stripParameterDefault(content.slice(1, closing))
   const rest = content.slice(closing + 1).trimStart()
 
   return { name, rest }
@@ -156,9 +172,4 @@ const readBracketedName = (content: string): NamedTagContent => {
  * @param inner - The text between the brackets.
  * @returns The name, trimmed.
  */
-const nameBeforeDefault = (inner: string): string => {
-  /* v8 ignore next -- a split always yields a first element */
-  const [name = ''] = inner.split('=')
-
-  return name.trim()
-}
+const stripParameterDefault = (inner: string): string => inner.replace(/=[\s\S]*$/, '').trim()

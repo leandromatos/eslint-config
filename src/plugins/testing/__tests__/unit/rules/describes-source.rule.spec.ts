@@ -1,13 +1,17 @@
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
+import {
+  buildFixturePath,
+  buildPackageSourcePath,
+  buildSourcePath,
+  createFileRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { describesSource } from '../../../rules/describes-source.rule.js'
 import type { TestingOptions } from '../../../types/index.js'
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'describes-source')
-const ruleTester = fileRuleTester(root)
+const root = buildFixturePath(import.meta.url, 'describes-source')
+const ruleTester = createFileRuleTester(root)
 const options: [TestingOptions] = [
   {
     ...EMPTY_OPTIONS,
@@ -17,21 +21,21 @@ const options: [TestingOptions] = [
     suffixToFolder: { service: 'services', spec: '__tests__' },
   },
 ]
-const spec = sourceFile('users', '__tests__', 'unit', 'services', 'user.service.spec.ts')
+const spec = buildSourcePath('users', '__tests__', 'unit', 'services', 'user.service.spec.ts')
 
 ruleTester.run('describes-source', describesSource, {
   valid: [
     // A source that exports a list of names is read by each of them.
     {
       code: "describe('readUser', () => {})",
-      filename: sourceFile('users', '__tests__', 'unit', 'utils', 'read-user.util.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'utils', 'read-user.util.spec.ts'),
       options,
     },
 
     // A source that re-exports under another name is read by the name each export leaves by.
     {
       code: "describe('UserAliasService', () => {})",
-      filename: sourceFile('users', '__tests__', 'unit', 'services', 'user-alias.service.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'services', 'user-alias.service.spec.ts'),
       options,
     },
 
@@ -40,38 +44,44 @@ ruleTester.run('describes-source', describesSource, {
     { code: 'describe(subject, () => {})', filename: spec, options },
 
     { code: "describe('UserService', () => {})", filename: spec, options },
+    // With no source at the mirrored path, the file name stands for the subject.
     {
       code: "describe('MissingService', () => {})",
-      filename: sourceFile('users', '__tests__', 'unit', 'services', 'missing.service.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'services', 'missing.service.spec.ts'),
       options,
     },
     {
       code: "describe('Anything', () => {})",
-      filename: sourceFile('users', '__tests__', 'e2e', 'users.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'e2e', 'users.spec.ts'),
       options,
     },
-    { code: "describe('Anything', () => {})", filename: sourceFile('users', 'services', 'user.service.ts'), options },
+    {
+      code: "describe('Anything', () => {})",
+      filename: buildSourcePath('users', 'services', 'user.service.ts'),
+      options,
+    },
   ],
   invalid: [
     { code: "describe('Users', () => {})", filename: spec, options, errors: [{ messageId: 'wrongSubject' }] },
     {
       code: "describe('Whatever', () => {})",
-      filename: sourceFile('users', '__tests__', 'unit', 'services', 'missing.service.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'services', 'missing.service.spec.ts'),
       options,
       errors: [{ messageId: 'wrongSubject' }],
     },
   ],
 })
 
-const monorepoRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'fixtures',
-  'describes-source-monorepo',
+const monorepoRoot = buildFixturePath(import.meta.url, 'describes-source-monorepo')
+const monorepoRuleTester = createFileRuleTester(monorepoRoot)
+const monorepoSpec = buildPackageSourcePath(
+  'libs/core',
+  'users',
+  '__tests__',
+  'unit',
+  'utils',
+  'read-user.util.spec.ts',
 )
-const monorepoRuleTester = fileRuleTester(monorepoRoot)
-const monorepoSpec = packageSourceFile('libs/core', 'users', '__tests__', 'unit', 'utils', 'read-user.util.spec.ts')
 
 monorepoRuleTester.run('describes-source, in a repository of several packages', describesSource, {
   valid: [

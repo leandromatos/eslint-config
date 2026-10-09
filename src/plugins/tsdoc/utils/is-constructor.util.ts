@@ -7,7 +7,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/utils'
  * @param node - The function.
  * @returns Whether it is a constructor.
  */
-export const isConstructor = (node: TSESTree.Node): boolean => kindOf(node) === 'constructor'
+export const isConstructor = (node: TSESTree.Node): boolean => readMemberKind(node) === 'constructor'
 
 /**
  * The kind of class member a function is the value of.
@@ -15,7 +15,7 @@ export const isConstructor = (node: TSESTree.Node): boolean => kindOf(node) === 
  * @param node - The function.
  * @returns The kind of the method, and null for a function that is the value of none.
  */
-const kindOf = (node: TSESTree.Node): string | null => {
+const readMemberKind = (node: TSESTree.Node): string | null => {
   const { parent } = node
   if (parent?.type === AST_NODE_TYPES.MethodDefinition && parent.value === node) return parent.kind
 

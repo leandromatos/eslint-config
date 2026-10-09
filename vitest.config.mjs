@@ -19,25 +19,20 @@ export default defineConfig({
     slowTestThreshold: 5000,
     coverage: {
       /*
-       * What carries logic. A barrel re-exports, a type declares, a constant is a value, and a fixture exists to be
-       * linted: none of them can be covered, and counting them turns the number into noise.
+       * What carries logic. A barrel re-exports, a type declares, and a fixture exists to be linted: none of them can
+       * be covered, and counting them turns the number into noise. A constant is counted, since a value computed when
+       * the module loads runs like any other line.
        */
       include: ['src/**/*.ts'],
-      exclude: [
-        'src/**/index.ts',
-        'src/**/*.type.ts',
-        'src/**/*.constant.ts',
-        'src/**/__tests__/**',
-        'src/plugins/*/docs/**',
-      ],
+      exclude: ['src/**/index.ts', 'src/**/*.type.ts', 'src/**/__tests__/**', 'src/plugins/*/docs/**'],
       /*
        * The table, not the summary: what a coverage run is read for is which lines are missing, and `text` is where
        * that column is. The excludes above are what keeps it short enough to read.
        */
       reporter: ['text', 'html'],
       /*
-       * Whole, and nothing below it. What a branch the suite cannot reach carries instead is a `v8 ignore` that says
-       * why it cannot happen — a reason a reader can check — rather than a number that quietly drops.
+       * Whole, and nothing below it. A branch the suite cannot reach is a branch the code does not need, so it is
+       * written out rather than ignored.
        */
       thresholds: {
         statements: 100,

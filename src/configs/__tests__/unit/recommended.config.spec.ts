@@ -1,8 +1,8 @@
 import { TSESLint } from '@typescript-eslint/utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { firstLintResult } from '../../../__tests__/utils/index.js'
-import { recommended } from '../../index.js'
+import { readFirstLintResult } from '../../../__tests__/utils/index.js'
+import { MissingPluginConfigError, recommended } from '../../index.js'
 
 /*
  * The package's own entries come from `typescript-eslint`, which declares them through `@typescript-eslint/utils`, so
@@ -17,8 +17,8 @@ const eslint = new TSESLint.ESLint({ overrideConfigFile: true, baseConfig: recom
  * @param filePath - The path the file would have.
  * @returns The result for that file.
  */
-const lint = async (code: string, filePath: string) =>
-  firstLintResult(await eslint.lintText(code, { filePath }), filePath)
+const lint = async (code: string, filePath: string): Promise<TSESLint.FlatESLint.LintResult> =>
+  readFirstLintResult(await eslint.lintText(code, { filePath }), filePath)
 
 describe('recommended', () => {
   it('answers a non-empty flat config array', () => {
@@ -29,7 +29,7 @@ describe('recommended', () => {
   it('ignores what a tool wrote, plus what the project adds', () => {
     const ignoring = recommended({ ignores: ['agents'] }).find(entry => entry.ignores && !entry.files)
 
-    expect(ignoring?.ignores).toEqual(['**/.claude', '**/coverage', '**/dist', 'agents'])
+    expect(ignoring?.ignores).toEqual(['**/coverage', '**/dist', 'agents'])
   })
 
   it('flags relative parent imports', async () => {
@@ -45,10 +45,7 @@ describe('recommended', () => {
   })
 
   it('parses JSX in a .jsx file', async () => {
-    /*
-     * The base layer matches .jsx, so it has to be able to read it. Without JSX enabled on that layer the file died
-     * with "Parsing error: Unexpected token <" instead of being linted.
-     */
+    // The base layer matches .jsx, so it reads JSX there, rather than stopping at the first angle bracket.
     const result = await lint('export const Legacy = ({ title }) => <h1>{title}</h1>\n', 'sample.jsx')
 
     expect(result.messages.map(lintMessage => lintMessage.message)).not.toContain('Parsing error: Unexpected token <')
@@ -59,6 +56,26 @@ describe('recommended', () => {
     const result = await lint('export const value = () => 1\n', 'sample.js')
 
     expect(result.errorCount).toBe(0)
+  })
+
+  it('braces a branch of one statement only when the statement spans lines', async () => {
+    const braced = await lint(
+      'export const read = (value) => {\n  if (value) {\n    return 1\n  }\n\n  return 2\n}\n',
+      'sample.js',
+    )
+    const bare = await lint('export const read = (value) => {\n  if (value) return 1\n\n  return 2\n}\n', 'sample.js')
+
+    expect(braced.messages.map(lintMessage => lintMessage.ruleId)).toContain('curly')
+    expect(bare.messages).toEqual([])
+  })
+
+  it('refuses to load when the React plugin no longer declares the configuration it is asked for', async () => {
+    vi.resetModules()
+    vi.doMock('eslint-plugin-react', () => ({ default: { configs: { flat: {} } } }))
+    const { recommended: recommendedWithoutReact } = await import('../../recommended.config.js')
+
+    expect(() => recommendedWithoutReact()).toThrow(new MissingPluginConfigError('eslint-plugin-react', 'recommended'))
+    vi.doUnmock('eslint-plugin-react')
   })
 
   it('lints JSON structurally', async () => {
@@ -89,10 +106,8 @@ describe('recommended', () => {
    * of being linted, which is why the cases above all use .js.
    */
   describe('layers that need a TypeScript project', () => {
-    const lintFixture = async (name: string) =>
-      firstLintResult(await esLint.lintFiles([`src/configs/__tests__/fixtures/invalid/${name}`]), name)
-
-    const esLint = new TSESLint.ESLint({ overrideConfigFile: true, baseConfig: recommended() })
+    const lintFixture = async (name: string): Promise<TSESLint.FlatESLint.LintResult> =>
+      readFirstLintResult(await eslint.lintFiles([`src/configs/__tests__/fixtures/invalid/${name}`]), name)
 
     it('reports a floating promise', async () => {
       const result = await lintFixture('floating-promise.ts')

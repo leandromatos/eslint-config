@@ -10,7 +10,6 @@
 # signal the bump resolution reads, and commitlint already guarantees its shape.
 #
 # Public surface:
-#   - release_notes_baseline   tag -> previous production tag (empty if first)
 #   - release_notes_category   subject + body -> category key
 #   - release_notes_title      category key -> section heading
 #   - release_notes_body       tag + baseline -> the release body on stdout
@@ -22,21 +21,6 @@ source "$RELEASE_NOTES_SH_DIR/patterns.sh"
 # Order matters: it is the order the sections appear in, which puts what a
 # consumer cares about first.
 RELEASE_NOTES_ORDER="breaking feat fix perf refactor revert docs test build ci style chore other"
-
-# The previous production tag, prereleases excluded and the tag being released
-# filtered out. Empty when this is the first production tag.
-release_notes_baseline() {
-  local tag="$1" candidate
-  while IFS= read -r candidate; do
-    [ -z "$candidate" ] && continue
-    [ "$candidate" = "$tag" ] && continue
-    printf '%s' "$candidate"
-    return 0
-  done < <(git tag --list 'v*' --sort=-v:refname \
-    | grep -vE -- "$PRERELEASE_PATTERN" \
-    | grep -E "$TAG_PATTERN")
-  printf ''
-}
 
 # Echoes the category key for a commit. A '!' after the type or a 'BREAKING
 # CHANGE:' footer outranks the type itself; an unrecognized subject falls to

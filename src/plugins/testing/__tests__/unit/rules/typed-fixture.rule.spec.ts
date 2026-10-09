@@ -1,15 +1,17 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-import { packageSourceFile, sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildFixturePath,
+  buildPackageSourcePath,
+  buildSourcePath,
+  createTypedRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { typedFixture } from '../../../rules/typed-fixture.rule.js'
 import type { TestingOptions } from '../../../types/index.js'
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'typed-fixture')
-const ruleTester = typedRuleTester(root)
+const root = buildFixturePath(import.meta.url, 'typed-fixture')
+const ruleTester = createTypedRuleTester(root)
 const options: [TestingOptions] = [{ ...EMPTY_OPTIONS, testFolder: '__tests__' }]
-const spec = sourceFile('users', '__tests__', 'unit', 'user.service.spec.ts')
+const spec = buildSourcePath('users', '__tests__', 'unit', 'user.service.spec.ts')
 const declaration =
   'interface CreateUserInput { name: string }\ndeclare function createUser(input: CreateUserInput): void\n'
 
@@ -30,7 +32,7 @@ ruleTester.run('typed-fixture', typedFixture, {
     {
       code: `${declaration}const input = { name: 'a' }\ncreateUser(input)`,
       options,
-      filename: sourceFile('users', 'services', 'user.service.ts'),
+      filename: buildSourcePath('users', 'services', 'user.service.ts'),
     },
     {
       code: "declare function log(value: { name: string }): void\nconst untyped = { name: 'a' }\nlog(untyped)",
@@ -43,8 +45,8 @@ ruleTester.run('typed-fixture', typedFixture, {
     {
       code: "import { createFromRoot } from '../../services/create-from-root.service.js'\n\nconst input = { name: 'a' }\ncreateFromRoot(input)",
       options,
-      filename: sourceFile('users', '__tests__', 'unit', 'root.service.spec.ts'),
-      errors: [{ messageId: 'anonymousData' }],
+      filename: buildSourcePath('users', '__tests__', 'unit', 'root.service.spec.ts'),
+      errors: [{ messageId: 'anonymousFixture' }],
       output: null,
     },
 
@@ -52,31 +54,43 @@ ruleTester.run('typed-fixture', typedFixture, {
     {
       code: "import { createUserFromDto } from '../../services/create-user.service.js'\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
       options,
-      filename: sourceFile('users', '__tests__', 'unit', 'user.service.spec.ts'),
-      errors: [{ messageId: 'anonymousData' }],
+      filename: buildSourcePath('users', '__tests__', 'unit', 'user.service.spec.ts'),
+      errors: [{ messageId: 'anonymousFixture' }],
       output:
         "import { createUserFromDto } from '../../services/create-user.service.js'\nimport type { CreateUserDto } from '@/users/dtos'\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
+    },
+    // A type is reached through the barrel of the directory that declares it, named with the alias the project uses.
+    {
+      code: "import { pairDeviceFromDto } from '../../services/pair-device.service.js'\n\nconst input = { name: 'a' }\npairDeviceFromDto(input)",
+      options: [{ ...EMPTY_OPTIONS, testFolder: '__tests__', alias: '~' }],
+      filename: buildSourcePath('features', 'devices', '__tests__', 'unit', 'pair-device.service.spec.ts'),
+      errors: [{ messageId: 'anonymousFixture' }],
+      output:
+        "import { pairDeviceFromDto } from '../../services/pair-device.service.js'\nimport type { PairDeviceDto } from '~/features/devices/dtos'\n\nconst input: PairDeviceDto = { name: 'a' }\npairDeviceFromDto(input)",
+    },
+    // A spec that imports nothing takes the import as its first line.
+    {
+      code: "declare const createUserFromDto: typeof import('../../services/create-user.service.js').createUserFromDto\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
+      options,
+      filename: buildSourcePath('users', '__tests__', 'unit', 'user.service.spec.ts'),
+      errors: [{ messageId: 'anonymousFixture' }],
+      output:
+        "import type { CreateUserDto } from '@/users/dtos'\ndeclare const createUserFromDto: typeof import('../../services/create-user.service.js').createUserFromDto\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
     },
 
     {
       code: `${declaration}const input = { name: 'a' }\ncreateUser(input)`,
       options,
       filename: spec,
-      errors: [{ messageId: 'anonymousData' }],
+      errors: [{ messageId: 'anonymousFixture' }],
       output: `${declaration}const input: CreateUserInput = { name: 'a' }\ncreateUser(input)`,
     },
   ],
 })
 
-const monorepoRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'fixtures',
-  'typed-fixture-monorepo',
-)
-const monorepoRuleTester = typedRuleTester(monorepoRoot)
-const monorepoSpec = packageSourceFile('apps/api', 'users', '__tests__', 'unit', 'user.service.spec.ts')
+const monorepoRoot = buildFixturePath(import.meta.url, 'typed-fixture-monorepo')
+const monorepoRuleTester = createTypedRuleTester(monorepoRoot)
+const monorepoSpec = buildPackageSourcePath('apps/api', 'users', '__tests__', 'unit', 'user.service.spec.ts')
 
 monorepoRuleTester.run('typed-fixture, in a repository of several packages', typedFixture, {
   valid: [],
@@ -86,7 +100,7 @@ monorepoRuleTester.run('typed-fixture, in a repository of several packages', typ
       code: "import { createUserFromDto } from '../../services/create-user.service.js'\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
       options,
       filename: monorepoSpec,
-      errors: [{ messageId: 'anonymousData' }],
+      errors: [{ messageId: 'anonymousFixture' }],
       output:
         "import { createUserFromDto } from '../../services/create-user.service.js'\nimport type { CreateUserDto } from '@/users/dtos'\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
     },
@@ -96,7 +110,7 @@ monorepoRuleTester.run('typed-fixture, in a repository of several packages', typ
       code: "import { createAccountFromDto } from '../../../../../../libs/core/src/accounts/services/create-account.service.js'\n\nconst input = { name: 'a' }\ncreateAccountFromDto(input)",
       options,
       filename: monorepoSpec,
-      errors: [{ messageId: 'anonymousData' }],
+      errors: [{ messageId: 'anonymousFixture' }],
       output: null,
     },
   ],

@@ -34,10 +34,19 @@ const isThisParameter = (parameter: TSESTree.Parameter): boolean =>
  */
 const readParameter = (parameter: TSESTree.Parameter): Parameter => {
   if (parameter.type === AST_NODE_TYPES.TSParameterProperty) return readParameter(parameter.parameter)
-  if (parameter.type === AST_NODE_TYPES.Identifier) return { name: parameter.name, kind: ParameterKind.NAMED }
+  if (parameter.type === AST_NODE_TYPES.Identifier) return buildParameter(parameter.name, ParameterKind.NAMED)
   if (parameter.type === AST_NODE_TYPES.AssignmentPattern) return readParameter(parameter.left)
   if (parameter.type === AST_NODE_TYPES.RestElement && parameter.argument.type === AST_NODE_TYPES.Identifier)
-    return { name: parameter.argument.name, kind: ParameterKind.REST }
+    return buildParameter(parameter.argument.name, ParameterKind.REST)
 
-  return { name: '', kind: ParameterKind.DESTRUCTURED }
+  return buildParameter('', ParameterKind.DESTRUCTURED)
 }
+
+/**
+ * Builds one parameter as a comment documents it.
+ *
+ * @param name - The name a `@param` writes for it, and an empty string for a destructured one.
+ * @param kind - How it is declared.
+ * @returns The parameter.
+ */
+const buildParameter = (name: string, kind: ParameterKind): Parameter => ({ name, kind })

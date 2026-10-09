@@ -1,13 +1,12 @@
-# tsdoc/description-sentence
+# leandromatos/tsdoc-description-sentence
 
-The description of a documented function, and the text of its `@param`, `@returns` and `@throws`,
-read as sentences.
+The description of a documented function, and the text of its `@param`, `@returns` and `@throws`, read as sentences.
 
-A sentence opens with a capital and closes with its punctuation, so a reader meets the same shape in
-every comment and in every tag.
+A sentence opens with a capital and closes with its punctuation, so a reader meets the same shape in every comment and
+in every tag. A capital is a capital in any script, so `Ótimo.` opens a sentence as `Great.` does.
 
-The sentence of a `@throws` is the condition after its type, so a type a namespace or the word
-`unknown` writes in lower case, as in `@throws errors.InvalidGrant When…`, opens no sentence.
+The sentence of a `@throws` is the condition after its type, so a type a namespace or the word `unknown` writes in
+lower case, as in `@throws errors.InvalidGrant When…`, opens no sentence.
 
 ## Rule details
 
@@ -44,13 +43,12 @@ const findOneUser = (userId: string) => {}
 const findAll = () => {}
 ````
 
-A sentence opens with a capital, a digit, an underscore or a backtick, and closes with a period, a
-question mark, an exclamation mark, a backtick or an emoji. The hyphen TSDoc writes before the text
-of a `@param` and a `@returns` is not part of the text. An empty text, and a bare hyphen, are left
-to `tsdoc/param-tag` and `tsdoc/returns-tag`, which ask for one.
+A sentence opens with a capital letter of any script, a digit, an underscore or a backtick, and closes with a period, a
+question mark, an exclamation mark, a backtick or an emoji. The hyphen TSDoc writes before the text of a `@param` and a
+`@returns` is not part of the text. An empty text, and a bare hyphen, are left to `tsdoc-param-tag` and
+`tsdoc-returns-tag`, which ask for one.
 
-A method without a body, an interface method and an interface property typed as a function are
-read as a function is.
+A method without a body, an interface method and an interface property typed as a function are read as a function is.
 
 ## Options
 

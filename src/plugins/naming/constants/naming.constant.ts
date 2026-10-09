@@ -4,6 +4,7 @@ import type { NamingOptions } from '../types/index.js'
 export const EMPTY_OPTIONS: NamingOptions = {
   roleNames: [],
   forbiddenNames: [],
+  forbiddenWords: [],
   verbParticiples: {},
   valueCases: [],
   assertionMatchers: [],

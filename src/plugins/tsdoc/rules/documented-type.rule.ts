@@ -1,7 +1,8 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
+import { DOCUMENTED_MESSAGES, EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { DocumentedTypeMessageId, TsdocRule, TypeDeclaration } from '../types/index.js'
 import { findDocBlock, restatesName } from '../utils/index.js'
 
@@ -21,21 +22,17 @@ export const documentedType: TsdocRule<DocumentedTypeMessageId> = {
     docs: {
       description:
         'A class, an interface or a type alias a module declares carries a comment that says what its name cannot.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/documented-type.md',
+      url: buildRuleDocsUrl('tsdoc', 'documented-type'),
       dialects: ['TypeScript'],
     },
-    messages: {
-      undocumented: '"{{name}}" carries no documentation comment.',
-      restatesName:
-        'The summary of "{{name}}" rewrites its name. Say what the name cannot: a constraint, a reason, a consequence.',
-    },
+    messages: DOCUMENTED_MESSAGES,
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
     const { sourceCode } = context
     const judge = (node: TypeDeclaration): void => {
-      const name = nameOf(node)
+      const name = readTypeName(node)
       const comment = findDocBlock(sourceCode, node)
       if (!comment) {
         context.report({ node, messageId: 'undocumented', data: { name } })
@@ -63,7 +60,7 @@ export const documentedType: TsdocRule<DocumentedTypeMessageId> = {
  * @param node - The declaration.
  * @returns The name.
  */
-const nameOf = (node: TypeDeclaration): string => {
+const readTypeName = (node: TypeDeclaration): string => {
   if (node.id) return node.id.name
   if (node.parent.type === AST_NODE_TYPES.VariableDeclarator && node.parent.id.type === AST_NODE_TYPES.Identifier)
     return node.parent.id.name

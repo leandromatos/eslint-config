@@ -1,25 +1,27 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { NamingRule, ValueCase, ValueCaseMessageId, ValueCasing } from '../types/index.js'
 
+/** What a value in each casing the options name looks like. */
 const CASINGS: Record<ValueCasing, RegExp> = {
   camelCase: /^[a-z][a-zA-Z0-9]*$/,
   'kebab-case': /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/,
 }
 
 /**
- * A string value keeps the casing its name promises. A queue name is a Redis key segment and a
- * job name is a hash field; which is which is said by the name the value is declared under, so
- * the rule reads the declaration's name and judges the literal it holds.
+ * A string value keeps the casing its name promises. Which casing is said by the name the value is declared under,
+ * so the rule reads the declaration's name and judges the literal it holds: a name ending in `QueueName` holds a key
+ * segment of a store, and one ending in `JobName` a field of it, when the options say so.
  */
 export const valueCase: NamingRule<ValueCaseMessageId> = {
   meta: {
     type: 'problem',
     docs: {
       description: 'A string value declared under a governed name keeps the casing that name promises.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/naming/docs/rules/value-case.md',
+      url: buildRuleDocsUrl('naming', 'value-case'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -34,7 +36,7 @@ export const valueCase: NamingRule<ValueCaseMessageId> = {
     const judge = (name: string, value: TSESTree.Expression | null): void => {
       const governing = valueCases.find(valueCase => name.endsWith(valueCase.endsWith))
       if (!governing || !value) return
-      for (const stringLiteral of stringLiteralsOf(value, governing)) {
+      for (const stringLiteral of listStringLiterals(value, governing)) {
         if (CASINGS[governing.casing].test(stringLiteral.value)) continue
         const wrongCase = { value: stringLiteral.value, name, casing: governing.casing, endsWith: governing.endsWith }
         context.report({ node: stringLiteral, messageId: 'wrongCase', data: wrongCase })
@@ -60,7 +62,7 @@ export const valueCase: NamingRule<ValueCaseMessageId> = {
  * @param valueCase - The casing the name promises, and whether it reaches into an object.
  * @returns The literals the rule judges.
  */
-const stringLiteralsOf = (value: TSESTree.Expression, valueCase: ValueCase): TSESTree.StringLiteral[] => {
+const listStringLiterals = (value: TSESTree.Expression, valueCase: ValueCase): TSESTree.StringLiteral[] => {
   const unwrapped = unwrapAssertion(value)
   if (isStringLiteral(unwrapped)) return [unwrapped]
   if (!valueCase.deep || unwrapped.type !== AST_NODE_TYPES.ObjectExpression) return []
@@ -75,13 +77,14 @@ const stringLiteralsOf = (value: TSESTree.Expression, valueCase: ValueCase): TSE
 }
 
 /**
- * `'x' as const` is the literal underneath.
+ * Unwraps the literal under an assertion: `'x' as const` and `'x' satisfies QueueName` are the literal `'x'`.
  *
  * @param value - What the declaration holds.
  * @returns The expression the assertion wraps.
  */
 const unwrapAssertion = (value: TSESTree.Node): TSESTree.Node => {
-  if (value.type === AST_NODE_TYPES.TSAsExpression) return value.expression
+  if (value.type === AST_NODE_TYPES.TSAsExpression || value.type === AST_NODE_TYPES.TSSatisfiesExpression)
+    return unwrapAssertion(value.expression)
 
   return value
 }

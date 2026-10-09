@@ -1,7 +1,7 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
+import { buildRuleDocsUrl, locateFile } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ConstAssertionPairMessageId, TypescriptRule } from '../types/index.js'
 
@@ -30,7 +30,7 @@ export const constAssertionPair: TypescriptRule<ConstAssertionPairMessageId> = {
     type: 'problem',
     docs: {
       description: 'A vocabulary declared with `as const` carries the type derived from it, in the types folder.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/typescript/docs/rules/const-assertion-pair.md',
+      url: buildRuleDocsUrl('typescript', 'const-assertion-pair'),
       dialects: ['TypeScript'],
     },
     fixable: 'code',
@@ -46,7 +46,7 @@ export const constAssertionPair: TypescriptRule<ConstAssertionPairMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [{ typeSuffix }] = context.options
     const vocabularies = new Map<string, TSESTree.VariableDeclarator>()
     const derivations = new Map<string, TSESTree.TSTypeAliasDeclaration>()
@@ -54,7 +54,7 @@ export const constAssertionPair: TypescriptRule<ConstAssertionPairMessageId> = {
     const listener: TSESLint.RuleListener = {
       VariableDeclarator: node => {
         if (node.id.type === AST_NODE_TYPES.Identifier) declared.add(node.id.name)
-        const name = vocabularyNameOf(node)
+        const name = readVocabularyName(node)
         if (name) vocabularies.set(name, node)
       },
       TSTypeAliasDeclaration: tsTypeAliasDeclaration => {
@@ -69,14 +69,14 @@ export const constAssertionPair: TypescriptRule<ConstAssertionPairMessageId> = {
               node: node.id,
               messageId: 'missingType',
               data: { name },
-              fix: ruleFixer => ruleFixer.insertTextAfter(statementOf(node), derivationFor(name)),
+              fix: ruleFixer => ruleFixer.insertTextAfter(findDeclaratorStatement(node), writeDerivation(name, node)),
             })
-          else if (!derivesFrom(derivation, name))
+          if (derivation && !isDerivedFrom(derivation, name))
             context.report({
               node: derivation.id,
               messageId: 'wrongDerivation',
               data: { name },
-              fix: ruleFixer => ruleFixer.replaceText(derivation.typeAnnotation, typeExpressionFor(name)),
+              fix: ruleFixer => ruleFixer.replaceText(derivation.typeAnnotation, writeTypeExpression(name)),
             })
           if (where?.suffix && typeSuffix && where.suffix !== typeSuffix)
             context.report({ node: node.id, messageId: 'outsideTypes', data: { name, suffix: typeSuffix } })
@@ -85,10 +85,9 @@ export const constAssertionPair: TypescriptRule<ConstAssertionPairMessageId> = {
          * A value the file declares by calling a factory is a vocabulary the checker reads and this rule cannot: what
          * is reported is a derivation of a name the file declares nowhere at all.
          */
-        for (const [name, node] of derivations) {
-          if (!declared.has(name) && derivesFrom(node, name))
+        for (const [name, node] of derivations)
+          if (!declared.has(name) && isDerivedFrom(node, name))
             context.report({ node: node.id, messageId: 'missingValue', data: { name } })
-        }
       },
     }
 
@@ -105,7 +104,7 @@ export const constAssertionPair: TypescriptRule<ConstAssertionPairMessageId> = {
  * @param node - The declaration the rule reads.
  * @returns The name.
  */
-const vocabularyNameOf = (node: TSESTree.VariableDeclarator): string | null => {
+const readVocabularyName = (node: TSESTree.VariableDeclarator): string | null => {
   if (node.id.type !== AST_NODE_TYPES.Identifier || !VOCABULARY_NAME_REG_EXP.test(node.id.name)) return null
   if (node.init?.type !== AST_NODE_TYPES.TSAsExpression || !isConstAssertion(node.init)) return null
   const object = node.init.expression
@@ -146,7 +145,7 @@ const isLiteralProperty = (property: TSESTree.ObjectLiteralElement): boolean => 
  * @param name - The name the pair is declared under.
  * @returns Whether it derives.
  */
-const derivesFrom = (tsTypeAliasDeclaration: TSESTree.TSTypeAliasDeclaration, name: string): boolean => {
+const isDerivedFrom = (tsTypeAliasDeclaration: TSESTree.TSTypeAliasDeclaration, name: string): boolean => {
   const annotation = tsTypeAliasDeclaration.typeAnnotation
   if (annotation.type !== AST_NODE_TYPES.TSIndexedAccessType) return false
   if (!isTypeQueryOf(annotation.objectType, name)) return false
@@ -163,7 +162,6 @@ const derivesFrom = (tsTypeAliasDeclaration: TSESTree.TSTypeAliasDeclaration, na
  * @returns Whether it queries that value.
  */
 const isTypeQueryOf = (node: TSESTree.TypeNode | undefined, name: string): boolean => {
-  /* v8 ignore next -- the alias reads a value, which is what the index type queries */
   if (node?.type !== AST_NODE_TYPES.TSTypeQuery) return false
 
   return node.exprName.type === AST_NODE_TYPES.Identifier && node.exprName.name === name
@@ -175,21 +173,35 @@ const isTypeQueryOf = (node: TSESTree.TypeNode | undefined, name: string): boole
  * @param node - The declaration the rule reads.
  * @returns The statement, the export included.
  */
-const statementOf = (node: TSESTree.VariableDeclarator): TSESTree.Node => {
+const findDeclaratorStatement = (node: TSESTree.VariableDeclarator): TSESTree.Node => {
   const declaration = node.parent
   if (declaration.parent.type === AST_NODE_TYPES.ExportNamedDeclaration) return declaration.parent
 
-  /* v8 ignore next -- a declaration the rule reads belongs to a statement of the file */
   return declaration
 }
 
 /**
- * The alias the fix writes, exported when the value is.
+ * Writes the alias the fix adds, exported when the value is and kept to the module when it is not.
  *
  * @param name - The name the pair is declared under.
+ * @param node - The declaration of the value.
  * @returns The lines to add.
  */
-const derivationFor = (name: string): string => `\n\nexport type ${name} = ${typeExpressionFor(name)}`
+const writeDerivation = (name: string, node: TSESTree.VariableDeclarator): string =>
+  `\n\n${selectTypeKeyword(node)} ${name} = ${writeTypeExpression(name)}`
+
+/**
+ * Selects the keyword the alias opens with: exported beside an exported value, and kept to the module beside one the
+ * module keeps.
+ *
+ * @param node - The declaration of the value.
+ * @returns The keyword.
+ */
+const selectTypeKeyword = (node: TSESTree.VariableDeclarator): string => {
+  if (node.parent.parent.type === AST_NODE_TYPES.ExportNamedDeclaration) return 'export type'
+
+  return 'type'
+}
 
 /**
  * The expression a derived type is written with.
@@ -197,4 +209,4 @@ const derivationFor = (name: string): string => `\n\nexport type ${name} = ${typ
  * @param name - The name the pair is declared under.
  * @returns The expression.
  */
-const typeExpressionFor = (name: string): string => `(typeof ${name})[keyof typeof ${name}]`
+const writeTypeExpression = (name: string): string => `(typeof ${name})[keyof typeof ${name}]`

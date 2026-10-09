@@ -1,9 +1,9 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, TypeSuffixByFolderMessageId } from '../types/index.js'
+import { buildRuleDocsUrl, escapeRegExp, locateFile } from '../../shared/utils/index.js'
+import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TYPE_SUFFIX } from '../constants/index.js'
+import type { ArchitectureRule, GovernedSuffix, TypeSuffixMessageId } from '../types/index.js'
 
 /**
  * An exported type that uses one of the governed suffixes uses it at the end of its name, and
@@ -11,12 +11,12 @@ import type { ArchitectureRule, TypeSuffixByFolderMessageId } from '../types/ind
  * and is left alone. The folder is the one right below the types folder, so `types/repositories/`
  * is judged by the entry for `repositories`.
  */
-export const typeSuffix: ArchitectureRule<TypeSuffixByFolderMessageId> = {
+export const typeSuffix: ArchitectureRule<TypeSuffixMessageId> = {
   meta: {
     type: 'problem',
     docs: {
       description: 'An exported type that uses a governed suffix uses it last, and in the folder it belongs to.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/type-suffix.md',
+      url: buildRuleDocsUrl('architecture', 'type-suffix'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -28,26 +28,26 @@ export const typeSuffix: ArchitectureRule<TypeSuffixByFolderMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [options] = context.options
-    if (!where || where.suffix !== 'type') return {}
-    /* v8 ignore next -- the rule reached this line by the `type` suffix, which the map named */
-    const typesAt = where.segments.indexOf(options.suffixToFolder['type'] ?? '')
+    const typesFolder = options.suffixToFolder[TYPE_SUFFIX]
+    if (!where || where.suffix !== TYPE_SUFFIX || !typesFolder) return {}
+    const typesAt = where.segments.indexOf(typesFolder)
     const folder = where.segments[typesAt + 1]
-    if (typesAt < 0 || !folder || !(folder in options.typeSuffixes)) return {}
-    /* v8 ignore next -- the folder is a key of the map: the line above refused anything else */
-    const allowed = options.typeSuffixes[folder] ?? []
-    const governed = Object.values(options.typeSuffixes).flat()
+    if (typesAt < 0 || !folder) return {}
+    const allowed = options.typeSuffixes[folder]
+    if (!allowed) return {}
+    const governed = listGovernedSuffixes(options.typeSuffixes)
     const listener: TSESLint.RuleListener = {
       ExportNamedDeclaration: node => {
-        const name = typeNameOf(node)
+        const name = readExportedTypeName(node)
         if (!name) return
         // A suffix is a whole word inside the name: `Meta` in `UserMeta`, not in `Metadata`.
-        const used = governed.find(suffix => new RegExp(`${suffix}(?=[A-Z]|$)`).test(name))
-        if (!used) return
+        const governing = governed.find(({ pattern }) => pattern.test(name))
+        if (!governing) return
+        const used = governing.suffix
         if (!allowed.includes(used)) {
-          const owner = folderOf(used, options.typeSuffixes)
-          context.report({ node, messageId: 'wrongFolder', data: { name, used, owner, folder } })
+          context.report({ node, messageId: 'wrongFolder', data: { name, used, owner: governing.folder, folder } })
 
           return
         }
@@ -66,7 +66,7 @@ export const typeSuffix: ArchitectureRule<TypeSuffixByFolderMessageId> = {
  * @param node - The export declaration.
  * @returns The name, or `null` for an export that declares no type.
  */
-const typeNameOf = (node: TSESTree.ExportNamedDeclaration): string | null => {
+const readExportedTypeName = (node: TSESTree.ExportNamedDeclaration): string | null => {
   const declaration = node.declaration
   if (declaration?.type === AST_NODE_TYPES.TSInterfaceDeclaration) return declaration.id.name
   if (declaration?.type === AST_NODE_TYPES.TSTypeAliasDeclaration) return declaration.id.name
@@ -75,15 +75,16 @@ const typeNameOf = (node: TSESTree.ExportNamedDeclaration): string | null => {
 }
 
 /**
- * The folder that owns a type suffix in the map the rule is configured with.
+ * Lists every suffix the map governs, with the folder that owns it and the pattern that finds it as a whole word.
  *
- * @param suffix - The suffix the type name carries.
  * @param typeSuffixes - The suffixes each folder allows.
- * @returns The folder.
+ * @returns The governed suffixes, each compiled once.
  */
-const folderOf = (suffix: string, typeSuffixes: Record<string, string[]>): string =>
-  /* v8 ignore next -- the suffix came from the map, so a folder owns it */
-  /* v8 ignore start -- the suffix came from the map, so a folder owns it */
-  /* v8 ignore next -- the suffix came from the map, so a folder owns it */
-  Object.keys(typeSuffixes).find(folder => typeSuffixes[folder]?.includes(suffix)) ?? ''
-/* v8 ignore stop */
+const listGovernedSuffixes = (typeSuffixes: Record<string, string[]>): GovernedSuffix[] =>
+  Object.entries(typeSuffixes).flatMap(([folder, suffixes]) =>
+    suffixes.map(suffix => {
+      const pattern = new RegExp(`${escapeRegExp(suffix)}(?=[A-Z]|$)`)
+
+      return { suffix, folder, pattern }
+    }),
+  )

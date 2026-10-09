@@ -1,1 +1,1 @@
-export type * from './garmin-strategy.type.js'
+export type * from './oauth-strategy.type.js'

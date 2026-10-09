@@ -1,9 +1,10 @@
 import type { StrictOptions } from './strict.config.type.js'
 
-/**
- * What a React project says to the `next` tier on top of the defaults.
- *
- * The same shape the strict tier takes: the tier carries a vocabulary of its own over that one, and a project
- * states only where it differs from both.
- */
-export type NextjsOptions = StrictOptions
+/** What a Next.js project says to the `nextjs` tier on top of its defaults. */
+export interface NextjsOptions extends StrictOptions {
+  /**
+   * Whether the project keeps a Storybook catalog under `storybook/`, which the application never imports. Defaults
+   * to true; false drops the entry that keeps the catalog out of the application.
+   */
+  catalog?: boolean
+}

@@ -1,18 +1,23 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-import { packageSourceFile, sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildFixturePath,
+  buildPackageSourcePath,
+  buildSourcePath,
+  createTypedRuleTester,
+} from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { documentedFunction } from '../../../rules/documented-function.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'documented-function')
-const ruleTester = typedRuleTester(root)
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
-const source = sourceFile('users', 'services', 'user.service.ts')
-const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
+const root = buildFixturePath(import.meta.url, 'documented-function')
+const ruleTester = createTypedRuleTester(root)
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
+const source = buildSourcePath('users', 'services', 'user.service.ts')
+const spec = buildSourcePath('users', '__tests__', 'user.service.spec.ts')
 
 ruleTester.run('documented-function', documentedFunction, {
   valid: [
+    // A list of exports declares no function: what it names is documented where it is declared.
+    { code: "export { read } from './read.js'", filename: source, options },
     // An overload the module keeps to itself reads the same way.
     {
       code: '/** Answers the value it was handed, untouched. */\nfunction pick(value: string): string\nfunction pick(value: string): string {\n  return value\n}',
@@ -99,7 +104,7 @@ ruleTester.run('documented-function', documentedFunction, {
       errors: [{ messageId: 'undocumented' }],
     },
     {
-      code: "class Span {\n  /** Reads one. */\n  'read'(): void\n\n  'read'() {}\n}",
+      code: "class Span {\n  /** Reads the span the tracer keeps open. */\n  'read'(): void\n\n  'read'() {}\n}",
       filename: source,
       options,
       errors: [{ messageId: 'undocumented' }],
@@ -242,7 +247,7 @@ ruleTester.run('documented-function, in a repository of several packages', docum
     },
     {
       code: 'export const findOneUser = () => 1',
-      filename: packageSourceFile('apps/x', 'users', 'services', 'user.service.ts'),
+      filename: buildPackageSourcePath('apps/x', 'users', 'services', 'user.service.ts'),
       options,
       errors: [{ messageId: 'undocumented' }],
     },

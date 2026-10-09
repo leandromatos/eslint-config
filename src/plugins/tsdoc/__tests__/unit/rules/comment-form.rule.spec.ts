@@ -1,10 +1,11 @@
-import { syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { commentForm } from '../../../rules/comment-form.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 60, readsReleaseTags: false }]
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 60 }]
 
 /** Fourteen words, which run past the column the options set. */
 const WORDS = 'word '.repeat(14).trim()
@@ -31,12 +32,19 @@ ruleTester.run('comment-form', commentForm, {
       output: `/*\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL} and more words here and still more\n */\nconst a = 1`,
     },
 
-    // A run written inside a block is rewrapped with the indentation it had.
+    // A run that fits on one line is one line comment, with the indentation it had.
     {
       code: `const read = () => {\n  // A note that runs\n  // across two lines\n  return 1\n}`,
       options,
       errors: [{ messageId: 'lineRun' }],
-      output: `const read = () => {\n  /*\n   * A note that runs across two lines\n   */\n  return 1\n}`,
+      output: `const read = () => {\n  // A note that runs across two lines\n  return 1\n}`,
+    },
+    // A run inside a block that runs to a paragraph is a block with the indentation it had.
+    {
+      code: `const read = () => {\n  // ${WORDS}\n  // and more\n  return 1\n}`,
+      options,
+      errors: [{ messageId: 'lineRun' }],
+      output: `const read = () => {\n  /*\n   * ${WRAPPED_HEAD}\n   * ${WRAPPED_TAIL} and more\n   */\n  return 1\n}`,
     },
 
     // A block comment past the column is rewrapped, and every paragraph of it survives the fix.
@@ -74,7 +82,7 @@ ruleTester.run('comment-form', commentForm, {
       code: '// A note that runs\n// across two lines\nconst a = 1',
       options,
       errors: [{ messageId: 'lineRun' }],
-      output: '/*\n * A note that runs across two lines\n */\nconst a = 1',
+      output: '// A note that runs across two lines\nconst a = 1',
     },
     {
       code: `// ${'word '.repeat(14).trim()}\nconst a = 1`,
@@ -162,6 +170,40 @@ ruleTester.run('comment-form, rewrapping what a documentation comment holds', co
       options,
       errors: [{ messageId: 'pastWidth' }],
       output: `/**\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n *\n * \`\`\`ts\n * read()\n * \`\`\`\n * Then it reads.\n *\n * And again.\n */\nconst read = value => value`,
+    },
+  ],
+})
+
+ruleTester.run('comment-form, a block note that fits on one line', commentForm, {
+  valid: [
+    // A documentation comment is for the caller and stays a block, however short.
+    { code: '/** Reads one user. */\nconst read = () => 1', options },
+    // A note beside code, or one that runs to a paragraph, stays a block.
+    { code: 'const read = (/* the id */ id) => id', options },
+    { code: '/*\n * Reads one user.\n * Then caches it.\n */\nconst read = () => 1', options },
+    // A directive is the tool's.
+    { code: '/* istanbul ignore next */\nconst read = () => 1', options },
+    { code: '/*! A license the bundler keeps. */\nconst read = () => 1', options },
+  ],
+  invalid: [
+    // A note of one line too long for the column is wrapped where it stands, and stays a block.
+    {
+      code: `/*\n * ${WORDS}\n */\nconst read = () => 1`,
+      options,
+      errors: [{ messageId: 'pastWidth' }],
+      output: `/*\n * ${WRAPPED_HEAD}\n * ${WRAPPED_TAIL}\n */\nconst read = () => 1`,
+    },
+    {
+      code: '/* The cache answers first. */\nconst read = () => 1',
+      options,
+      errors: [{ messageId: 'oneLineBlock' }],
+      output: '// The cache answers first.\nconst read = () => 1',
+    },
+    {
+      code: 'const read = () => {\n  /*\n   * The cache answers first.\n   */\n  return 1\n}',
+      options,
+      errors: [{ messageId: 'oneLineBlock' }],
+      output: 'const read = () => {\n  // The cache answers first.\n  return 1\n}',
     },
   ],
 })

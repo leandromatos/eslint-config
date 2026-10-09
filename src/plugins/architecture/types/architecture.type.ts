@@ -14,8 +14,6 @@ export interface ArchitectureOptions {
   alias: string
   /** Layer suffix to the folder that holds it, the same map `importBoundaries` takes. */
   suffixToFolder: Record<string, string>
-  /** What this project adds to the shared dictionary: a suffix it writes, and the folder that holds it. */
-  suffixDictionary?: Record<string, string>
   /** Suffixes with no folder of their own, such as `module`. */
   folderlessSuffixes: string[]
   /** The hooks that synchronize with something outside React, which only a hook file calls. */

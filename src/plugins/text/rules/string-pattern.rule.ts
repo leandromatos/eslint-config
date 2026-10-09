@@ -1,8 +1,9 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { StringPattern, StringPatternMessageId, TextRule } from '../types/index.js'
+import type { CompiledStringPattern, StringPattern, StringPatternMessageId, TextRule } from '../types/index.js'
 
 /** What stands in for an expression inside a template literal, so a pattern can name it. */
 const PLACEHOLDER = '{{value}}'
@@ -17,7 +18,7 @@ export const stringPattern: TextRule<StringPatternMessageId> = {
     type: 'problem',
     docs: {
       description: 'A string handed to a known call matches the pattern the options give for it.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/text/docs/rules/string-pattern.md',
+      url: buildRuleDocsUrl('text', 'string-pattern'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -30,29 +31,22 @@ export const stringPattern: TextRule<StringPatternMessageId> = {
   create: context => {
     const [{ stringPatterns }] = context.options
     const { sourceCode } = context
+    const compiledPatterns = stringPatterns.map(compileStringPattern)
     const judge = (call: TSESTree.CallExpression | TSESTree.NewExpression): void => {
-      const callee = calleeTextOf(call, sourceCode)
-      const target = decoratedNameOf(call)
-      for (const stringPattern of stringPatterns.filter(
-        stringPattern => stringPattern.callee === callee && targets(stringPattern, target),
-      )) {
-        const literal = argumentOf(call, stringPattern.property)
+      const callee = readCalleeText(call, sourceCode)
+      const target = readDecoratedName(call)
+      const governing = compiledPatterns.filter(
+        compiledPattern => compiledPattern.callee === callee && isTargeted(compiledPattern, target),
+      )
+      for (const compiledPattern of governing) {
+        const literal = findPatternArgument(call, compiledPattern.property)
         if (!literal) continue
-        const text = textOf(literal)
-        if (stringPattern.must && !new RegExp(stringPattern.must).test(text)) {
-          context.report({
-            node: literal,
-            messageId: 'mustMatch',
-            data: { text, pattern: stringPattern.must, because: stringPattern.because },
-          })
-        }
-        if (stringPattern.mustNot && new RegExp(stringPattern.mustNot).test(text)) {
-          context.report({
-            node: literal,
-            messageId: 'mustNotMatch',
-            data: { text, pattern: stringPattern.mustNot, because: stringPattern.because },
-          })
-        }
+        const text = readLiteralText(literal)
+        const { because, must, mustNot } = compiledPattern
+        if (must && !must.test(text))
+          context.report({ node: literal, messageId: 'mustMatch', data: { text, pattern: must.source, because } })
+        if (mustNot?.test(text))
+          context.report({ node: literal, messageId: 'mustNotMatch', data: { text, pattern: mustNot.source, because } })
       }
     }
     const listener: TSESLint.RuleListener = { CallExpression: judge, NewExpression: judge }
@@ -62,17 +56,45 @@ export const stringPattern: TextRule<StringPatternMessageId> = {
 }
 
 /**
+ * Compiles the regular expressions of a pattern once, so a file is judged without building them again per call.
+ *
+ * @param stringPattern - The pattern the options declared.
+ * @returns The pattern, with its expressions built.
+ */
+const compileStringPattern = (stringPattern: StringPattern): CompiledStringPattern => {
+  const { callee, property, because } = stringPattern
+  const target = compileOptionalRegExp(stringPattern.target)
+  const must = compileOptionalRegExp(stringPattern.must)
+  const mustNot = compileOptionalRegExp(stringPattern.mustNot)
+  const compiledPattern: CompiledStringPattern = { callee, property, because, target, must, mustNot }
+
+  return compiledPattern
+}
+
+/**
+ * Compiles a regular expression the options give as its source, when they give one.
+ *
+ * @param source - The source of the expression.
+ * @returns The expression, and nothing when the options give none.
+ */
+const compileOptionalRegExp = (source: string | undefined): RegExp | undefined => {
+  if (source === undefined) return undefined
+
+  return new RegExp(source)
+}
+
+/**
  * Whether a pattern applies here: one without a target applies everywhere, one with a target only to a matching
  * declaration.
  *
- * @param stringPattern - The pattern the options declared.
+ * @param compiledPattern - The pattern, with its expressions built.
  * @param target - The name of the declaration the call decorates, when it decorates one.
  * @returns Whether the pattern judges this string.
  */
-const targets = (stringPattern: StringPattern, target: string | null): boolean => {
-  if (!stringPattern.target) return true
+const isTargeted = (compiledPattern: CompiledStringPattern, target: string | null): boolean => {
+  if (!compiledPattern.target) return true
 
-  return target !== null && new RegExp(stringPattern.target).test(target)
+  return target !== null && compiledPattern.target.test(target)
 }
 
 /**
@@ -81,7 +103,7 @@ const targets = (stringPattern: StringPattern, target: string | null): boolean =
  * @param call - The call the rule reads.
  * @returns The decorated declaration's name.
  */
-const decoratedNameOf = (call: TSESTree.CallExpression | TSESTree.NewExpression): string | null => {
+const readDecoratedName = (call: TSESTree.CallExpression | TSESTree.NewExpression): string | null => {
   const decorator = call.parent
   if (decorator?.type !== AST_NODE_TYPES.Decorator) return null
   const declaration = decorator.parent
@@ -99,7 +121,7 @@ const decoratedNameOf = (call: TSESTree.CallExpression | TSESTree.NewExpression)
  * @param sourceCode - The source the call is written in.
  * @returns The callee as the author wrote it.
  */
-const calleeTextOf = (
+const readCalleeText = (
   call: TSESTree.CallExpression | TSESTree.NewExpression,
   sourceCode: TSESLint.SourceCode,
 ): string => {
@@ -116,13 +138,13 @@ const calleeTextOf = (
  * @param property - The property the pattern names, when it names one.
  * @returns The literal, and null where the call hands none.
  */
-const argumentOf = (
+const findPatternArgument = (
   call: TSESTree.CallExpression | TSESTree.NewExpression,
   property: string | undefined,
 ): TSESTree.StringLiteral | TSESTree.TemplateLiteral | null => {
   const first = call.arguments[0]
   if (!first) return null
-  if (!property) return asString(first)
+  if (!property) return readStringNode(first)
   if (first.type !== AST_NODE_TYPES.ObjectExpression) return null
   const entry = first.properties.find(
     each =>
@@ -132,7 +154,7 @@ const argumentOf = (
   )
   if (!entry || entry.type !== AST_NODE_TYPES.Property) return null
 
-  return asString(entry.value)
+  return readStringNode(entry.value)
 }
 
 /**
@@ -141,7 +163,7 @@ const argumentOf = (
  * @param node - The node the rule reads.
  * @returns The literal.
  */
-const asString = (node: TSESTree.Node): TSESTree.StringLiteral | TSESTree.TemplateLiteral | null => {
+const readStringNode = (node: TSESTree.Node): TSESTree.StringLiteral | TSESTree.TemplateLiteral | null => {
   if (node.type === AST_NODE_TYPES.TemplateLiteral) return node
   if (node.type === AST_NODE_TYPES.Literal && typeof node.value === 'string') return node
 
@@ -154,15 +176,8 @@ const asString = (node: TSESTree.Node): TSESTree.StringLiteral | TSESTree.Templa
  * @param literal - The literal the rule judges.
  * @returns The text the pattern is matched against.
  */
-const textOf = (literal: TSESTree.StringLiteral | TSESTree.TemplateLiteral): string => {
+const readLiteralText = (literal: TSESTree.StringLiteral | TSESTree.TemplateLiteral): string => {
   if (literal.type === AST_NODE_TYPES.Literal) return literal.value
 
-  return (
-    literal.quasis
-      /* v8 ignore start -- a template the parser read carries its cooked text */
-      /* v8 ignore next -- a template the parser read carries its cooked text */
-      .map(templateElement => templateElement.value.cooked ?? templateElement.value.raw)
-      /* v8 ignore stop */
-      .join(PLACEHOLDER)
-  )
+  return literal.quasis.map(templateElement => templateElement.value.raw).join(PLACEHOLDER)
 }

@@ -1,18 +1,7 @@
 import eslintPlugin from 'eslint-plugin-eslint-plugin'
 
 import type { Config } from './src/index.js'
-import { configs } from './src/index.js'
-
-/** Layer suffix to the folder that holds it, which every structural rule and the boundaries read. */
-const SUFFIX_TO_FOLDER = {
-  config: 'configs',
-  constant: 'constants',
-  plugin: 'plugins',
-  rule: 'rules',
-  spec: '__tests__',
-  type: 'types',
-  util: 'utils',
-}
+import { configs, CONTROLLED_LANGUAGE } from './src/index.js'
 
 /** The one kind of test this package writes: every spec mirrors one source. */
 const TEST_KINDS = ['unit']
@@ -20,8 +9,9 @@ const TEST_KINDS = ['unit']
 /**
  * ESLint configuration for this repository, which is the package judging itself.
  *
- * It takes the `strict` tier it publishes, so a rule that cannot be lived with is a rule to fix rather than a rule to
- * turn off somewhere else.
+ * It takes the `strict` tier it publishes, with the house voice the package applies to its own comments, so a rule
+ * that cannot be lived with is a rule to fix. The one entry that turns rules off says why the package cannot take
+ * them, and nothing else is turned off.
  *
  * The annotation is the package's own exported `Config`, so the type a consumer is told to use is the type this
  * repository lints itself with: one that stopped being exported, or stopped describing what the configuration contains,
@@ -36,41 +26,17 @@ const eslintConfig: Config[] = [
      * a project of its own. None belongs to a tsconfig project the type-checked layer could read.
      */
     ignores: ['src/**/__tests__/fixtures'],
-    /*
-     * Nothing, here: `data` is what ESLint calls the payload a report carries into its message, so every rule of this
-     * package writes the name its own API imposes.
-     */
-    naming: {
-      verbParticiples: {},
-      valueCases: [],
-      resourceSuffixes: [],
-      testFolder: SUFFIX_TO_FOLDER.spec,
-    },
+    presets: [CONTROLLED_LANGUAGE],
+    naming: { verbParticiples: () => ({}) },
     architecture: {
-      suffixToFolder: SUFFIX_TO_FOLDER,
-      // The runner reads this one by name, so it carries the framework's suffix rather than a layer's.
-      folderlessSuffixes: ['setup'],
-      mirrorFolders: [SUFFIX_TO_FOLDER.type, SUFFIX_TO_FOLDER.spec],
       /*
        * This package holds one module, and what sits at the top of `src` are its layers rather than modules of their
        * own: `configs` is reached through its barrel, and `plugins` groups the rules by subject.
        */
-      rootContexts: [SUFFIX_TO_FOLDER.config, SUFFIX_TO_FOLDER.plugin],
-      executedFolders: [],
-      typeSuffixes: {},
-      orderedSuffixes: [],
-      wholeArguments: [],
-      testFolder: SUFFIX_TO_FOLDER.spec,
-      testKinds: TEST_KINDS,
-      mirroringTestKinds: TEST_KINDS,
-    },
-    testing: {
-      suffixToFolder: SUFFIX_TO_FOLDER,
-      testFolder: SUFFIX_TO_FOLDER.spec,
-      testKinds: TEST_KINDS,
-      mirroringTestKinds: TEST_KINDS,
-      // Nothing here answers HTTP, so no spec goes through a client.
-      httpTest: { kind: '', client: '' },
+      rootContexts: ['configs', 'plugins'],
+      executedFolders: () => [],
+      testKinds: () => TEST_KINDS,
+      mirroringTestKinds: () => TEST_KINDS,
     },
   }),
   {
@@ -79,7 +45,7 @@ const eslintConfig: Config[] = [
      * description to open with a verb of its own list; the descriptions here answer to the controlled language
      * instead, which is one sentence stating what holds.
      */
-    files: ['src/plugins/**/rules/*.rule.ts', 'src/plugins/shared/utils/file-rule.util.ts'],
+    files: ['src/plugins/**/rules/*.rule.ts', 'src/plugins/shared/utils/create-file-rule.util.ts'],
     ...eslintPlugin.configs['rules-recommended'],
     rules: {
       ...eslintPlugin.configs['rules-recommended'].rules,
@@ -96,22 +62,13 @@ const eslintConfig: Config[] = [
     settings: { 'eslint-plugin': { ruleTesterConstructors: ['RuleTester', /RuleTester$/] } },
   },
   {
-    files: ['eslint.config.mts'],
-    rules: {
-      'import-x/no-relative-parent-imports': 'off',
-      'leandromatos/architecture-import-boundaries': 'off',
-      'no-restricted-imports': 'off',
-    },
-  },
-  {
     /*
      * The one rule this package cannot take from itself: its own sources reach each other by relative path, because
      * ESLint loads this file through a loader that resolves no path alias, and an alias would leave the repository
-     * unlintable until `dist/` existed.
+     * unlintable until `dist/` existed. This file imports the sources the same way.
      */
-    files: ['src/**/*.ts'],
+    files: ['eslint.config.mts', 'src/**/*.ts'],
     rules: {
-      'import-x/no-relative-parent-imports': 'off',
       'leandromatos/architecture-import-boundaries': 'off',
       'no-restricted-imports': 'off',
     },

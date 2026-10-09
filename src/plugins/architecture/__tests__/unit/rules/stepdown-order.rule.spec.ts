@@ -1,16 +1,24 @@
-import { sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { buildSourcePath, createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { stepdownOrder } from '../../../rules/stepdown-order.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [ArchitectureOptions] = [EMPTY_OPTIONS]
 const workletOptions: [ArchitectureOptions] = [{ ...EMPTY_OPTIONS, definitionTimeDirectives: ['worklet'] }]
-const util = sourceFile('users', 'utils', 'read-user.util.ts')
+const util = buildSourcePath('users', 'utils', 'read-user.util.ts')
 
 ruleTester.run('stepdown-order', stepdownOrder, {
   valid: [
+    // A list of exports declares no function, and the order of what it names is the order of the declarations.
+    { code: 'const readUser = () => 1\n\nexport { readUser }', filename: util, options },
+    // Siblings out of order stay when the later one reaches the earlier, through a helper and past an import.
+    {
+      code: 'export const readUser = () => {\n  formatUser()\n  loadUser()\n}\n\nconst loadUser = () => {\n  fetchUser()\n  parseUser()\n}\n\nconst parseUser = () => formatUser()\n\nconst formatUser = () => 1',
+      filename: util,
+      options,
+    },
     // A helper an initializer reaches runs while the module loads, so moving it down puts the call in its dead zone.
     {
       code: 'const dp = (value: string): number => Number(value)\n\nconst SIZES = { small: dp("4") }\n\nconst read = () => dp("8") + SIZES.small',
@@ -59,8 +67,7 @@ ruleTester.run('stepdown-order', stepdownOrder, {
       filename: util,
       options,
     },
-    // A declaration that is not a function is not part of the walk.
-
+    // A callee below its caller, and two callees in the order they are called.
     {
       code: 'export const readUser = () => nameOf(1)\n\nconst nameOf = (id) => id',
       filename: util,
@@ -73,6 +80,13 @@ ruleTester.run('stepdown-order', stepdownOrder, {
     },
   ],
   invalid: [
+    // A walk through two helpers that call each other ends where it started, and reaches neither sibling.
+    {
+      code: 'export const readUser = () => {\n  formatUser()\n  loadUser()\n}\n\nconst loadUser = () => cacheUser()\n\nconst formatUser = () => 1\n\nconst cacheUser = () => loadUser()',
+      filename: util,
+      options,
+      errors: [{ messageId: 'siblingsOutOfOrder' }],
+    },
     // Without the directive among the options, a worklet is a function like any other.
     {
       code: "const clamp = (value) => value\n\nexport const readUser = (value) => {\n  'worklet'\n  return clamp(value)\n}",

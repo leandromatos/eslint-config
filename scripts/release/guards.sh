@@ -11,7 +11,7 @@
 #   - Guards:  require_clean_working_tree, require_on_default_branch,
 #              require_default_branch_in_sync_with_origin,
 #              require_latest_commit_is_not_release, require_tag_does_not_exist
-#   - Helpers: default_branch, last_production_tag, current_package_version,
+#   - Helpers: default_branch, current_package_version,
 #              confirm_or_abort, cleanup_tag_on_abort, bump_from_commits,
 #              resolve_target_version_from_bump, write_package_version
 #
@@ -84,20 +84,12 @@ require_tag_does_not_exist() {
   fi
 }
 
-# Highest production tag, prereleases excluded. Empty when none exists.
-last_production_tag() {
-  git tag --list 'v*' --sort=-v:refname \
-    | grep -vE -- "$PRERELEASE_PATTERN" \
-    | grep -E "$TAG_PATTERN" \
-    | head -n 1 || true
-}
-
 current_package_version() {
   node -p "require('./package.json').version"
 }
 
 # Reads the answer from the controlling terminal rather than stdin. Run through a
-# wrapper that redirects stdin — 'yarn run', a pipeline, most editor task runners —
+# wrapper that redirects stdin — 'pnpm run', a pipeline, most editor task runners —
 # a plain 'read' sees EOF, and under 'set -e' the script dies on a bare exit 1
 # right after printing the plan, which reads like the release failed.
 #
@@ -194,7 +186,7 @@ resolve_target_version_from_bump() {
   RESOLVED_VERSION=""
 
   if [ "$bump_input" = "auto" ]; then
-    RESOLVED_BUMP=$(bump_from_commits "$(last_production_tag)")
+    RESOLVED_BUMP=$(bump_from_commits "$(latest_production_tag)")
     DETECTION_NOTE=" (detected from commits)"
     # On 0.x a caret locks the minor, so a major bump there would strand every
     # consumer's range. Graduating to 1.0.0 stays an explicit decision.
@@ -219,15 +211,9 @@ resolve_target_version_from_bump() {
   esac
 }
 
-# Rewrites package.json's '.version' in place, touching nothing else.
-# 'sed -i' is deliberately avoided: BSD sed (macOS) demands a backup-suffix
-# argument and GNU sed (Linux) rejects one. The round-trip writes back through
-# the original path, so the file keeps its inode and mode.
+# Writes the version into package.json through the package manager, which owns the
+# file. The release commit and the tag are this script's, so pnpm creates neither.
 write_package_version() {
   local new_version="$1"
-  local rewritten
-  rewritten=$(mktemp)
-  sed "s/\"version\": \"[^\"]*\"/\"version\": \"$new_version\"/" package.json >"$rewritten"
-  cat "$rewritten" >package.json
-  rm -f "$rewritten"
+  pnpm version "$new_version" --no-git-tag-version --no-git-checks --allow-same-version >/dev/null
 }

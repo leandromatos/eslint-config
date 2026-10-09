@@ -1,10 +1,10 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES, AST_TOKEN_TYPES } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { isMethod, memberNameOf } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { DocumentedFunctionMessageId, TsdocRule } from '../types/index.js'
-import { isOverloadImplementation, restatesName } from '../utils/index.js'
+import { buildRuleDocsUrl, isFunctionNode, isMethod, readDeclarationName } from '../../shared/utils/index.js'
+import { DOCUMENTED_MESSAGES, EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import type { DocumentedFunctionMessageId, DocumentedNode, TsdocRule } from '../types/index.js'
+import { findDocBlock, isOverloadImplementation, restatesName } from '../utils/index.js'
 
 /**
  * Every method and every function a module declares carries a documentation comment, and the comment says what the name
@@ -21,22 +21,18 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
     type: 'problem',
     docs: {
       description: 'A method or a function a module declares carries a comment that says what its name cannot.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/documented-function.md',
+      url: buildRuleDocsUrl('tsdoc', 'documented-function'),
       dialects: ['TypeScript'],
     },
-    messages: {
-      undocumented: '"{{name}}" carries no documentation comment.',
-      restatesName:
-        'The summary of "{{name}}" rewrites its name. Say what the name cannot: a constraint, a reason, a consequence.',
-    },
+    messages: DOCUMENTED_MESSAGES,
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
     const { sourceCode } = context
-    const judge = (documented: TSESTree.Node, name: string): void => {
-      const comment = sourceCode.getCommentsBefore(documented).at(-1)
-      if (!comment || comment.type !== AST_TOKEN_TYPES.Block || !comment.value.startsWith('*')) {
+    const judge = (documented: DocumentedNode, name: string): void => {
+      const comment = findDocBlock(sourceCode, documented)
+      if (!comment) {
         context.report({ node: documented, messageId: 'undocumented', data: { name } })
 
         return
@@ -44,46 +40,47 @@ export const documentedFunction: TsdocRule<DocumentedFunctionMessageId> = {
       if (restatesName(comment.value, name))
         context.report({ node: comment, messageId: 'restatesName', data: { name } })
     }
-    const judgeFunctionsOf = (statement: TSESTree.Node, documented: TSESTree.Node): void => {
-      if (statement.type === AST_NODE_TYPES.TSDeclareFunction) judge(documented, statement.id?.name ?? 'default')
-      if (statement.type === AST_NODE_TYPES.FunctionDeclaration && !isOverloadImplementation(statement))
-        judge(documented, statement.id?.name ?? 'default')
+    const judgeDeclaredFunctions = (declaration: TSESTree.Node): void => {
+      if (declaration.type === AST_NODE_TYPES.TSDeclareFunction) judge(declaration, declaration.id?.name ?? 'default')
+      if (declaration.type === AST_NODE_TYPES.FunctionDeclaration && !isOverloadImplementation(declaration))
+        judge(declaration, declaration.id?.name ?? 'default')
       if (
-        statement.type === AST_NODE_TYPES.ArrowFunctionExpression ||
-        statement.type === AST_NODE_TYPES.FunctionExpression
+        declaration.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+        declaration.type === AST_NODE_TYPES.FunctionExpression
       )
-        judge(documented, 'default')
-      if (statement.type !== AST_NODE_TYPES.VariableDeclaration) return
-      for (const declarator of statement.declarations) {
-        if (declarator.id.type !== AST_NODE_TYPES.Identifier) continue
-        if (
-          declarator.init?.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
-          declarator.init?.type !== AST_NODE_TYPES.FunctionExpression
-        )
-          continue
-        judge(documented, declarator.id.name)
+        judge(declaration, 'default')
+      if (declaration.type !== AST_NODE_TYPES.VariableDeclaration) return
+      for (const declarator of declaration.declarations) {
+        if (declarator.id.type !== AST_NODE_TYPES.Identifier || !isFunctionNode(declarator.init)) continue
+        judge(declarator.init, declarator.id.name)
       }
     }
     const listener: TSESLint.RuleListener = {
       MethodDefinition: node => {
         if (!isMethod(node) || isOverloadImplementation(node)) return
-        judge(node, memberNameOf(node))
+        judge(node, readDeclarationName(node))
       },
       Program: program => {
         for (const statement of program.body) {
-          if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && statement.declaration)
-            judgeFunctionsOf(statement.declaration, statement)
-          if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration)
-            judgeFunctionsOf(statement.declaration, statement)
-          if (
-            statement.type !== AST_NODE_TYPES.ExportNamedDeclaration &&
-            statement.type !== AST_NODE_TYPES.ExportDefaultDeclaration
-          )
-            judgeFunctionsOf(statement, statement)
+          const declaration = unwrapExport(statement)
+          if (declaration) judgeDeclaredFunctions(declaration)
         }
       },
     }
 
     return listener
   },
+}
+
+/**
+ * Unwraps the declaration a top-level statement holds, looking past an `export` or an `export default`.
+ *
+ * @param statement - The top-level statement.
+ * @returns The declaration, and null for an export that declares nothing.
+ */
+const unwrapExport = (statement: TSESTree.ProgramStatement): TSESTree.Node | null => {
+  if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration) return statement.declaration
+  if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration) return statement.declaration
+
+  return statement
 }

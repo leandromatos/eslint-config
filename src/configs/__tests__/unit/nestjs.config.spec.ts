@@ -1,39 +1,38 @@
 import { describe, expect, it } from 'vitest'
 
-import { ruleOptionsOf } from '../../../__tests__/utils/index.js'
+import { readArchitectureOptions } from '../../../__tests__/utils/index.js'
 import { NESTJS_ARCHITECTURE } from '../../constants/index.js'
 import { nestjs } from '../../nestjs.config.js'
+import { strict } from '../../strict.config.js'
 
 describe('nestjs', () => {
-  const architectureOf = (entries: ReturnType<typeof nestjs>): Record<string, unknown> => {
-    const [ownEntry] = entries.filter(entry => entry.name === 'leandromatos/recommended')
-
-    return ruleOptionsOf(ownEntry, 'leandromatos/architecture-known-suffix')
-  }
-
   it('adds the suffixes a project names to the map of the tier, rather than replacing it', () => {
-    const { suffixToFolder } = architectureOf(nestjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } }))
+    const { suffixToFolder } = readArchitectureOptions(
+      nestjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } }),
+    )
 
     expect(suffixToFolder).toHaveProperty('exception', 'exceptions')
     expect(suffixToFolder).toHaveProperty('interceptor', 'interceptors')
   })
 
   it('judges the sources of the repository, of each package of a workspace folder, and the root scripts, by default', () => {
-    const [ownEntry] = nestjs().filter(entry => entry.name === 'leandromatos/recommended')
+    const [ownEntry] = nestjs().filter(entry => entry.name === 'leandromatos/rules')
 
     expect(ownEntry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts', 'scripts/**/*.{ts,mts}'])
   })
 
-  it('carries all of strict, which is what the tier is built on', () => {
-    const names = nestjs()
-      .map(entry => entry.name)
-      .filter(Boolean)
+  it('opens with every entry of strict, in the order strict writes them', () => {
+    const expectedStrictNames = strict().map(entry => entry.name)
 
-    expect(names).toEqual(expect.arrayContaining(['leandromatos/recommended']))
+    expect(
+      nestjs()
+        .map(entry => entry.name)
+        .slice(0, expectedStrictNames.length),
+    ).toEqual(expectedStrictNames)
   })
 
   it('names the layers the framework invents, over the ones architecture already had a word for', () => {
-    const { suffixToFolder } = architectureOf(nestjs())
+    const { suffixToFolder } = readArchitectureOptions(nestjs())
 
     expect(suffixToFolder).toHaveProperty('interceptor', 'interceptors')
     expect(suffixToFolder).toHaveProperty('processor', 'processors')
@@ -44,21 +43,21 @@ describe('nestjs', () => {
   })
 
   it('walks a class down the layers, outermost first', () => {
-    const { orderedSuffixes } = architectureOf(nestjs())
+    const { orderedSuffixes } = readArchitectureOptions(nestjs())
 
     expect(orderedSuffixes).toEqual(NESTJS_ARCHITECTURE.orderedSuffixes)
     expect(orderedSuffixes).toHaveProperty([0], 'controller')
   })
 
   it('names the request objects a controller takes whole', () => {
-    const { wholeArguments } = architectureOf(nestjs())
+    const { wholeArguments } = readArchitectureOptions(nestjs())
 
     expect(wholeArguments).toEqual([{ suffix: 'controller', objects: ['params', 'query', 'body'] }])
   })
 
-  it('lets the project say where it differs', () => {
-    const { rootContexts } = architectureOf(nestjs({ architecture: { rootContexts: ['database'] } }))
+  it('joins the contexts a project names to the ones of the tier', () => {
+    const { rootContexts } = readArchitectureOptions(nestjs({ architecture: { rootContexts: ['factories'] } }))
 
-    expect(rootContexts).toEqual(['database'])
+    expect(rootContexts).toEqual([...NESTJS_ARCHITECTURE.rootContexts, 'factories'])
   })
 })

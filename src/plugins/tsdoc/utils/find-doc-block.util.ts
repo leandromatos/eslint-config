@@ -1,5 +1,5 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES, ASTUtils } from '@typescript-eslint/utils'
 
 import type { DocumentedNode } from '../types/index.js'
 import { isDocComment } from './is-doc-comment.util.js'
@@ -45,7 +45,7 @@ const HOLDERS = new Set<string>([
  * @returns The comment, and null when none documents the node.
  */
 export const findDocBlock = (sourceCode: TSESLint.SourceCode, node: DocumentedNode): TSESTree.Comment | null => {
-  const anchor = decoratorBefore(anchorOf(sourceCode, node), node)
+  const anchor = findLeadingDecorator(findCommentAnchor(sourceCode, node), node)
   let nextLine = anchor.loc.start.line
   for (const comment of sourceCode.getCommentsBefore(anchor).reverse()) {
     if (nextLine - comment.loc.end.line > 1) return null
@@ -63,7 +63,7 @@ export const findDocBlock = (sourceCode: TSESLint.SourceCode, node: DocumentedNo
  * @param node - What the comment documents.
  * @returns The decorator, or the anchor when no decorator comes before it.
  */
-const decoratorBefore = (anchor: TSESTree.Node, node: DocumentedNode): TSESTree.Node => {
+const findLeadingDecorator = (anchor: TSESTree.Node, node: DocumentedNode): TSESTree.Node => {
   if (node.type !== AST_NODE_TYPES.ClassDeclaration) return anchor
   const [firstDecorator] = node.decorators
   if (!firstDecorator || firstDecorator.range[0] >= anchor.range[0]) return anchor
@@ -78,14 +78,14 @@ const decoratorBefore = (anchor: TSESTree.Node, node: DocumentedNode): TSESTree.
  * @param node - What the comment documents.
  * @returns The node the comment sits right above.
  */
-const anchorOf = (sourceCode: TSESLint.SourceCode, node: DocumentedNode): TSESTree.Node => {
-  if (!VALUES.has(node.type)) return exportOf(node)
+const findCommentAnchor = (sourceCode: TSESLint.SourceCode, node: DocumentedNode): TSESTree.Node => {
+  if (!VALUES.has(node.type)) return findEnclosingExport(node)
   if (CALLS.has(node.parent.type)) return node
   let holder: TSESTree.Node = node.parent
   while (holder.type !== AST_NODE_TYPES.Program && isPassedThrough(sourceCode, holder)) holder = holder.parent
   if (holder.type === AST_NODE_TYPES.Program || holder.type === AST_NODE_TYPES.FunctionDeclaration) return node
 
-  return exportOf(holder)
+  return findEnclosingExport(holder)
 }
 
 /**
@@ -94,7 +94,7 @@ const anchorOf = (sourceCode: TSESLint.SourceCode, node: DocumentedNode): TSESTr
  * @param node - The declaration, or what holds the function.
  * @returns The export, or the node when nothing exports it.
  */
-const exportOf = (node: DocumentedNode): TSESTree.Node => {
+const findEnclosingExport = (node: DocumentedNode): TSESTree.Node => {
   const { parent } = node
   if (parent.type === AST_NODE_TYPES.ExportNamedDeclaration) return parent
   if (parent.type === AST_NODE_TYPES.ExportDefaultDeclaration) return parent
@@ -111,4 +111,4 @@ const exportOf = (node: DocumentedNode): TSESTree.Node => {
  * @returns Whether the search climbs to its parent.
  */
 const isPassedThrough = (sourceCode: TSESLint.SourceCode, node: TSESTree.Node): boolean =>
-  !node.type.includes('Function') && !HOLDERS.has(node.type) && sourceCode.getCommentsBefore(node).length === 0
+  !ASTUtils.isFunctionOrFunctionType(node) && !HOLDERS.has(node.type) && sourceCode.getCommentsBefore(node).length === 0

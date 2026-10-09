@@ -1,10 +1,19 @@
-import { syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { throwsTag } from '../../../rules/throws-tag.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
+const rewordingOptions: [TsdocOptions] = [
+  {
+    ...EMPTY_OPTIONS,
+    commentWidth: 120,
+    throwsConditions: [{ title: '^Error while (.+)\\.$', condition: 'When $1 fails.' }],
+    throwsTitleProperties: ['title'],
+  },
+]
 
 ruleTester.run('throws-tag', throwsTag, {
   valid: [
@@ -167,21 +176,40 @@ ruleTester.run('throws-tag', throwsTag, {
         '/**\n * Reads one user.\n *\n * @param id - The ID of the user.\n * @throws NotFoundException\n */\nconst read = (id) => {\n  throw new NotFoundException()\n}',
     },
 
-    // A method carries its comment on the declaration, and an internal error is thrown "When X fails."
+    // A method carries its comment on the declaration, and a title the options reword becomes the condition.
+    {
+      code: "class UserService {\n  /**\n   * Reads one user.\n   */\n  findOneUser() {\n    throw new InternalServerErrorException({ title: 'Error while reading the user.' })\n  }\n}",
+      options: rewordingOptions,
+      errors: [{ messageId: 'missingThrows' }],
+      output:
+        "class UserService {\n  /**\n   * Reads one user.\n   *\n   * @throws InternalServerErrorException When reading the user fails.\n   */\n  findOneUser() {\n    throw new InternalServerErrorException({ title: 'Error while reading the user.' })\n  }\n}",
+    },
+    // Without a property to read the title from, an object passed to the exception leaves the tag for a hand to finish.
     {
       code: "class UserService {\n  /**\n   * Reads one user.\n   */\n  findOneUser() {\n    throw new InternalServerErrorException({ title: 'Error while reading the user.' })\n  }\n}",
       options,
       errors: [{ messageId: 'missingThrows' }],
       output:
-        "class UserService {\n  /**\n   * Reads one user.\n   *\n   * @throws InternalServerErrorException When reading the user fails.\n   */\n  findOneUser() {\n    throw new InternalServerErrorException({ title: 'Error while reading the user.' })\n  }\n}",
+        "class UserService {\n  /**\n   * Reads one user.\n   *\n   * @throws InternalServerErrorException\n   */\n  findOneUser() {\n    throw new InternalServerErrorException({ title: 'Error while reading the user.' })\n  }\n}",
     },
-    // An exported arrow carries its comment on the export, and a title written as a template keeps its placeholder.
+    // A title no condition matches is the description as it is written.
+    {
+      code: "class UserService {\n  /**\n   * Reads one user.\n   */\n  findOneUser() {\n    throw new NotFoundException({ title: 'User not found.' })\n  }\n}",
+      options: rewordingOptions,
+      errors: [{ messageId: 'missingThrows' }],
+      output:
+        "class UserService {\n  /**\n   * Reads one user.\n   *\n   * @throws NotFoundException User not found.\n   */\n  findOneUser() {\n    throw new NotFoundException({ title: 'User not found.' })\n  }\n}",
+    },
+    /*
+     * An exported arrow carries its comment on the export, and a title written as a template names each expression in
+     * a code span.
+     */
     {
       code: '/**\n * Reads one user.\n */\nexport const read = () => {\n  throw new NotFoundException(`User ${id} not found.`)\n}',
       options,
       errors: [{ messageId: 'missingThrows' }],
       output:
-        '/**\n * Reads one user.\n *\n * @throws NotFoundException User {value} not found.\n */\nexport const read = () => {\n  throw new NotFoundException(`User ${id} not found.`)\n}',
+        '/**\n * Reads one user.\n *\n * @throws NotFoundException User `id` not found.\n */\nexport const read = () => {\n  throw new NotFoundException(`User ${id} not found.`)\n}',
     },
     // A problem built without a literal title gets the tag alone, for a hand to finish.
     {

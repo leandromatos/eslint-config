@@ -24,7 +24,7 @@ if [ -z "$TAG" ]; then
   exit 1
 fi
 
-BASELINE=$(release_notes_baseline "$TAG")
+BASELINE=$(latest_production_tag "$TAG")
 
 if [ -z "$BASELINE" ]; then
   NOTES="First release tracked through the release scripts. Notes are generated from the commit log from this version onward."

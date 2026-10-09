@@ -35,11 +35,19 @@ jobs:
           cache: pnpm
           registry-url: "https://registry.npmjs.org"
 
+      # Trusted publishing needs a recent npm CLI. A fixed version keeps two runs of one tag publishing the same way.
       - name: Update npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@12.2.0
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      # The hooks of a workstation can be skipped; this is the gate nothing skips.
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Test
+        run: pnpm run test:cov && pnpm run test:sh
 
       - name: Build
         run: pnpm run build
@@ -74,7 +82,7 @@ jobs:
           # no commit behind, so the checked-out package.json still holds the
           # previous release; writing the tag's version in here is what keeps the
           # published artifact and the tag in agreement on both paths.
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          pnpm version "$VERSION" --no-git-tag-version --allow-same-version
 
           if [[ "$VERSION" == *-snapshot.* ]]; then
             npm publish --tag snapshot

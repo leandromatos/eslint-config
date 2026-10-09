@@ -1,10 +1,11 @@
-import { syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { unreadTag } from '../../../rules/unread-tag.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
-const releaseToolOptions: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: true }]
+const ruleTester = createSyntaxRuleTester()
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
+const releaseToolOptions: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120, readsReleaseTags: true }]
 
 ruleTester.run('unread-tag', unreadTag, {
   valid: [

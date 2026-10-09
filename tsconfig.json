@@ -1,7 +1,7 @@
 {
-  // No `paths` here, unlike the other packages: ESLint loads this repository's own configuration, which imports the
-  // package's source, through a loader that resolves a specifier without a path mapper. An alias would make
-  // `eslint.config.mts` unloadable until `dist/` existed, and linting a clean checkout would need a build first.
+  // No `paths`: ESLint loads this repository's own configuration, which imports the package's source, through a loader
+  // that resolves a specifier without a path mapper. An alias would make `eslint.config.mts` unloadable until `dist/`
+  // existed, and linting a clean checkout would need a build first.
   "compilerOptions": {
     // Basic Options
     "target": "ESNext",
@@ -12,8 +12,6 @@
     // Module Resolution Options
     "moduleResolution": "NodeNext",
     "moduleDetection": "force",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
 
     // Emit Options
     "rootDir": "./",
@@ -33,10 +31,7 @@
     // Additional Checks
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
-
-    // Deprecations
-    "ignoreDeprecations": "6.0"
+    "skipLibCheck": true
   },
   "include": ["eslint.config.mts", "src/**/*.ts"],
   "exclude": ["node_modules", "dist", "fixtures", "src/**/__tests__/fixtures"]

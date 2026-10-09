@@ -1,11 +1,11 @@
-# architecture/type-suffix
+# leandromatos/architecture-type-suffix
 
-An exported type that uses one of the governed suffixes uses it at the end of its name, and uses
-one that belongs to the folder it is declared under.
+An exported type that uses one of the governed suffixes uses it at the end of its name, and uses one that belongs to
+the folder it is declared under.
 
-The suffix says what kind of thing the type is, what a repository returns or what a job carries,
-so reading it from the wrong folder means the name promises something the file cannot keep. A name
-that uses no governed suffix is a concept, and is left alone.
+The suffix says what kind of thing the type is, what a repository returns or what a job carries, so reading it from
+the wrong folder means the name promises something the file cannot keep. A name that uses no governed suffix is a
+concept, and is left alone.
 
 ## Rule details
 
@@ -27,15 +27,20 @@ export interface UserSelectAttributes {}
 export interface CreateUserInput {}
 
 // src/users/types/users.type.ts
-export interface UserRole {} // a concept, governed by no suffix
+export interface UserProfile {} // a concept, governed by no suffix
 ```
 
 ## Options
 
+Read from the `architecture` group of the options.
+
 | Option           | Type                       | What it decides                                                    |
 | ---------------- | -------------------------- | ------------------------------------------------------------------ |
-| `typeSuffixes`   | `Record<string, string[]>` | Folder to the suffixes a type declared under its mirror may end in |
-| `suffixToFolder` | `Record<string, string>`   | Which folder is the types folder                                   |
+| `typeSuffixes`   | `Record<string, string[]>` | folder to the suffixes a type declared under its mirror may end in |
+| `suffixToFolder` | `Record<string, string>`   | which folder is the types folder, the one of the `type` suffix     |
+
+The `nestjs` tier names the suffixes of its layers: `SelectAttributes`, `Input` and `Meta` under `repositories`,
+`Criteria`, `IncludeOption` and `QueryConditions` under `specifications`, and the others in `NESTJS_TYPE_SUFFIXES`.
 
 ## Fixable
 

@@ -1,11 +1,16 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { linkSymbols } from '../../../rules/link-symbols.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
-const source = sourceFile('users', 'services', 'user.service.ts')
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
+const source = buildSourcePath('users', 'services', 'user.service.ts')
 
 ruleTester.run('link-symbols', linkSymbols, {
   valid: [
@@ -109,7 +114,7 @@ ruleTester.run('link-symbols, in a repository of several packages', linkSymbols,
     },
     {
       code: '/** Reads a `UserEntity`. */\nexport class UserEntity {}',
-      filename: packageSourceFile('packages/x', 'users', 'services', 'user.service.ts'),
+      filename: buildPackageSourcePath('packages/x', 'users', 'services', 'user.service.ts'),
       options,
       errors: [
         {

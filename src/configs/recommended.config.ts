@@ -14,68 +14,18 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
+import {
+  JS_FILES,
+  JSON_FILES,
+  MARKDOWN_FILES,
+  RECOMMENDED_IGNORES,
+  RECOMMENDED_RESTRICTED_SYNTAX,
+  TS_FILES,
+  TSX_FILES,
+} from './constants/index.js'
+import { MissingPluginConfigError } from './errors/index.js'
 import type { Config, RecommendedOptions } from './types/index.js'
-
-/**
- * The modules Node ships, which a package of the same name shadows when the import carries no protocol.
- *
- * `node:` is what makes the builtin the one that loads, whatever a project installed.
- */
-const NODE_BUILTINS = [
-  'assert',
-  'buffer',
-  'child_process',
-  'cluster',
-  'console',
-  'crypto',
-  'dgram',
-  'diagnostics_channel',
-  'dns',
-  'domain',
-  'events',
-  'fs',
-  'http',
-  'http2',
-  'https',
-  'inspector',
-  'module',
-  'net',
-  'os',
-  'path',
-  'perf_hooks',
-  'process',
-  'punycode',
-  'querystring',
-  'readline',
-  'repl',
-  'stream',
-  'string_decoder',
-  'timers',
-  'tls',
-  'trace_events',
-  'tty',
-  'url',
-  'util',
-  'v8',
-  'vm',
-  'wasi',
-  'worker_threads',
-  'zlib',
-]
-
-const JS_FILES = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}']
-const TS_FILES = ['**/*.{ts,tsx,mts,cts}']
-const TSX_FILES = ['**/*.tsx']
-const JSON_FILES = ['**/*.{json,jsonc,json5}']
-const MARKDOWN_FILES = ['**/*.md']
-
-/**
- * What every project ignores: what a build wrote, what a coverage run wrote, and what an agent works in.
- *
- * Each carries a leading glob so a monorepo is covered too: a bare name matches the root and nothing under a
- * package.
- */
-const IGNORED = ['**/.claude', '**/coverage', '**/dist']
+import { extendList } from './utils/index.js'
 
 /**
  * Shared ESLint flat configuration: one object per file type, and Prettier last.
@@ -89,7 +39,7 @@ const IGNORED = ['**/.claude', '**/coverage', '**/dist']
  */
 export const recommended = (recommendedOptions: RecommendedOptions = {}): Config[] =>
   defineConfig(
-    { ignores: [...IGNORED, ...(recommendedOptions.ignores ?? [])] },
+    { ignores: extendList(RECOMMENDED_IGNORES, recommendedOptions.ignores) },
     {
       files: JS_FILES,
       languageOptions: {
@@ -128,7 +78,6 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
       },
       rules: {
         ...js.configs.recommended.rules,
-        curly: ['error', 'multi'],
         'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
         'import-x/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
         'import-x/no-extraneous-dependencies': 'off',
@@ -186,36 +135,12 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
         /*
          * An enum is the one TypeScript construct that emits runtime code with no JavaScript counterpart: Node's type
          * stripping cannot run it, a single-file transpiler cannot inline it, and a const enum inlined from one version
-         * of a dependency runs against another at runtime. A closed set of values is an object `as const` and the type
-         * derived from it, which is JavaScript and compares with the literal a payload carries.
+         * of a dependency runs against another at runtime. A builtin imported without its protocol loads whatever
+         * package shares its name, and a catch whose body is a value leaves the same trace for every failure: none.
+         * `no-restricted-imports` would say the second, and the boundaries layer takes that rule over inside the source
+         * tree, so a selector says it.
          */
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector: 'TSEnumDeclaration',
-            message:
-              'Declare a closed set of values as `const X = {...} as const` plus `type X = (typeof X)[keyof typeof X]`, never as an enum.',
-          },
-          /*
-           * A catch whose body is a value answers every failure with that value: a network error and a refused
-           * credential leave the same trace, which is none.
-           */
-          /*
-           * `no-restricted-imports` is the rule for this, and the boundaries layer takes that rule over inside the
-           * source tree. A selector reads the same import and no layer replaces it.
-           */
-          {
-            selector: `ImportDeclaration[source.value=/^(${NODE_BUILTINS.join('|')})$/]`,
-            message:
-              'Import the builtin as `node:<name>`. Without the protocol, a package of that name takes its place.',
-          },
-          {
-            selector:
-              "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type=/^(Literal|Identifier)$/]",
-            message:
-              'This catch answers every failure with one value. Await the call, catch the error, and narrow it to the one this code answers for.',
-          },
-        ],
+        'no-restricted-syntax': ['error', ...RECOMMENDED_RESTRICTED_SYNTAX],
         '@typescript-eslint/no-deprecated': 'warn',
         '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-explicit-any': 'warn',
@@ -232,7 +157,7 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
     },
     {
       files: TSX_FILES,
-      extends: [reactFlatConfigOf('recommended'), reactHooks.configs.flat.recommended],
+      extends: [readReactFlatConfig('recommended'), reactHooks.configs.flat.recommended],
       languageOptions: {
         globals: {
           ...globals.browser,
@@ -250,7 +175,7 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
         },
       },
       rules: {
-        'jsx-a11y/alt-text': ['warn', { elements: ['img'], img: ['Image'] }],
+        'jsx-a11y/alt-text': ['warn', { elements: ['img'] }],
         'react/jsx-sort-props': [
           'error',
           {
@@ -267,8 +192,8 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
         'react/prop-types': 'off',
       },
     },
-    ...jsonc.configs['flat/recommended-with-jsonc'].map(onJsonFiles),
-    ...jsonc.configs['flat/prettier'].map(onJsonFiles),
+    ...jsonc.configs['flat/recommended-with-jsonc'].map(narrowToJsonFiles),
+    ...jsonc.configs['flat/prettier'].map(narrowToJsonFiles),
     ...markdown.configs.recommended,
     {
       files: MARKDOWN_FILES,
@@ -277,10 +202,19 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
       },
     },
     prettier,
+    /*
+     * Prettier never adds or removes a brace, so `eslint-config-prettier` turns `curly` off and leaves the choice to
+     * the configuration after it. `multi` is not one of the options its documentation lists as conflicting: a brace
+     * wraps a body of two statements or more, and a single statement goes without one however many lines it spans.
+     */
+    {
+      files: JS_FILES,
+      rules: { curly: ['error', 'multi'] },
+    },
   )
 
 /**
- * One of the React plugin's flat configurations, by name.
+ * Reads one of the React plugin's flat configurations, by name.
  *
  * The plugin declares them as an index signature, so every entry reads as optional; a name that is not there is a
  * version this configuration was not written against, and failing at load says so where a silent `undefined` would
@@ -288,18 +222,17 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
  *
  * @param name - The configuration's name.
  * @returns The configuration.
- * @throws Error When the plugin declares no configuration under that name.
+ * @throws MissingPluginConfigError When the plugin declares no configuration under that name.
  */
-const reactFlatConfigOf = (name: string): NonNullable<(typeof react.configs.flat)[string]> => {
+const readReactFlatConfig = (name: 'recommended'): NonNullable<(typeof react.configs.flat)[string]> => {
   const reactFlatConfig = react.configs.flat?.[name]
-  /* v8 ignore next -- the plugin declares the configuration this package asks for; the throw is what says so when it stops */
-  if (!reactFlatConfig) throw new Error(`eslint-plugin-react declares no flat configuration named "${name}"`)
+  if (!reactFlatConfig) throw new MissingPluginConfigError('eslint-plugin-react', name)
 
   return reactFlatConfig
 }
 
 /**
- * One entry of the JSON plugin, aimed at this configuration's JSON files.
+ * Narrows one entry of the JSON plugin to this configuration's JSON files.
  *
  * The plugin's own entries name the files they apply to, and the ones that name none apply everywhere; those are the
  * ones this configuration narrows, so a JSON rule never reaches a TypeScript file.
@@ -307,8 +240,9 @@ const reactFlatConfigOf = (name: string): NonNullable<(typeof react.configs.flat
  * @param config - The plugin's entry.
  * @returns The entry, narrowed when it named no files.
  */
-const onJsonFiles = (config: Linter.Config): Linter.Config => {
+const narrowToJsonFiles = (config: Linter.Config): Linter.Config => {
   if (config.files) return config
+  const narrowed = { ...config, files: JSON_FILES }
 
-  return { ...config, files: JSON_FILES }
+  return narrowed
 }

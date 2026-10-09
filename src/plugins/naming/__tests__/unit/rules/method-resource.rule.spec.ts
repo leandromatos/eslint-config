@@ -1,9 +1,13 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { methodResource } from '../../../rules/method-resource.rule.js'
 import type { NamingOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [NamingOptions] = [
   {
@@ -13,7 +17,7 @@ const options: [NamingOptions] = [
     resourceFreeMethods: ['onModuleInit'],
   },
 ]
-const service = sourceFile('users', 'services', 'user.service.ts')
+const service = buildSourcePath('users', 'services', 'user.service.ts')
 
 ruleTester.run('method-resource', methodResource, {
   valid: [
@@ -21,8 +25,16 @@ ruleTester.run('method-resource', methodResource, {
     { code: 'class UserService { findManyUsers() {} }', filename: service, options },
     { code: 'class UserService { onModuleInit() {} }', filename: service, options },
     { code: 'class UserService { private findOne() {} }', filename: service, options },
-    { code: 'class AuthService { login() {} }', filename: sourceFile('auth', 'services', 'auth.service.ts'), options },
-    { code: 'class Anything { findOne() {} }', filename: sourceFile('users', 'utils', 'anything.util.ts'), options },
+    {
+      code: 'class AuthService { login() {} }',
+      filename: buildSourcePath('auth', 'services', 'auth.service.ts'),
+      options,
+    },
+    {
+      code: 'class Anything { findOne() {} }',
+      filename: buildSourcePath('users', 'utils', 'anything.util.ts'),
+      options,
+    },
   ],
   invalid: [
     {
@@ -33,7 +45,7 @@ ruleTester.run('method-resource', methodResource, {
     },
     {
       code: 'class UserRepository { create() {} }',
-      filename: sourceFile('users', 'repositories', 'user.repository.ts'),
+      filename: buildSourcePath('users', 'repositories', 'user.repository.ts'),
       options,
       errors: [{ messageId: 'missingResource' }],
     },
@@ -48,7 +60,7 @@ ruleTester.run('method-resource, in a repository of several packages', methodRes
   invalid: [
     {
       code: 'class UserService { findOne() {} }',
-      filename: packageSourceFile('packages/x', 'users', 'services', 'user.service.ts'),
+      filename: buildPackageSourcePath('packages/x', 'users', 'services', 'user.service.ts'),
       options,
       errors: [{ messageId: 'missingResource' }],
     },

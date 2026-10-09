@@ -1,11 +1,39 @@
 #!/usr/bin/env bats
 #
-# The three regexes every release decision leans on: which tags count as
-# production, which are prereleases, and which commit subject is a release. A
-# silent drift here misreads the baseline, the bump, and the notes at once.
+# The three regexes every release decision leans on, and the tag scan they drive:
+# which tags count as production, which are prereleases, and which commit subject
+# is a release. A silent drift here misreads the baseline, the bump, and the notes
+# at once.
 
 setup() {
+  load helpers/sandbox
+  setup_sandbox
   source "$BATS_TEST_DIRNAME/../patterns.sh"
+}
+
+teardown() {
+  teardown_sandbox
+}
+
+@test "latest_production_tag answers the highest production tag, prereleases left out" {
+  tag "v1.0.0"
+  commit "feat: A feature"
+  tag "v1.1.0-snapshot.20260725.1"
+  [ "$(latest_production_tag)" = "v1.0.0" ]
+}
+
+@test "latest_production_tag leaves out the tag it is told to" {
+  tag "v1.0.0"
+  commit "feat: A feature"
+  tag "v1.1.0"
+  [ "$(latest_production_tag v1.1.0)" = "v1.0.0" ]
+}
+
+@test "latest_production_tag is empty when only prereleases exist, or only the excluded tag" {
+  tag "v0.1.0-snapshot.20260725.1"
+  [ -z "$(latest_production_tag)" ]
+  tag "v1.0.0"
+  [ -z "$(latest_production_tag v1.0.0)" ]
 }
 
 @test "TAG_PATTERN accepts plain semver tags and nothing else" {
@@ -41,6 +69,6 @@ setup() {
   ! [[ "feat: Add a thing" =~ $RELEASE_PATTERN ]]
   ! [[ "chore: v1.2.3" =~ $RELEASE_PATTERN ]]
   ! [[ "chore(release): Bump the version" =~ $RELEASE_PATTERN ]]
-  # No pull requests here, so the squash suffix GitHub appends is not accepted.
+  # The release script writes the subject itself, so the suffix of a squash merge is refused.
   ! [[ "chore(release): v1.2.3 (#42)" =~ $RELEASE_PATTERN ]]
 }

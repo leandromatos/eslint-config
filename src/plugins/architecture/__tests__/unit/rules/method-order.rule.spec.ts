@@ -1,12 +1,16 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { methodOrder } from '../../../rules/method-order.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [ArchitectureOptions] = [{ ...EMPTY_OPTIONS, orderedSuffixes: ['service'] }]
-const service = sourceFile('users', 'services', 'user.service.ts')
+const service = buildSourcePath('users', 'services', 'user.service.ts')
 
 ruleTester.run('method-order', methodOrder, {
   valid: [
@@ -21,11 +25,19 @@ ruleTester.run('method-order', methodOrder, {
     },
     {
       code: 'class UserService {\n  findOneUser() {}\n\n  createUser() {}\n}',
-      filename: sourceFile('users', 'repositories', 'user.repository.ts'),
+      filename: buildSourcePath('users', 'repositories', 'user.repository.ts'),
       options,
     },
   ],
   invalid: [
+    // A method private to the class by its `#` name goes with the private ones, below the public.
+    {
+      code: 'class UserService {\n  #readUserCache() {}\n\n  findOneUser() {}\n}',
+      filename: service,
+      options,
+      errors: [{ messageId: 'privateBeforePublic' }],
+      output: 'class UserService {\n  findOneUser() {}\n\n  #readUserCache() {}\n}',
+    },
     // A documentation comment travels with the method the fix moves.
     {
       code: 'class UserService {\n  /** Reads one user. */\n  findOneUser() {}\n\n  /** Creates one user. */\n  createUser() {}\n}',
@@ -65,7 +77,7 @@ ruleTester.run('method-order, in a repository of several packages', methodOrder,
   invalid: [
     {
       code: 'class UserService {\n  findOneUser() {}\n\n  createUser() {}\n}',
-      filename: packageSourceFile('apps/x', 'users', 'services', 'user.service.ts'),
+      filename: buildPackageSourcePath('apps/x', 'users', 'services', 'user.service.ts'),
       options,
       errors: [{ messageId: 'outOfOrder' }],
       output: 'class UserService {\n  createUser() {}\n\n  findOneUser() {}\n}',

@@ -1,7 +1,7 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
+import { buildRuleDocsUrl, locateFile } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ArchitectureRule, ArgumentPassedWholeMessageId } from '../types/index.js'
 
@@ -15,7 +15,7 @@ export const argumentPassedWhole: ArchitectureRule<ArgumentPassedWholeMessageId>
     type: 'problem',
     docs: {
       description: 'A named object is passed on whole, not a field of it.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/argument-passed-whole.md',
+      url: buildRuleDocsUrl('architecture', 'argument-passed-whole'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -26,14 +26,14 @@ export const argumentPassedWhole: ArchitectureRule<ArgumentPassedWholeMessageId>
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [{ wholeArguments }] = context.options
     const governing = wholeArguments.find(wholeArgument => wholeArgument.suffix === where?.suffix)
     if (!governing) return {}
     const listener: TSESLint.RuleListener = {
       CallExpression: callExpression => {
         for (const argument of callExpression.arguments) {
-          const object = unwrappedObjectOf(argument, governing.objects)
+          const object = findUnwrappedObject(argument, governing.objects)
           if (!object) continue
           context.report({
             node: argument,
@@ -55,7 +55,7 @@ export const argumentPassedWhole: ArchitectureRule<ArgumentPassedWholeMessageId>
  * @param objects - The objects this layer passes on whole.
  * @returns The object's name, and null for an argument that unwraps nothing.
  */
-const unwrappedObjectOf = (argument: TSESTree.CallExpressionArgument, objects: string[]): string | null => {
+const findUnwrappedObject = (argument: TSESTree.CallExpressionArgument, objects: string[]): string | null => {
   if (argument.type !== AST_NODE_TYPES.MemberExpression) return null
   if (argument.object.type !== AST_NODE_TYPES.Identifier || !objects.includes(argument.object.name)) return null
 

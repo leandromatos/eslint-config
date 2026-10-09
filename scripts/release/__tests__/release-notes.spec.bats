@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
 #
-# The notes replace the changelog that was removed, so they are the only
-# human-readable record of what a release contains. These pin the classification
+# The notes are the only human-readable record of what a release contains. These pin the classification
 # rules, the section order, and the two things that must never happen: a commit
 # silently dropped, and the release commit showing up as a change.
 
@@ -50,26 +49,6 @@ teardown() {
   done
 }
 
-@test "baseline is the previous production tag" {
-  tag "v1.0.0"
-  commit "feat: A feature"
-  tag "v1.1.0"
-  [ "$(release_notes_baseline v1.1.0)" = "v1.0.0" ]
-}
-
-@test "baseline skips prereleases" {
-  tag "v1.0.0"
-  commit "feat: A feature"
-  tag "v1.1.0-snapshot.20260725.1"
-  commit "feat: Another"
-  tag "v1.1.0"
-  [ "$(release_notes_baseline v1.1.0)" = "v1.0.0" ]
-}
-
-@test "baseline is empty for the first production tag" {
-  tag "v1.0.0"
-  [ -z "$(release_notes_baseline v1.0.0)" ]
-}
 
 @test "body groups commits under their sections" {
   tag "v1.0.0"

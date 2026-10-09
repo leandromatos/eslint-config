@@ -227,6 +227,9 @@ importers:
       '@leandromatos/prettier-config':
         specifier: ^2.2.0
         version: 2.2.0(prettier@3.9.9)
+      '@microsoft/tsdoc':
+        specifier: ^0.17.1
+        version: 0.17.1
       '@types/eslint-plugin-jsx-a11y':
         specifier: ^6.10.1
         version: 6.10.1(jiti@2.6.1)(supports-color@7.2.0)
@@ -240,7 +243,7 @@ importers:
         specifier: ^8.71.0
         version: 8.71.0(eslint@10.11.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
       '@typescript-eslint/typescript-estree':
-        specifier: 8.71.0
+        specifier: ^8.71.0
         version: 8.71.0(supports-color@7.2.0)(typescript@6.0.3)
       '@vitest/coverage-v8':
         specifier: ^5.0.3

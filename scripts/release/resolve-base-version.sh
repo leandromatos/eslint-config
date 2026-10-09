@@ -30,22 +30,6 @@ RESOLVE_BASE_VERSION_SH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./patterns.sh
 source "$RESOLVE_BASE_VERSION_SH_DIR/patterns.sh"
 
-# Highest production tag, prereleases excluded, the released tag filtered out.
-# git's own version sort keeps this portable: BSD sort has no reliable -V.
-base_version_latest_tag() {
-  local exclude_tag="$1"
-  local candidate
-  while IFS= read -r candidate; do
-    [ -z "$candidate" ] && continue
-    [ "$candidate" = "$exclude_tag" ] && continue
-    printf '%s' "${candidate#v}"
-    return 0
-  done < <(git tag --list 'v*' --sort=-v:refname 2>/dev/null \
-    | grep -vE -- "$PRERELEASE_PATTERN" \
-    | grep -E "$TAG_PATTERN")
-  printf ''
-}
-
 # Highest plain 'X.Y.Z' published to npm, excluding the version being released.
 # Empty when the package is unpublished (npm exits non-zero) or when nothing
 # published matches. node does the JSON parsing and the numeric compare, so this
@@ -93,7 +77,8 @@ resolve_base_version() {
   local exclude_version="${exclude_tag#v}"
 
   local tag_version registry_version
-  tag_version=$(base_version_latest_tag "$exclude_tag")
+  tag_version=$(latest_production_tag "$exclude_tag")
+  tag_version="${tag_version#v}"
   registry_version=$(base_version_registry "$package_name" "$exclude_version")
 
   BASE_VERSION="0.0.0"

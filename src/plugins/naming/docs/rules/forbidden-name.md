@@ -1,46 +1,56 @@
-# naming/forbidden-name
+# leandromatos/naming-forbidden-name
 
-A name the conventions forbid is never declared.
+A name the options forbid whole, or a name carrying a word they forbid, is never declared.
 
-These conventions forbid one word, `data`, which says what a value is made of rather than what it is. A
-reader who meets it learns nothing, and the name survives every refactor that changes what the
-value holds.
+Two lists, for two situations. `forbiddenNames` refuses a name as a whole: `data` alone. `forbiddenWords` refuses a
+word of a name: `data` in `userData` and `UserData`, and not in `metadata`, since a word is a segment of a camel-case,
+Pascal-case or snake-case name. A word refused as the `last` one is the suffix of the name: `userData` is refused and
+`healthDataSharing`, where the word is part of a term of the domain, is not. Each entry carries the reason the report
+reads.
 
-The rule judges what the author chose: a variable, a parameter, a function, a class, a property of
-a class. A key of an object literal is half of a contract the code fills in, so
-`context.report({ data })` spells `data` because ESLint asked for it.
+The rule judges what the author chose: a variable, a parameter, a function, a class, a method or a property of a
+class, an interface, a type alias, and a member of either. A key of an object literal is half of a contract the code
+fills in, and so is the key of a type written inline for a parameter, so `context.report({ data })` spells `data`
+because ESLint asked for it.
 
 ## Rule details
 
-👎 Examples of **incorrect** code:
+👎 Examples of **incorrect** code, with `data` a forbidden word:
 
 ```typescript
-const data = await fetchDevices()
+const userData = await fetchUser()
 
-function render(data: Device[]) {}
+interface DeviceData {
+  rawData: string
+}
 ```
 
 👍 Examples of **correct** code:
 
 ```typescript
-const devices = await fetchDevices()
+const user = await fetchUser()
 
-function render(devices: Device[]) {}
+const metadata = readMetadata() // the letters inside another word are not the word
 
-context.report({ node, messageId: 'forbidden', data: { name } })
+context.report({ node, messageId: 'forbiddenWord', data: { name } }) // a key of a contract
 ```
 
 ## Options
 
-| Option           | Type       | What it decides                                               |
-| ---------------- | ---------- | ------------------------------------------------------------- |
-| `forbiddenNames` | `string[]` | The names no declaration carries, whatever the value it holds |
+Read from the `naming` group of the options.
+
+| Option           | Type              | What it decides                                                                        |
+| ---------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| `forbiddenNames` | `ForbiddenName[]` | `{ name, because }`: the names no declaration carries whole                            |
+| `forbiddenWords` | `ForbiddenWord[]` | `{ word, because, position? }`: the words no name carries, `anywhere` or as the `last` |
+
+No tier forbids a name or a word. The `CONTROLLED_LANGUAGE` preset forbids `data` as the last word of a name, since it
+says what a value is made of rather than what it is.
 
 ## Fixable
 
-No. Only the author knows what the value holds, and that is what the new name has to say.
+No. Only the author knows what the value holds, and that is what the new name says.
 
 ## When not to use it
 
-A project that has to write a name a contract imposes on a declaration passes a list of its own,
-or an empty one.
+A project that writes the names a contract imposes on its declarations, such as the fields of a payload it mirrors.

@@ -1,8 +1,9 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { TsdocRule, UnreadTagMessageId } from '../types/index.js'
-import { isDocComment, lineLocationOf, parseDocBlock } from '../utils/index.js'
+import { buildLineLocation, isDocComment, parseDocBlock } from '../utils/index.js'
 
 /** The release tags of TSDoc, which a tool reads to trim the declarations a package publishes. */
 const RELEASE_TAGS = new Set(['public', 'internal', 'alpha', 'beta'])
@@ -20,7 +21,7 @@ export const unreadTag: TsdocRule<UnreadTagMessageId> = {
     docs: {
       description:
         'A comment carries no tag that nothing reads: @override always, and a release tag with no tool for it.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/unread-tag.md',
+      url: buildRuleDocsUrl('tsdoc', 'unread-tag'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -39,10 +40,10 @@ export const unreadTag: TsdocRule<UnreadTagMessageId> = {
         for (const comment of sourceCode.getAllComments().filter(isDocComment))
           for (const docBlockTag of parseDocBlock(comment).tags) {
             if (docBlockTag.tag === 'override')
-              context.report({ loc: lineLocationOf(docBlockTag.line), messageId: 'overrideTag' })
+              context.report({ loc: buildLineLocation(docBlockTag.line), messageId: 'overrideTag' })
             if (RELEASE_TAGS.has(docBlockTag.tag) && !readsReleaseTags)
               context.report({
-                loc: lineLocationOf(docBlockTag.line),
+                loc: buildLineLocation(docBlockTag.line),
                 messageId: 'releaseTag',
                 data: { tag: docBlockTag.tag },
               })

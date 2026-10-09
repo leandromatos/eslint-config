@@ -1,15 +1,16 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils'
 
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
+import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TSDOC_TAG } from '../constants/index.js'
 import type { DocumentedNode, ReturningNode, ReturnsTagMessageId, TsdocRule } from '../types/index.js'
 import {
+  buildLineLocation,
   findDocBlock,
   handsValueBack,
   inheritsDoc,
   isConstructor,
   isOverloadImplementation,
-  lineLocationOf,
   parseDocBlock,
 } from '../utils/index.js'
 
@@ -29,7 +30,7 @@ export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
     docs: {
       description:
         'A documented function carries one @returns with a description when it hands a value back, and none otherwise.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/returns-tag.md',
+      url: buildRuleDocsUrl('tsdoc', 'returns-tag'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -48,9 +49,9 @@ export const returnsTag: TsdocRule<ReturnsTagMessageId> = {
       const comment = findDocBlock(sourceCode, documented)
       if (!comment || isConstructor(node) || isOverloadImplementation(node)) return
       const docBlock = parseDocBlock(comment)
-      const returnsTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === 'returns')
+      const returnsTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === TSDOC_TAG.returns)
       for (const returnsTag of returnsTags.filter(docBlockTag => docBlockTag.description === ''))
-        context.report({ loc: lineLocationOf(returnsTag.line), messageId: 'missingReturnsDescription' })
+        context.report({ loc: buildLineLocation(returnsTag.line), messageId: 'missingReturnsDescription' })
       if (returnsTags.length > 1) {
         context.report({ loc: comment.loc, messageId: 'duplicateReturns' })
 

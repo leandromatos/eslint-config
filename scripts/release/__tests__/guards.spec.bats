@@ -2,8 +2,7 @@
 #
 # The bump resolution decides which version gets published, so a wrong answer
 # here ships a wrong version to npm. These pin the detection rules, the 0.x cap,
-# and the confirmation prompt's behavior without a terminal — the path that broke
-# the first real release attempt.
+# and the confirmation prompt's behavior without a terminal.
 
 setup() {
   load helpers/sandbox
@@ -13,18 +12,6 @@ setup() {
 
 teardown() {
   teardown_sandbox
-}
-
-@test "last_production_tag ignores prereleases" {
-  tag "v1.0.0"
-  commit "feat: A feature"
-  tag "v1.1.0-snapshot.20260725.1"
-  [ "$(last_production_tag)" = "v1.0.0" ]
-}
-
-@test "last_production_tag is empty when only prereleases exist" {
-  tag "v0.1.0-snapshot.20260725.1"
-  [ -z "$(last_production_tag)" ]
 }
 
 @test "bump_from_commits reports patch when nothing notable landed" {
@@ -149,7 +136,7 @@ os.execvp('bash', ['bash', '-c', \"source '$BATS_TEST_DIRNAME/../guards.sh'; con
   [[ "$output" == *"not clean"* ]]
 }
 
-@test "write_package_version rewrites only the version" {
+@test "write_package_version writes the version and leaves the rest of the manifest" {
   write_package_version "4.5.6"
   [ "$(node -p "require('$PWD/package.json').version")" = "4.5.6" ]
   [ "$(node -p "require('$PWD/package.json').name")" = "@scope/pkg" ]

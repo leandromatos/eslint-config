@@ -1,6 +1,8 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
+import { readMemberName } from '../../shared/utils/index.js'
+
 /**
  * Whether a function is the implementation of an overloaded one: the body below the signatures a caller sees.
  *
@@ -29,14 +31,13 @@ const isMethodOverloaded = (method: TSESTree.MethodDefinition): boolean => {
   if (method.value.type === AST_NODE_TYPES.TSEmptyBodyFunctionExpression) return false
   const members = method.parent.body
   const before = members[members.indexOf(method) - 1]
-
-  const name = nameOf(method)
+  const name = readOverloadName(method)
 
   return (
-    name !== '' &&
+    name !== null &&
     before?.type === AST_NODE_TYPES.MethodDefinition &&
     before.value.type === AST_NODE_TYPES.TSEmptyBodyFunctionExpression &&
-    nameOf(before) === name
+    readOverloadName(before) === name
   )
 }
 
@@ -48,9 +49,9 @@ const isMethodOverloaded = (method: TSESTree.MethodDefinition): boolean => {
  */
 const isDeclarationOverloaded = (declaration: TSESTree.FunctionDeclaration): boolean => {
   const statement = statementOf(declaration)
-  const statements = siblingsOf(statement)
+  const statements = listSiblingStatements(statement)
   const before = statements[statements.indexOf(statement) - 1]
-  const signature = before && declarationOf(before)
+  const signature = before && unwrapExportedDeclaration(before)
 
   return signature?.type === AST_NODE_TYPES.TSDeclareFunction && signature.id?.name === declaration.id?.name
 }
@@ -73,7 +74,7 @@ const statementOf = (declaration: TSESTree.FunctionDeclaration): TSESTree.Node =
  * @param statement - The statement.
  * @returns The statements, in order, and none where it sits in no list of statements.
  */
-const siblingsOf = (statement: TSESTree.Node): TSESTree.Node[] => {
+const listSiblingStatements = (statement: TSESTree.Node): TSESTree.Node[] => {
   const { parent } = statement
   if (
     parent?.type === AST_NODE_TYPES.Program ||
@@ -91,22 +92,21 @@ const siblingsOf = (statement: TSESTree.Node): TSESTree.Node[] => {
  * @param statement - The statement.
  * @returns The declaration.
  */
-const declarationOf = (statement: TSESTree.Node): TSESTree.Node | null => {
+const unwrapExportedDeclaration = (statement: TSESTree.Node): TSESTree.Node | null => {
   if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration) return statement.declaration
 
   return statement
 }
 
 /**
- * The name a method is declared under, and an empty string for one its key computes or spells as a literal.
+ * Reads the name an overload is matched by: the name the member is declared under, and none for a key the source
+ * computes or spells as a literal, which no signature can be told to stand for.
  *
  * @param method - The method.
  * @returns The name.
  */
-const nameOf = (method: TSESTree.MethodDefinition): string => {
-  const { key } = method
-  if (method.computed) return ''
-  if (key.type === AST_NODE_TYPES.Identifier || key.type === AST_NODE_TYPES.PrivateIdentifier) return key.name
+const readOverloadName = (method: TSESTree.MethodDefinition): string | null => {
+  if (method.key.type === AST_NODE_TYPES.Literal) return null
 
-  return ''
+  return readMemberName(method)
 }

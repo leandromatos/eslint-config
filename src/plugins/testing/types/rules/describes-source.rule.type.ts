@@ -1,2 +1,2 @@
-/** The messages `spec-describes-source` reports. */
-export type SpecDescribesSourceMessageId = 'wrongSubject'
+/** The messages `describes-source` reports. */
+export type DescribesSourceMessageId = 'wrongSubject'

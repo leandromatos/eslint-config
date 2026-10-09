@@ -1,5 +1,5 @@
 import type { PluginRule } from '../../shared/types/index.js'
-import type { ValueCase } from './rules/index.js'
+import type { ForbiddenName, ForbiddenWord, ValueCase } from './rules/index.js'
 
 /** What the `naming` rules judge against. What a value, a method and a spec fixture are called. */
 export interface NamingOptions {
@@ -8,8 +8,10 @@ export interface NamingOptions {
    * compared to.
    */
   roleNames: string[]
-  /** The names the conventions forbid outright, wherever a declaration would give one. */
-  forbiddenNames: string[]
+  /** The names no declaration carries whole, each with the reason the message gives. */
+  forbiddenNames: ForbiddenName[]
+  /** The words no name carries in any position, each with the reason the message gives. */
+  forbiddenWords: ForbiddenWord[]
   /** The verbs whose result is something new, and the participle that opens the name of what they return. */
   verbParticiples: Record<string, string>
   /** String values governed by the name they are declared under. */

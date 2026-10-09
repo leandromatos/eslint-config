@@ -1,4 +1,4 @@
-import type { TSESLint } from '@typescript-eslint/utils'
+import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
 /** Where a file sits relative to its source root, split into what the rules look at. */
 export interface Location {
@@ -22,11 +22,11 @@ export interface Location {
 export type PluginRule<TMessageId extends string, TOptions> = TSESLint.RuleModule<TMessageId, [TOptions]>
 
 /** A problem a file-level judge found: which message, with which data. */
-interface Finding<TMessageId extends string> {
+export interface Finding<TMessageId extends string> {
   /** Which message the rule reports. */
   messageId: TMessageId
-  /** What the message is filled with. */
-  data: Record<string, string>
+  /** What the message is filled with, which the rule hands ESLint as the `data` of the report. */
+  messageValues: Record<string, string>
 }
 
 /** Judges one file against the options and returns one finding per problem. */
@@ -35,3 +35,6 @@ export type Judge<TMessageId extends string, TOptions> = (
   options: TOptions,
   context: TSESLint.RuleContext<TMessageId, [TOptions]>,
 ) => Finding<TMessageId>[]
+
+/** A function the code writes as a statement or as a value, which is what owns a `return`, a `throw` or a `yield`. */
+export type FunctionNode = TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression

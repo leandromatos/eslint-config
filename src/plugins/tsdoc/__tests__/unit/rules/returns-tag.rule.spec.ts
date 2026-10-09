@@ -1,15 +1,23 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-import { sourceFile, typedRuleTester } from '../../../../../__tests__/utils/index.js'
+import { buildFixturePath, buildSourcePath, createTypedRuleTester } from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { returnsTag } from '../../../rules/returns-tag.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
+import type { PlacedCase } from '../types/rules/index.js'
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'returns-tag')
-const ruleTester = typedRuleTester(root)
-const filename = sourceFile('users', 'services', 'user.service.ts')
+const root = buildFixturePath(import.meta.url, 'returns-tag')
+const ruleTester = createTypedRuleTester(root)
+const filename = buildSourcePath('users', 'services', 'user.service.ts')
 
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
+
+/**
+ * Places each case in a source file of the fixture project, so the parser reads their types.
+ *
+ * @param cases - The cases as written.
+ * @returns The cases, with the file they are read from.
+ */
+const withFilename = <TCase extends object>(cases: TCase[]): PlacedCase<TCase>[] =>
+  cases.map(testCase => ({ ...testCase, filename }))
 
 ruleTester.run('returns-tag', returnsTag, {
   valid: withFilename([
@@ -253,13 +261,3 @@ ruleTester.run('returns-tag', returnsTag, {
     },
   ]),
 })
-
-/**
- * The cases, each placed in a source file of the fixture project, so the parser reads their types.
- *
- * @param cases - The cases as written.
- * @returns The cases, with the file they are read from.
- */
-function withFilename<Case extends object>(cases: Case[]): (Case & { filename: string })[] {
-  return cases.map(testCase => ({ ...testCase, filename }))
-}

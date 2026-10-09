@@ -1,12 +1,11 @@
-# tsdoc/documented-type
+# leandromatos/tsdoc-documented-type
 
-Every class, interface and type alias a module declares carries a documentation comment, and the
-summary says what the name cannot.
+Every class, interface and type alias a module declares carries a documentation comment, and the summary says what the
+name cannot.
 
-A type is read wherever it is named, and the editor shows its comment there. An alias a type
-utility derives is no exception: its right-hand side tells how the type is built, and the comment
-tells what it is for. A summary that rewrites the name into a sentence is reported as if it were
-missing.
+A type is read wherever it is named, and the editor shows its comment there. An alias a type utility derives is no
+exception: its right-hand side tells how the type is built, and the comment tells what it is for. A summary that
+rewrites the name into a sentence is reported as if it were missing.
 
 ## Rule details
 
@@ -44,8 +43,8 @@ export type TokenInsertAttributes = InferInsertModel<typeof TokensTable>
 export type TokenType = (typeof TokenType)[keyof typeof TokenType]
 ```
 
-A class bound to a variable is declared too, and so is a type inside a `declare module` or a
-`declare global`. The comment of a decorated class sits above its first decorator.
+A class bound to a variable is declared too, and so is a type inside a `declare module` or a `declare global`. The
+comment of a decorated class sits above its first decorator.
 
 ## Options
 

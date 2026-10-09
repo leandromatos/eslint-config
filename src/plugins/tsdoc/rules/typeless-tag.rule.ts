@@ -1,8 +1,9 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TYPED_TAGS } from '../constants/index.js'
 import type { DocBlockTag, TsdocRule, TypelessTagMessageId } from '../types/index.js'
-import { isDocComment, lineLocationOf, parseDocBlock } from '../utils/index.js'
+import { buildLineLocation, isDocComment, parseDocBlock } from '../utils/index.js'
 
 /**
  * A `@param` or a `@returns` carries no type in braces.
@@ -16,7 +17,7 @@ export const typelessTag: TsdocRule<TypelessTagMessageId> = {
     type: 'problem',
     docs: {
       description: 'A @param or a @returns carries no type in braces.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/typeless-tag.md',
+      url: buildRuleDocsUrl('tsdoc', 'typeless-tag'),
       dialects: ['TypeScript'],
     },
     fixable: 'code',
@@ -31,12 +32,12 @@ export const typelessTag: TsdocRule<TypelessTagMessageId> = {
     const judge = (comment: TSESTree.Comment): void => {
       for (const docBlockTag of parseDocBlock(comment).tags) {
         if (!TYPED_TAGS.has(docBlockTag.tag) || docBlockTag.type === null) continue
-        const fixedValue = withoutType(comment.value, docBlockTag)
+        const fixedValue = removeTagType(comment.value, docBlockTag)
         context.report({
-          loc: lineLocationOf(docBlockTag.line),
+          loc: buildLineLocation(docBlockTag.line),
           messageId: 'typedTag',
           data: { tag: docBlockTag.tag },
-          fix: ruleFixer => fixOrNothing(ruleFixer, comment, fixedValue),
+          fix: ruleFixer => buildTypelessFix(ruleFixer, comment, fixedValue),
         })
       }
     }
@@ -59,7 +60,7 @@ export const typelessTag: TsdocRule<TypelessTagMessageId> = {
  * @param fixedValue - The comment, as it reads without the type.
  * @returns The fix, and null when there is nothing to take out.
  */
-const fixOrNothing = (
+const buildTypelessFix = (
   ruleFixer: TSESLint.RuleFixer,
   comment: TSESTree.Comment,
   fixedValue: string,
@@ -76,13 +77,22 @@ const fixOrNothing = (
  * @param docBlockTag - The tag whose type goes.
  * @returns The comment, without that type.
  */
-const withoutType = (value: string, docBlockTag: DocBlockTag): string => {
-  const lines = value.split('\n')
-  /* v8 ignore next -- the tag was read from this line */
-  const line = lines[docBlockTag.lineIndex] ?? ''
-  lines[docBlockTag.lineIndex] = line
-    .replace(`{${docBlockTag.type}}`, '')
-    .replace(`@${docBlockTag.tag}  `, `@${docBlockTag.tag} `)
+const removeTagType = (value: string, docBlockTag: DocBlockTag): string =>
+  value
+    .split('\n')
+    .map((line, index) => removeTypeOnLine(line, index, docBlockTag))
+    .join('\n')
 
-  return lines.join('\n')
+/**
+ * Removes the type from the line the tag opens on, and leaves every other line as it is.
+ *
+ * @param line - One line of the comment.
+ * @param index - Where the line sits in the comment.
+ * @param docBlockTag - The tag whose type goes.
+ * @returns The line, without the type when it is the line of the tag.
+ */
+const removeTypeOnLine = (line: string, index: number, docBlockTag: DocBlockTag): string => {
+  if (index !== docBlockTag.lineIndex) return line
+
+  return line.replace(`{${docBlockTag.type}}`, '').replace(`@${docBlockTag.tag}  `, `@${docBlockTag.tag} `)
 }

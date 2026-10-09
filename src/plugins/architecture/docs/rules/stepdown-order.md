@@ -1,11 +1,11 @@
-# architecture/stepdown-order
+# leandromatos/architecture-stepdown-order
 
-A module reads top down, the way a caller would walk it: a function comes after every function
-that calls it.
+A module reads top down, the way a caller walks it: a function comes after every function that calls it.
 
-Two functions called by the same one come in the order it calls them, unless one of them reaches
-the other, in which case the first rule decides. Two functions that call each other are left where
-they are: there is no order that satisfies both.
+Two functions called by the same one come in the order it calls them, unless one of them reaches the other, in which
+case the first rule decides. Two functions that call each other are left where they are: no order satisfies both. A
+function an initializer calls runs while the module loads, so it stays above the initializer, whose call would
+otherwise land in its temporal dead zone.
 
 ## Rule details
 
@@ -39,10 +39,10 @@ Read from the `architecture` group of the options.
 | -------------------------- | ---------- | --------------------------------------------------------------------------- |
 | `definitionTimeDirectives` | `string[]` | the directives that make a function read what it calls where it is declared |
 
-A function whose body opens with one of these directives captures its closure where it is declared,
-so what it calls has to be declared above it, the same as what an initializer calls. The `expo`
-tier names `'worklet'`: the React Native Worklets Babel plugin turns such a function into a factory
-called at its declaration, with the closure handed over then.
+A function whose body opens with one of these directives captures its closure where it is declared, so what it calls
+is declared above it, the same as what an initializer calls. The `expo` tier names `'worklet'`: the Babel plugin of
+React Native Worklets turns such a function into a factory called at its declaration, with the closure handed over
+then.
 
 ```typescript
 const clamp = (value: number): number => {
@@ -60,8 +60,8 @@ export const resize = (value: number): number => {
 
 ## Fixable
 
-No. Moving a function past another changes what a reader sees first; the rule says where it goes
-and the author moves it.
+No. Moving a function past another changes what a reader sees first; the rule says where it goes and the author moves
+it.
 
 ## When not to use it
 

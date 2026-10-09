@@ -1,6 +1,8 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
+import type { FunctionNode } from '../../shared/types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ArchitectureRule, ModuleFunction, StepdownOrderMessageId } from '../types/index.js'
 
@@ -15,7 +17,7 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
     type: 'problem',
     docs: {
       description: 'A top-level function comes after its callers, in the order they call it.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/stepdown-order.md',
+      url: buildRuleDocsUrl('architecture', 'stepdown-order'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -34,37 +36,23 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
         const moduleFunctions = readModuleFunctions(program, context.sourceCode)
         const evaluatedAtImport = readImportTimeNames(program, context.sourceCode)
         const capturedAtDefinition = readDefinitionTimeNames(program, context.sourceCode, definitionTimeDirectives)
-        const position = new Map(moduleFunctions.map((moduleFunction, index) => [moduleFunction.name, index]))
         const byName = new Map(moduleFunctions.map(moduleFunction => [moduleFunction.name, moduleFunction]))
         for (const moduleFunction of moduleFunctions) {
-          const callees = moduleFunction.calls.filter(
-            name => byName.has(name) && !byName.get(name)?.calls.includes(moduleFunction.name),
-          )
+          const callees = listOneWayCallees(moduleFunction, byName)
           for (const callee of callees) {
-            const target = byName.get(callee)
-            /* v8 ignore next -- both names come from the map the positions were built from */
-            if (!target || (position.get(callee) ?? 0) > (position.get(moduleFunction.name) ?? 0)) continue
-            if (!target.hoisted && evaluatedAtImport.has(callee)) continue
-            if (capturedAtDefinition.has(callee)) continue
-            context.report({
-              node: target.node,
-              messageId: 'calleeBeforeCaller',
-              data: { callee, caller: moduleFunction.name },
-            })
+            if (callee.position > moduleFunction.position) continue
+            if (!callee.hoisted && evaluatedAtImport.has(callee.name)) continue
+            if (capturedAtDefinition.has(callee.name)) continue
+            const messageValues = { callee: callee.name, caller: moduleFunction.name }
+            context.report({ node: callee.node, messageId: 'calleeBeforeCaller', data: messageValues })
           }
           for (const [index, earlier] of callees.entries()) {
             const later = callees[index + 1]
-            /* v8 ignore next -- both names come from the map the positions were built from */
-            if (!later || (position.get(earlier) ?? 0) < (position.get(later) ?? 0)) continue
-            if (reaches(later, earlier, byName) || reaches(earlier, later, byName)) continue
-            if (isCalledInReverse(later, earlier, moduleFunctions, moduleFunction.name)) continue
-            const node = byName.get(later)?.node
-            if (node)
-              context.report({
-                node,
-                messageId: 'siblingsOutOfOrder',
-                data: { later, earlier, caller: moduleFunction.name },
-              })
+            if (!later || earlier.position < later.position) continue
+            if (isReachable(later.name, earlier.name, byName) || isReachable(earlier.name, later.name, byName)) continue
+            if (isCalledInReverse(later.name, earlier.name, moduleFunctions, moduleFunction.name)) continue
+            const messageValues = { later: later.name, earlier: earlier.name, caller: moduleFunction.name }
+            context.report({ node: later.node, messageId: 'siblingsOutOfOrder', data: messageValues })
           }
         }
       },
@@ -73,6 +61,22 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
     return listener
   },
 }
+
+/**
+ * Lists the functions of the module a function calls, in the order it calls them, leaving out the ones that call it
+ * back: two functions that call each other have no order to be in.
+ *
+ * @param moduleFunction - The caller.
+ * @param byName - Every function the module declares, by name.
+ * @returns The callees, in call order.
+ */
+const listOneWayCallees = (moduleFunction: ModuleFunction, byName: Map<string, ModuleFunction>): ModuleFunction[] =>
+  moduleFunction.calls.flatMap(name => {
+    const callee = byName.get(name)
+    if (!callee || callee.calls.includes(moduleFunction.name)) return []
+
+    return [callee]
+  })
 
 /**
  * Whether another function calls the two in the opposite order, which leaves the pair with no order to be in.
@@ -109,15 +113,18 @@ const isCalledInReverse = (
  * @param seen - The functions the walk already passed, which is what ends a cycle.
  * @returns Whether it reaches it.
  */
-const reaches = (from: string, to: string, byName: Map<string, ModuleFunction>, seen = new Set<string>()): boolean => {
-  /* v8 ignore next -- the walk only follows names the module declares */
+const isReachable = (
+  from: string,
+  to: string,
+  byName: Map<string, ModuleFunction>,
+  seen = new Set<string>(),
+): boolean => {
   if (seen.has(from)) return false
   seen.add(from)
-  /* v8 ignore next -- the walk only follows names the module declares */
   const calls = byName.get(from)?.calls ?? []
   if (calls.includes(to)) return true
 
-  return calls.some(next => reaches(next, to, byName, seen))
+  return calls.some(next => isReachable(next, to, byName, seen))
 }
 
 /**
@@ -131,24 +138,25 @@ const readModuleFunctions = (program: TSESTree.Program, sourceCode: TSESLint.Sou
   const moduleFunctions: ModuleFunction[] = []
   for (const statement of program.body) {
     const declaration = unwrapExport(statement)
-    /* v8 ignore next -- an export of the module declares what it exports */
     if (!declaration) continue
-    if (declaration.type === AST_NODE_TYPES.FunctionDeclaration && declaration.id) {
+    if (declaration.type === AST_NODE_TYPES.FunctionDeclaration && declaration.id)
       moduleFunctions.push({
         name: declaration.id.name,
         node: statement,
-        calls: referencedNames(declaration, sourceCode),
+        calls: listReferencedNames(declaration, sourceCode),
         hoisted: true,
+        position: moduleFunctions.length,
       })
-    }
+
     if (declaration.type !== AST_NODE_TYPES.VariableDeclaration) continue
     for (const declarator of declaration.declarations) {
       if (declarator.id.type !== AST_NODE_TYPES.Identifier || !isFunctionExpression(declarator.init)) continue
       moduleFunctions.push({
         name: declarator.id.name,
         node: statement,
-        calls: referencedNames(declarator.init, sourceCode),
+        calls: listReferencedNames(declarator.init, sourceCode),
         hoisted: false,
+        position: moduleFunctions.length,
       })
     }
   }
@@ -174,7 +182,7 @@ const readImportTimeNames = (program: TSESTree.Program, sourceCode: TSESLint.Sou
     if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) continue
     for (const declarator of declaration.declarations) {
       if (!declarator.init || isFunctionExpression(declarator.init)) continue
-      for (const name of referencedNames(declarator.init, sourceCode)) names.add(name)
+      for (const name of listReferencedNames(declarator.init, sourceCode)) names.add(name)
     }
   }
 
@@ -202,8 +210,8 @@ const readDefinitionTimeNames = (
     const declaration = unwrapExport(statement)
     const functions = readDeclaredFunctions(declaration)
     for (const declaredFunction of functions) {
-      if (!opensWith(declaredFunction, definitionTimeDirectives)) continue
-      for (const name of referencedNames(declaredFunction, sourceCode)) names.add(name)
+      if (!hasDirective(declaredFunction, definitionTimeDirectives)) continue
+      for (const name of listReferencedNames(declaredFunction, sourceCode)) names.add(name)
     }
   }
 
@@ -228,9 +236,7 @@ const unwrapExport = (statement: TSESTree.ProgramStatement): TSESTree.Node | nul
  * @param declaration - The statement, with its export taken off.
  * @returns The functions, none when it declares no function.
  */
-const readDeclaredFunctions = (
-  declaration: TSESTree.Node | null,
-): (TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression)[] => {
+const readDeclaredFunctions = (declaration: TSESTree.Node | null): FunctionNode[] => {
   if (declaration?.type === AST_NODE_TYPES.FunctionDeclaration) return [declaration]
   if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) return []
 
@@ -248,10 +254,7 @@ const readDeclaredFunctions = (
  * @param directives - The directives to look for.
  * @returns Whether the prologue names one of them.
  */
-const opensWith = (
-  node: TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression,
-  directives: string[],
-): boolean => {
+const hasDirective = (node: FunctionNode, directives: string[]): boolean => {
   if (node.body.type !== AST_NODE_TYPES.BlockStatement) return false
 
   return node.body.body.some(
@@ -270,7 +273,7 @@ const opensWith = (
  * @param sourceCode - The source the function is written in.
  * @returns The names, in the order the body reaches them.
  */
-const referencedNames = (node: TSESTree.Node, sourceCode: TSESLint.SourceCode): string[] => {
+const listReferencedNames = (node: TSESTree.Node, sourceCode: TSESLint.SourceCode): string[] => {
   const references: TSESLint.Scope.Reference[] = []
   const visit = (scope: TSESLint.Scope.Scope): void => {
     references.push(...scope.through)

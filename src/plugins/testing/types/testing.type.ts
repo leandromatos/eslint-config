@@ -11,8 +11,10 @@ export interface TestingOptions {
   mirroringTestKinds: string[]
   /** Layer suffix to the folder that holds it, which is how a spec finds its source. */
   suffixToFolder: Record<string, string>
-  /** The test kind that goes through HTTP, and the module it sends requests with. */
-  httpTest: HttpTest
+  /** The prefix an import names the source root with, which is how a fix writes the import of a type. */
+  alias: string
+  /** The test kind that goes through HTTP, and the module it sends requests with, when the project has one. */
+  httpTest?: HttpTest
 }
 
 /** A rule of this plugin: one options object, the vocabulary above. */

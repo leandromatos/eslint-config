@@ -1,6 +1,8 @@
 import type { Linter } from 'eslint'
 import type { ConfigArray } from 'typescript-eslint'
 
+import type { ListExtension } from './utils/index.js'
+
 /**
  * One entry of a flat configuration assembled from this package.
  *
@@ -32,6 +34,6 @@ export type Config = ConfigArray[number] | Linter.Config
  * carries it down.
  */
 export interface RecommendedOptions {
-  /** Files the linter never reads, beyond the ones every project ignores. */
-  ignores?: string[]
+  /** Files the linter never reads, beyond the ones every project ignores, or a function that edits that list. */
+  ignores?: ListExtension<string>
 }

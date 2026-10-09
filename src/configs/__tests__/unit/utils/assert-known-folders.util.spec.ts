@@ -9,15 +9,15 @@ describe('assertKnownFolders', () => {
   })
 
   it('refuses a folder that is the suffix itself, which is a plural nobody wrote', () => {
-    expect(() => assertKnownFolders({ config: 'config' })).toThrow('".config.ts" sits in "configs/"')
+    expect(() => assertKnownFolders({ config: 'config' })).toThrow('".config" sits in "configs/"')
   })
 
   it('refuses a folder the dictionary spells differently', () => {
-    expect(() => assertKnownFolders({ factory: 'factorys' })).toThrow('".factory.ts" sits in "factories/"')
+    expect(() => assertKnownFolders({ factory: 'factorys' })).toThrow('".factory" sits in "factories/"')
   })
 
   it('refuses a suffix no dictionary carries, rather than guessing its plural', () => {
-    expect(() => assertKnownFolders({ widget: 'widgets' })).toThrow('".widget.ts" is in no dictionary')
+    expect(() => assertKnownFolders({ widget: 'widgets' })).toThrow('".widget" is in no dictionary')
   })
 
   it('accepts what the project adds to the dictionary', () => {
@@ -26,7 +26,7 @@ describe('assertKnownFolders', () => {
 
   it('checks what the project adds against the project, so one spelling holds there too', () => {
     expect(() => assertKnownFolders({ widget: 'widget' }, { widget: 'widgets' })).toThrow(
-      '".widget.ts" sits in "widgets/"',
+      '".widget" sits in "widgets/"',
     )
   })
 
@@ -35,8 +35,11 @@ describe('assertKnownFolders', () => {
   })
 
   it('spells the folder of every suffix it carries as the plural, apart from the test folder', () => {
-    const plural = (suffix: string): string[] =>
-      /[^aeiou]y$/.test(suffix) ? [`${suffix.slice(0, -1)}ies`] : [`${suffix}s`, `${suffix}es`]
+    const plural = (suffix: string): string[] => {
+      if (/[^aeiou]y$/.test(suffix)) return [`${suffix.slice(0, -1)}ies`]
+
+      return [`${suffix}s`, `${suffix}es`]
+    }
     const irregular = Object.entries(SUFFIX_DICTIONARY).filter(([suffix, folder]) => !plural(suffix).includes(folder))
 
     expect(irregular).toEqual([['spec', '__tests__']])

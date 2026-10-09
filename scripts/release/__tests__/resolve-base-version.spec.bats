@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 #
-# The base is what the bump is applied to, and getting it from package.json is
-# the bug this whole file exists to prevent: between releases '.version' holds the
-# last published version, so bumping from it produces a prerelease that sorts
-# below what is already on 'latest'. These pin the cascade that replaced it.
+# The base is what the bump is applied to. Between releases package.json
+# '.version' holds the last published version, and a prerelease bumped from it
+# sorts below what is already on 'latest', so the base is read from the tags and
+# the registry instead. These pin that cascade.
 
 setup() {
   load helpers/sandbox

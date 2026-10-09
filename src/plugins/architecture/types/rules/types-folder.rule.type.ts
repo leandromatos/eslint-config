@@ -1,2 +1,2 @@
-/** The messages `type-in-types-folder` reports. */
-export type TypeInTypesFolderMessageId = 'typeOutsideTypes'
+/** The messages `types-folder` reports. */
+export type TypesFolderMessageId = 'typeOutsideTypes'

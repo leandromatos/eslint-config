@@ -18,4 +18,6 @@ export interface ModuleFunction {
    * reaches cannot move below that initializer without the module throwing on import.
    */
   hoisted: boolean
+  /** Where the declaration sits among the functions of the module, counted from the top. */
+  position: number
 }

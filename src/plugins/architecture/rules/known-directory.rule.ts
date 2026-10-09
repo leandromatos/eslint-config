@@ -1,6 +1,13 @@
 import path from 'node:path'
 
-import { carriesResponsibilities, fileRule, firstSourceOf, moduleDepthOf } from '../../shared/utils/index.js'
+import {
+  buildFinding,
+  buildRuleDocsUrl,
+  carriesResponsibilities,
+  countModuleDepth,
+  createFileRule,
+  findFirstSource,
+} from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 
 /**
@@ -15,12 +22,12 @@ import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
  * A directory at the root of a module that holds layers of its own is a context, the way a driver sits in the
  * capability it implements: `cache/keyv/` with its `services/` and `types/`. The list judges what is inside it.
  */
-export const knownDirectory = fileRule(
+export const knownDirectory = createFileRule(
   'A module holds only the directories the options name.',
-  'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/known-directory.md',
+  buildRuleDocsUrl('architecture', 'known-directory'),
   {
     unknownDirectory:
-      'Directory "{{directory}}" is not on the list of responsibility directories. Add it to the structure options, or move its files.',
+      'Directory "{{directory}}" is not on the list of responsibility directories. Add it to architecture.suffixToFolder or architecture.mirrorFolders, or move its files.',
   },
   (
     { sourceRoot, file, segments, module },
@@ -37,7 +44,7 @@ export const knownDirectory = fileRule(
   ) => {
     if (rootContexts.includes(module)) return []
     const known = new Set([...Object.values(suffixToFolder), ...mirrorFolders, ...testKinds, mockFolder, testingFolder])
-    const depth = moduleDepthOf(segments, moduleContainers)
+    const depth = countModuleDepth(segments, moduleContainers)
     const responsibilities = [...Object.values(suffixToFolder), ...mirrorFolders]
     const inner = segments.slice(depth)
     const mirrorsModuleRoot = (index: number): boolean =>
@@ -48,20 +55,20 @@ export const knownDirectory = fileRule(
 
       return carriesResponsibilities(path.join(sourceRoot, ...segments.slice(0, depth + 1)), responsibilities)
     }
-    /* Below the mock folder the path is the one of what a stand-in imitates, such as the scope of a package. */
+    // Below the mock folder the path is the one of what a stand-in imitates, such as the scope of a package.
     const mockAt = inner.indexOf(mockFolder)
     const isImitated = (index: number): boolean => mockFolder !== '' && mockAt >= 0 && index > mockAt
     const offending = inner.filter(
       (directory, index) => !known.has(directory) && !isImitated(index) && !isOwnedByModule(directory, index),
     )
-    if (offending.length === 0) return []
-    /* v8 ignore next -- the list is not empty here: the rule returned already when it was */
-    const nearest = segments.lastIndexOf(offending[offending.length - 1] ?? '')
+    const lastOffending = offending.at(-1)
+    if (!lastOffending) return []
+    const nearest = segments.lastIndexOf(lastOffending)
     const directory = path.join(sourceRoot, ...segments.slice(0, nearest + 1))
-    const isReporter = file === firstSourceOf(directory) && segments.length === nearest + 1
+    const isReporter = file === findFirstSource(directory) && segments.length === nearest + 1
     if (!isReporter) return []
 
-    return offending.map(name => ({ messageId: 'unknownDirectory' as const, data: { directory: name } }))
+    return offending.map(directory => buildFinding('unknownDirectory', { directory }))
   },
   OPTIONS_SCHEMA,
   EMPTY_OPTIONS,

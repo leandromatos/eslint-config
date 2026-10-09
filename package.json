@@ -1,7 +1,7 @@
 {
   "name": "@leandromatos/eslint-config",
   "version": "7.1.0",
-  "description": "ESLint flat configuration with TypeScript, React, import sorting, JSON, and Markdown support.",
+  "description": "ESLint flat configurations in tiers, from a framework-agnostic strict to NestJS, Next.js and Expo, with a plugin that holds a project to its architecture, naming, tests and documentation.",
   "keywords": [
     "eslint",
     "eslintconfig",
@@ -87,11 +87,12 @@
     "@commitlint/types": "^21.2.3",
     "@leandromatos/commitlint-config": "^1.1.3",
     "@leandromatos/prettier-config": "^2.2.0",
+    "@microsoft/tsdoc": "^0.17.1",
     "@types/eslint-plugin-jsx-a11y": "^6.10.1",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@typescript-eslint/rule-tester": "^8.71.0",
-    "@typescript-eslint/typescript-estree": "8.71.0",
+    "@typescript-eslint/typescript-estree": "^8.71.0",
     "@vitest/coverage-v8": "^5.0.3",
     "@vitest/ui": "^5.0.3",
     "bats": "^1.13.0",

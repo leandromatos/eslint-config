@@ -1,7 +1,8 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
+import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TSDOC_TAG } from '../constants/index.js'
 import type {
   CommentReporter,
   DocBlockTag,
@@ -12,13 +13,16 @@ import type {
 } from '../types/index.js'
 import { ParameterKind } from '../types/index.js'
 import {
+  buildLineLocation,
   findDocBlock,
   inheritsDoc,
   isOverloadImplementation,
-  lineLocationOf,
   parseDocBlock,
   readParameters,
 } from '../utils/index.js'
+
+/** What the order message lists for a destructured parameter no tag names: an object, with no name of its own. */
+const DESTRUCTURED_PLACEHOLDER = '{…}'
 
 /**
  * A documented function lists every parameter it takes in a `@param`, in the order of the signature, once, with a
@@ -35,7 +39,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
     type: 'problem',
     docs: {
       description: 'A documented function lists every parameter in a @param, in order, once, with a description.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/param-tag.md',
+      url: buildRuleDocsUrl('tsdoc', 'param-tag'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -55,7 +59,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
       const comment = findDocBlock(sourceCode, node)
       if (!comment || isOverloadImplementation(node)) return
       const docBlock = parseDocBlock(comment)
-      const paramTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === 'param')
+      const paramTags = docBlock.tags.filter(docBlockTag => docBlockTag.tag === TSDOC_TAG.param)
       const parameters = readParameters(declaredParameters)
       const reportOnComment: CommentReporter = (messageId, messageValues) =>
         context.report({ loc: comment.loc, messageId, data: messageValues })
@@ -63,7 +67,7 @@ export const paramTag: TsdocRule<ParamTagMessageId> = {
       if (!inheritsDoc(docBlock)) judgePresence(paramTags, parameters, reportOnComment)
       for (const paramTag of paramTags.filter(docBlockTag => docBlockTag.description === ''))
         context.report({
-          loc: lineLocationOf(paramTag.line),
+          loc: buildLineLocation(paramTag.line),
           messageId: 'missingParamDescription',
           data: { name: paramTag.parameterName },
         })
@@ -109,7 +113,7 @@ const judgeNames = (paramTags: DocBlockTag[], parameters: Parameter[], reportOnC
       return
     }
     if (parameter.kind !== ParameterKind.DESTRUCTURED && name !== parameter.name) {
-      const expected = parameters.map((each, position) => expectedNameOf(each, rootNames[position])).join(', ')
+      const expected = parameters.map((each, position) => readExpectedName(each, rootNames[position])).join(', ')
       reportOnComment('paramOrder', { got: rootNames.join(', '), expected })
 
       return
@@ -141,11 +145,12 @@ const judgePresence = (paramTags: DocBlockTag[], parameters: Parameter[], report
  *
  * @param parameter - The parameter.
  * @param documentedName - The name the tag at that position carries, when there is one.
- * @returns The name of the parameter, spread for a rest one, and the tag's own for a destructured one.
+ * @returns The name of the parameter, spread for a rest one, and the tag's own for a destructured one, or `{…}` where
+ * no tag stands for it.
  */
-const expectedNameOf = (parameter: Parameter, documentedName: string | undefined): string => {
+const readExpectedName = (parameter: Parameter, documentedName: string | undefined): string => {
   if (parameter.kind === ParameterKind.REST) return `...${parameter.name}`
-  if (parameter.kind === ParameterKind.DESTRUCTURED) return documentedName ?? ''
+  if (parameter.kind === ParameterKind.DESTRUCTURED) return documentedName ?? DESTRUCTURED_PLACEHOLDER
 
   return parameter.name
 }

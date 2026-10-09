@@ -1,8 +1,7 @@
-import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES } from '@typescript-eslint/utils'
+import type { TSESLint } from '@typescript-eslint/utils'
 
-import { locate } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { buildRuleDocsUrl, locateFile, readCalleeName } from '../../shared/utils/index.js'
+import { EMPTY_OPTIONS, HOOK_SUFFIX, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { ArchitectureRule, EffectInHookMessageId } from '../types/index.js'
 
 /**
@@ -20,7 +19,7 @@ export const effectInHook: ArchitectureRule<EffectInHookMessageId> = {
     type: 'problem',
     docs: {
       description: 'An effect is written in a hook of its own, never in the component that renders.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/effect-in-hook.md',
+      url: buildRuleDocsUrl('architecture', 'effect-in-hook'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -31,14 +30,13 @@ export const effectInHook: ArchitectureRule<EffectInHookMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [{ suffixToFolder, effectHooks }] = context.options
-    const hookSuffix = Object.keys(suffixToFolder).find(suffix => suffix === 'hook')
-    if (!where || effectHooks.length === 0 || !hookSuffix) return {}
-    if (where.suffix === hookSuffix) return {}
+    if (!where || effectHooks.length === 0 || !(HOOK_SUFFIX in suffixToFolder)) return {}
+    if (where.suffix === HOOK_SUFFIX) return {}
     const listener: TSESLint.RuleListener = {
       CallExpression: callExpression => {
-        const name = calleeNameOf(callExpression)
+        const name = readCalleeName(callExpression)
         if (!name || !effectHooks.includes(name)) return
         context.report({
           node: callExpression,
@@ -50,19 +48,4 @@ export const effectInHook: ArchitectureRule<EffectInHookMessageId> = {
 
     return listener
   },
-}
-
-/**
- * The name a call names: `useEffect` for `useEffect(...)` and for `React.useEffect(...)`.
- *
- * @param callExpression - The call.
- * @returns The name, and null for a call of something the source does not name.
- */
-const calleeNameOf = (callExpression: TSESTree.CallExpression): string | null => {
-  const { callee } = callExpression
-  if (callee.type === AST_NODE_TYPES.Identifier) return callee.name
-  if (callee.type === AST_NODE_TYPES.MemberExpression && callee.property.type === AST_NODE_TYPES.Identifier)
-    return callee.property.name
-
-  return null
 }

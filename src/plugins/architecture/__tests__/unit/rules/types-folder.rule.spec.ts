@@ -1,9 +1,14 @@
-import { optionsWith, packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+  extendRuleOptions,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { typesFolder } from '../../../rules/types-folder.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [ArchitectureOptions] = [{ ...EMPTY_OPTIONS, suffixToFolder: { service: 'services', type: 'types' } }]
 
@@ -12,43 +17,43 @@ ruleTester.run('types-folder', typesFolder, {
     // A file of another suffix under the types folder is where the mirror rule judges it.
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
-      filename: sourceFile('users', 'types', 'services', 'user.service.ts'),
+      filename: buildSourcePath('users', 'types', 'services', 'user.service.ts'),
       options,
     },
 
     // A type declared under the types folder is where it belongs, whatever its file is called.
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
-      filename: sourceFile('users', 'types', 'user.service.type.ts'),
+      filename: buildSourcePath('users', 'types', 'user.service.type.ts'),
       options,
     },
 
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
-      filename: sourceFile('users', 'types', 'services', 'user.service.type.ts'),
+      filename: buildSourcePath('users', 'types', 'services', 'user.service.type.ts'),
       options,
     },
-    { code: 'export class UserService {}', filename: sourceFile('users', 'services', 'user.service.ts'), options },
-    { code: 'export interface Global {}', filename: sourceFile('global.d.ts'), options },
+    { code: 'export class UserService {}', filename: buildSourcePath('users', 'services', 'user.service.ts'), options },
+    { code: 'export interface Global {}', filename: buildSourcePath('global.d.ts'), options },
   ],
   invalid: [
     // A file with no suffix is mirrored by its own name.
     {
       code: 'export type UserId = string',
-      filename: sourceFile('users', 'services', 'user.ts'),
+      filename: buildSourcePath('users', 'services', 'user.ts'),
       options,
       errors: [{ messageId: 'typeOutsideTypes' }],
     },
 
     {
       code: 'interface FindOneUserParams {\n  userId: string\n}\nexport class UserService {}',
-      filename: sourceFile('users', 'services', 'user.service.ts'),
+      filename: buildSourcePath('users', 'services', 'user.service.ts'),
       options,
       errors: [{ messageId: 'typeOutsideTypes' }],
     },
     {
       code: 'export type UserId = string',
-      filename: sourceFile('users', 'services', 'user.service.ts'),
+      filename: buildSourcePath('users', 'services', 'user.service.ts'),
       options,
       errors: [{ messageId: 'typeOutsideTypes' }],
     },
@@ -60,15 +65,18 @@ ruleTester.run('types-folder, where a type is read beside what it types', typesF
     // A file the folder names is a component too, and what it takes is read beside it.
     {
       code: 'export interface CardProps {\n  label: string\n}',
-      filename: sourceFile('components', 'card.tsx'),
-      options: optionsWith([EMPTY_OPTIONS], { suffixToFolder: { type: 'types' }, suffixFreeFolders: ['components'] }),
+      filename: buildSourcePath('components', 'card.tsx'),
+      options: extendRuleOptions([EMPTY_OPTIONS], {
+        suffixToFolder: { type: 'types' },
+        suffixFreeFolders: ['components'],
+      }),
     },
 
     // What a hook takes is declared in the hook, which is where a reader of the call looks for it.
     {
       code: 'export interface UseSessionOptions {\n  id: string\n}',
-      filename: sourceFile('features', 'auth', 'hooks', 'use-session.hook.ts'),
-      options: optionsWith([EMPTY_OPTIONS], {
+      filename: buildSourcePath('features', 'auth', 'hooks', 'use-session.hook.ts'),
+      options: extendRuleOptions([EMPTY_OPTIONS], {
         suffixToFolder: { hook: 'hooks', type: 'types' },
         coLocatedTypeSuffixes: ['hook'],
       }),
@@ -82,7 +90,7 @@ ruleTester.run('types-folder, on an augmentation of another module', typesFolder
     // `declare global` widens a type somebody else declared, and the widening belongs where it is read.
     {
       code: 'declare global {\n  interface Window {\n    axe: unknown\n  }\n}\n\nexport const a = 1',
-      filename: sourceFile('users', 'services', 'user.service.ts'),
+      filename: buildSourcePath('users', 'services', 'user.service.ts'),
       options,
     },
   ],
@@ -97,7 +105,7 @@ ruleTester.run('types-folder, in a repository of several packages', typesFolder,
   invalid: [
     {
       code: 'export type UserId = string',
-      filename: packageSourceFile('apps/x', 'users', 'services', 'user.ts'),
+      filename: buildPackageSourcePath('apps/x', 'users', 'services', 'user.ts'),
       options,
       errors: [{ messageId: 'typeOutsideTypes' }],
     },

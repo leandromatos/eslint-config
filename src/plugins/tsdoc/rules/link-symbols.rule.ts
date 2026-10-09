@@ -1,8 +1,10 @@
 import type { TSESTree } from '@typescript-eslint/utils'
-import { AST_NODE_TYPES, AST_TOKEN_TYPES, TSESLint } from '@typescript-eslint/utils'
+import { AST_NODE_TYPES, TSESLint } from '@typescript-eslint/utils'
 
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { TsdocLinkSymbolsMessageId, TsdocRule } from '../types/index.js'
+import type { LinkSymbolsMessageId, TsdocRule } from '../types/index.js'
+import { isDocComment } from '../utils/index.js'
 
 /** A code span as Markdown reads one: a run of backticks, the text, and a run of the same length that closes it. */
 const CODE_SPAN_REG_EXP = /(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/g
@@ -23,7 +25,11 @@ const DOCUMENTED_INITIALIZERS = new Set<string>([
   AST_NODE_TYPES.ClassExpression,
   AST_NODE_TYPES.FunctionExpression,
 ])
+
+/** A link tag and the reference it names, up to a pipe, a space or the closing brace. */
 const LINK_REG_EXP = /\{@link\s+([^}|\s]+)/g
+
+/** A reference that names something outside the file: a URL, a package, or an anchor of one. */
 const URL_OR_PACKAGE_REG_EXP = /^(?:https?:|[@\w-]+\/|[\w-]+#)/
 
 /**
@@ -46,9 +52,8 @@ const SYSTEM_SELECTORS = new Set([
 
 /**
  * A name a reader could jump to is written so the tooling lets them: a symbol in scope goes in a link tag, and code
- * font is for what is not a symbol, a literal, a key, a path. Written
- * both ways, the same name reads as two things; and a link whose target resolves to nothing is a
- * promise the page cannot keep.
+ * font is for what is not a symbol, a literal, a key, a path. Written both ways, the same name reads as two things;
+ * and a link whose target resolves to nothing is a promise the page cannot keep.
  *
  * A name TSDoc keeps as a selector, such as `type` or `class`, is linked in quotes, and a member of the class the
  * comment sits in is qualified by that class, as `Owner."type"`.
@@ -60,12 +65,12 @@ const SYSTEM_SELECTORS = new Set([
  * is left alone. What the rule offers for a span is a suggestion, never a fix: whether the author meant the symbol is
  * the author's call.
  */
-export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
+export const linkSymbols: TsdocRule<LinkSymbolsMessageId> = {
   meta: {
     type: 'suggestion',
     docs: {
       description: 'A symbol in scope is linked with {@link}, never set in backticks; a link resolves.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/link-symbols.md',
+      url: buildRuleDocsUrl('tsdoc', 'link-symbols'),
       dialects: ['TypeScript'],
     },
     fixable: 'code',
@@ -88,18 +93,17 @@ export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
       },
       'Program:exit': () => {
         for (const comment of sourceCode.getAllComments()) {
-          if (comment.type !== AST_TOKEN_TYPES.Block || !comment.value.startsWith('*')) continue
-          const classBody = enclosingClassBodyOf(comment, classBodies)
-          const resolves = resolverFor(comment, sourceCode, classBody, false)
-          const documents = resolverFor(comment, sourceCode, classBody, true)
-          const targetOf = targetFor(classBody)
-          for (const regExpExecArray of comment.value.matchAll(CODE_SPAN_REG_EXP)) {
-            /* v8 ignore next -- the group is what the pattern matched on */
-            const name = regExpExecArray[2] ?? ''
-            if (regExpExecArray[1] !== '`' || !IDENTIFIER_REG_EXP.test(name)) continue
+          if (!isDocComment(comment)) continue
+          const classBody = findEnclosingClassBody(comment, classBodies)
+          const resolves = buildResolver(comment, sourceCode, classBody, false)
+          const documents = buildResolver(comment, sourceCode, classBody, true)
+          const targetOf = buildTargetResolver(classBody)
+          for (const codeSpan of comment.value.matchAll(CODE_SPAN_REG_EXP)) {
+            const [, ticks, name] = codeSpan
+            if (ticks !== '`' || !name || !IDENTIFIER_REG_EXP.test(name)) continue
             const target = targetOf(name)
             if (!documents(name) || !target) continue
-            const start = comment.range[0] + 2 + regExpExecArray.index
+            const start = comment.range[0] + 2 + codeSpan.index
             const link = { name, target }
             context.report({
               node: comment,
@@ -114,21 +118,19 @@ export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
               ],
             })
           }
-          for (const regExpExecArray of comment.value.matchAll(LINK_REG_EXP)) {
-            /* v8 ignore next -- the group is what the pattern matched on */
-            const reference = regExpExecArray[1] ?? ''
-            if (URL_OR_PACKAGE_REG_EXP.test(reference)) continue
+          for (const linkTag of comment.value.matchAll(LINK_REG_EXP)) {
+            const [opening, reference] = linkTag
+            if (!reference || URL_OR_PACKAGE_REG_EXP.test(reference)) continue
             const segments = reference.split('.')
-            /* v8 ignore next -- a reference split on its dots always has a head */
-            const head = unquoted(segments[0] ?? '')
+            const head = unquoteSegment(reference.replace(/\..*$/, ''))
             if (!resolves(head)) {
               context.report({ node: comment, messageId: 'linkToNothing', data: { name: reference } })
               continue
             }
             const selector = segments.find(segment => SYSTEM_SELECTORS.has(segment))
             if (!selector) continue
-            const target = quotedReference(segments, targetOf)
-            const start = comment.range[0] + 2 + regExpExecArray.index + regExpExecArray[0].length - reference.length
+            const target = quoteReference(segments, targetOf)
+            const start = comment.range[0] + 2 + linkTag.index + opening.length - reference.length
             context.report({
               node: comment,
               messageId: 'unquotedSelector',
@@ -151,20 +153,14 @@ export const linkSymbols: TsdocRule<TsdocLinkSymbolsMessageId> = {
  * @param classBodies - The class bodies of the file, in the order they open.
  * @returns The body, and nothing where the comment sits in no class.
  */
-const enclosingClassBodyOf = (
+const findEnclosingClassBody = (
   comment: TSESTree.Comment,
   classBodies: TSESTree.ClassBody[],
 ): TSESTree.ClassBody | undefined => {
   const [at] = comment.range
 
-  return (
-    classBodies
-      /* v8 ignore start -- the class bodies were filtered by the comment they enclose */
-      .filter(classBody => encloses(classBody, at))
-      /* v8 ignore next -- the class bodies were filtered by the comment they enclose */
-      .sort((leftClassBody, rightClassBody) => rightClassBody.range[0] - leftClassBody.range[0])[0]
-  )
-  /* v8 ignore stop */
+  // The bodies are in the order they open, so the last one that encloses the comment is the innermost.
+  return classBodies.filter(classBody => isEnclosing(classBody, at)).at(-1)
 }
 
 /**
@@ -174,8 +170,8 @@ const enclosingClassBodyOf = (
  * @param classBody - The body of the class the comment sits in, when it sits in one.
  * @returns What answers the target for a name, and null where no link can name it.
  */
-const targetFor = (classBody: TSESTree.ClassBody | undefined): ((name: string) => string | null) => {
-  const members = classMemberNamesOf(classBody, false)
+const buildTargetResolver = (classBody: TSESTree.ClassBody | undefined): ((name: string) => string | null) => {
+  const members = listClassMemberNames(classBody, false)
   const owner = classBody?.parent.id?.name
 
   return name => {
@@ -188,17 +184,18 @@ const targetFor = (classBody: TSESTree.ClassBody | undefined): ((name: string) =
 }
 
 /**
- * A reference with every selector in quotes, and a lone member qualified the way {@link targetFor} qualifies one.
+ * A reference with every selector in quotes, and a lone member qualified the way {@link buildTargetResolver} qualifies
+ * one.
  *
  * @param segments - The reference, split on its dots.
  * @param targetOf - What answers the target for a lone name.
  * @returns The reference.
  */
-const quotedReference = (segments: string[], targetOf: (name: string) => string | null): string => {
+const quoteReference = (segments: string[], targetOf: (name: string) => string | null): string => {
   const [only] = segments
   if (segments.length === 1 && only) return targetOf(only) ?? `"${only}"`
 
-  return segments.map(quotedSegment).join('.')
+  return segments.map(quoteSegment).join('.')
 }
 
 /**
@@ -207,7 +204,7 @@ const quotedReference = (segments: string[], targetOf: (name: string) => string 
  * @param segment - The segment as the link writes it.
  * @returns The segment.
  */
-const quotedSegment = (segment: string): string => {
+const quoteSegment = (segment: string): string => {
   if (!SYSTEM_SELECTORS.has(segment)) return segment
 
   return `"${segment}"`
@@ -219,7 +216,7 @@ const quotedSegment = (segment: string): string => {
  * @param segment - The segment as the link writes it.
  * @returns The name.
  */
-const unquoted = (segment: string): string => segment.replace(/^"(.*)"$/, '$1')
+const unquoteSegment = (segment: string): string => segment.replace(/^"(.*)"$/, '$1')
 
 /**
  * Whether a name is reachable from where the comment sits: a binding of the innermost scope
@@ -233,29 +230,37 @@ const unquoted = (segment: string): string => segment.replace(/^"(.*)"$/, '$1')
  * function, a method, or a name imported by name.
  * @returns What answers whether a name resolves.
  */
-const resolverFor = (
+const buildResolver = (
   comment: TSESTree.Comment,
   sourceCode: TSESLint.SourceCode,
   classBody: TSESTree.ClassBody | undefined,
   isDocumentedOnly: boolean,
 ): ((name: string) => boolean) => {
   const [at] = comment.range
-  const scopes = sourceCode.scopeManager?.scopes.filter(
+  const scopes = listScopes(sourceCode.getScope(sourceCode.ast)).filter(
     candidateScope => candidateScope.type !== TSESLint.Scope.ScopeType.global,
   )
   /*
-   * A comment above the first statement sits before the program itself, which opens at its first token, so no scope
-   * encloses it. What it names is what the file holds, which is the outermost scope.
+   * A scope comes after the scopes around it, so the last one that encloses the comment is the innermost. A comment
+   * above the first statement sits before the program itself, which opens at its first token, so no scope encloses
+   * it. What it names is what the file holds, which is the outermost scope.
    */
-  const scope =
-    scopes
-      ?.filter(candidateScope => encloses(candidateScope.block, at))
-      .sort((leftScope, rightScope) => rightScope.block.range[0] - leftScope.block.range[0])[0] ?? scopes?.[0]
-  const members = classMemberNamesOf(classBody, isDocumentedOnly)
+  const scope = scopes.filter(candidateScope => isEnclosing(candidateScope.block, at)).at(-1) ?? scopes[0]
+  const members = listClassMemberNames(classBody, isDocumentedOnly)
 
-  /* v8 ignore next -- a file the parser read has a scope of its own */
-  return name => members.has(name) || isBound(scope ?? null, name, isDocumentedOnly)
+  return name => members.has(name) || isBound(scope, name, isDocumentedOnly)
 }
+
+/**
+ * Lists a scope and every scope inside it, each after the one that holds it.
+ *
+ * @param scope - The scope the walk starts at.
+ * @returns The scopes.
+ */
+const listScopes = (scope: TSESLint.Scope.Scope): TSESLint.Scope.Scope[] => [
+  scope,
+  ...scope.childScopes.flatMap(listScopes),
+]
 
 /**
  * Whether a node spans a position of the source, the position of a comment among them.
@@ -264,7 +269,7 @@ const resolverFor = (
  * @param at - The position, as an offset of the source.
  * @returns Whether the position falls inside the node.
  */
-const encloses = (node: TSESTree.Node, at: number): boolean => node.range[0] <= at && at < node.range[1]
+const isEnclosing = (node: TSESTree.Node, at: number): boolean => node.range[0] <= at && at < node.range[1]
 
 /**
  * The names the enclosing class declares, and none where the comment sits in no class.
@@ -273,10 +278,10 @@ const encloses = (node: TSESTree.Node, at: number): boolean => node.range[0] <= 
  * @param isDocumentedOnly - Whether only the methods count.
  * @returns The names.
  */
-const classMemberNamesOf = (classBody: TSESTree.ClassBody | undefined, isDocumentedOnly: boolean): Set<string> => {
+const listClassMemberNames = (classBody: TSESTree.ClassBody | undefined, isDocumentedOnly: boolean): Set<string> => {
   if (!classBody) return new Set<string>()
 
-  return memberNamesOf(classBody, isDocumentedOnly)
+  return listMemberNames(classBody, isDocumentedOnly)
 }
 
 /**
@@ -286,7 +291,7 @@ const classMemberNamesOf = (classBody: TSESTree.ClassBody | undefined, isDocumen
  * @param isDocumentedOnly - Whether only the methods count: a property holds a value, which a span names as a key.
  * @returns The names.
  */
-const memberNamesOf = (classBody: TSESTree.ClassBody, isDocumentedOnly: boolean): Set<string> => {
+const listMemberNames = (classBody: TSESTree.ClassBody, isDocumentedOnly: boolean): Set<string> => {
   const names = new Set<string>()
   for (const member of classBody.body) {
     if (!('key' in member) || member.key.type !== AST_NODE_TYPES.Identifier) continue
@@ -305,7 +310,7 @@ const memberNamesOf = (classBody: TSESTree.ClassBody, isDocumentedOnly: boolean)
  * @param isDocumentedOnly - Whether only a declaration a page documents counts.
  * @returns Whether a scope declares it.
  */
-const isBound = (scope: TSESLint.Scope.Scope | null, name: string, isDocumentedOnly: boolean): boolean => {
+const isBound = (scope: TSESLint.Scope.Scope | undefined, name: string, isDocumentedOnly: boolean): boolean => {
   for (let current = scope; current && current.type !== TSESLint.Scope.ScopeType.global; current = current.upper) {
     const variable = current.set.get(name)
     if (variable) return !isDocumentedOnly || variable.defs.some(isDocumentedDefinition)
@@ -325,7 +330,7 @@ const isBound = (scope: TSESLint.Scope.Scope | null, name: string, isDocumentedO
 const isDocumentedDefinition = (definition: TSESLint.Scope.Definition): boolean => {
   const { DefinitionType } = TSESLint.Scope
   if (TYPE_DEFINITIONS.has(definition.type)) return true
-  /* A name that opens in lower case spells a value, a key or a CSS keyword as often as a function. */
+  // A name that opens in lower case spells a value, a key or a CSS keyword as often as a function.
   if (definition.name.type !== AST_NODE_TYPES.Identifier || !/^[A-Z]/.test(definition.name.name)) return false
   if (definition.type === DefinitionType.FunctionName) return true
   if (definition.type === DefinitionType.ImportBinding) return definition.node.type === AST_NODE_TYPES.ImportSpecifier

@@ -1,9 +1,13 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { expectedPrefix } from '../../../rules/expected-prefix.rule.js'
 import type { NamingOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [NamingOptions] = [
   {
@@ -13,7 +17,7 @@ const options: [NamingOptions] = [
     testFolder: '__tests__',
   },
 ]
-const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
+const spec = buildSourcePath('users', '__tests__', 'user.service.spec.ts')
 
 ruleTester.run('expected-prefix', expectedPrefix, {
   valid: [
@@ -39,7 +43,7 @@ ruleTester.run('expected-prefix', expectedPrefix, {
     { code: 'const USERS = []\nexpect(result).toEqual(USERS)', filename: spec, options },
     {
       code: 'const user = {}\nexpect(result).toEqual(user)',
-      filename: sourceFile('users', 'services', 'user.service.ts'),
+      filename: buildSourcePath('users', 'services', 'user.service.ts'),
       options,
     },
   ],
@@ -100,7 +104,7 @@ ruleTester.run('expected-prefix, in a repository of several packages', expectedP
   invalid: [
     {
       code: 'const user = {}\nexpect(result).toEqual(user)',
-      filename: packageSourceFile('libs/x', 'users', '__tests__', 'user.service.spec.ts'),
+      filename: buildPackageSourcePath('libs/x', 'users', '__tests__', 'user.service.spec.ts'),
       options,
       errors: [{ messageId: 'missingPrefix' }],
       output: 'const expectedUser = {}\nexpect(result).toEqual(expectedUser)',

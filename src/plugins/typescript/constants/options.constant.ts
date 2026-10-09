@@ -1,17 +1,13 @@
-import type { JSONSchema4 } from '@typescript-eslint/utils/json-schema'
+import { INTEGER_SCHEMA, STRING_SCHEMA } from '../../shared/constants/index.js'
+import { buildObjectSchema } from '../../shared/utils/index.js'
 
 /**
  * What a configuration of the `typescript` rules has to hand them.
  *
- * Every rule of this plugin takes the same object, so the schema is declared once and each rule points at it.
- * `additionalProperties` is false on purpose: a field the plugin does not read is a field somebody meant to
- * spell differently.
+ * Every rule of this plugin that reads the group takes the same object, so the schema is declared once and each rule
+ * points at it.
  */
-export const OPTIONS_SCHEMA: JSONSchema4 = {
-  type: 'object',
-  properties: {
-    typeSuffix: { type: 'string' },
-  },
-  required: ['typeSuffix'],
-  additionalProperties: false,
-}
+export const OPTIONS_SCHEMA = buildObjectSchema({ typeSuffix: STRING_SCHEMA })
+
+/** What `repeated-literal` takes, the options of `sonarjs/no-duplicate-string`. */
+export const REPEATED_LITERAL_SCHEMA = buildObjectSchema({ threshold: INTEGER_SCHEMA, ignoreStrings: STRING_SCHEMA })

@@ -1,65 +1,89 @@
 import globals from 'globals'
 
-import {
-  EXPO_ARCHITECTURE,
-  EXPO_FILES,
-  EXPO_IGNORED,
-  EXPO_TESTING,
-  EXPO_UNLAID_FILES,
-  LAYOUT_RULES,
-} from './constants/index.js'
-import { strict } from './strict.config.js'
+import { EXPO_CATALOG_FILES, EXPO_VOCABULARY, LAYOUT_RULES, REACT_IMAGE_COMPONENTS } from './constants/index.js'
+import { buildStrictConfig } from './strict.config.js'
 import type { Config, ExpoOptions } from './types/index.js'
-import { inPackage } from './utils/index.js'
+import { buildImageEntry, extendList, placeInPackage } from './utils/index.js'
+
+/** The globals Vitest declares and Jest does not, which a spec run under Jest never sees. */
+const VITEST_ONLY_GLOBALS = Object.fromEntries(
+  Object.keys(globals.vitest)
+    .filter(name => !(name in globals.jest))
+    .map(name => [name, 'off' as const]),
+)
 
 /**
- * All of {@link strict}, with the tree a React Native project writes.
+ * All of `strict`, with the tree a React Native project writes.
  *
- * The architecture is the one a Next project writes: modules under a container, a component named after the
- * function in it, the router naming its own files. What the tier changes is the platform, and a project states
- * only where it differs from both, and a suffix it adds joins the tier's map rather than replacing it.
+ * The architecture is the one a Next.js project writes: modules under a container, a component named after the
+ * function in it, the router naming its own files. What the tier changes is the platform. A project states only where
+ * it differs from both, and a list or a map it passes joins the tier's own.
  *
  * @param expoOptions - What this project says on top of the tier.
  * @returns The configuration, to export from `eslint.config.mts`.
  */
-export const expo = (expoOptions: ExpoOptions = {}): Config[] => [
-  ...strict({
-    ...expoOptions,
-    files: expoOptions.files ?? EXPO_FILES,
-    ignores: [...EXPO_IGNORED, ...(expoOptions.ignores ?? [])],
-    architecture: {
-      ...EXPO_ARCHITECTURE,
-      ...expoOptions.architecture,
-      suffixToFolder: { ...EXPO_ARCHITECTURE.suffixToFolder, ...expoOptions.architecture?.suffixToFolder },
-    },
-    testing: { ...EXPO_TESTING, ...expoOptions.testing },
-  }),
-  ...inPackage([runner(expoOptions.files ?? EXPO_FILES), unlaid()], expoOptions.basePath),
-]
+export const expo = (expoOptions: ExpoOptions = {}): Config[] => {
+  const { catalog = true, runner = 'jest', ...strictOptions } = expoOptions
+  const catalogFiles = selectCatalogFiles(catalog)
+  const files = [...extendList(EXPO_VOCABULARY.files, strictOptions.files), ...catalogFiles]
+  const layers = buildStrictConfig(EXPO_VOCABULARY, { ...strictOptions, files: () => files })
+  const ownLayers = [
+    buildImageEntry(files, REACT_IMAGE_COMPONENTS),
+    ...selectRunnerEntries(runner, files),
+    ...selectCatalogEntries(catalogFiles),
+  ]
+
+  return [...layers, ...placeInPackage(ownLayers, strictOptions.basePath)]
+}
 
 /**
- * The runner a React Native project tests under.
+ * Selects the files of the on-device catalog, when the project keeps one.
  *
- * Expo ships a Jest preset that mocks the native half of its SDK, and documents no other runner: a test here runs
- * under Jest rather than under the Vitest the rest of this package uses, so the globals in scope are Jest's.
+ * @param catalog - Whether the project keeps a catalog under `.rnstorybook/`.
+ * @returns The globs of the catalog, and none without one.
+ */
+const selectCatalogFiles = (catalog: boolean): string[] => {
+  if (!catalog) return []
+
+  return EXPO_CATALOG_FILES
+}
+
+/**
+ * Selects the entry that declares the globals of the test runner.
  *
+ * Expo ships a Jest preset that mocks the native half of its SDK and documents no other runner, so a project on it
+ * reads Jest's globals, and the ones only Vitest declares are turned off so a spec cannot reach `vi`. One on Vitest
+ * keeps the globals `recommended` already declares.
+ *
+ * @param runner - The runner the unit tests run under.
  * @param files - The files the globals reach.
- * @returns The configuration entry.
+ * @returns The entry for Jest, and none for Vitest.
  */
-const runner = (files: string[]): Config => ({
-  name: 'leandromatos/expo-runner',
-  files,
-  languageOptions: { globals: { ...globals.jest } },
-})
+const selectRunnerEntries = (runner: ExpoOptions['runner'], files: string[]): Config[] => {
+  if (runner === 'vitest') return []
+  const runnerEntry: Config = {
+    name: 'leandromatos/expo-runner',
+    files,
+    languageOptions: { globals: { ...VITEST_ONLY_GLOBALS, ...globals.jest } },
+  }
+
+  return [runnerEntry]
+}
 
 /**
- * What the catalog is spared: the rules of the layout, since Storybook names its entry files. Every other rule reads
- * it, the documentation rules first.
+ * Selects the entry that spares the catalog the rules of the layout, since Storybook names its entry files. Every
+ * other rule reads it, the documentation rules first.
  *
- * @returns The configuration entry.
+ * @param catalogFiles - The files of the catalog, and none when the project keeps no catalog.
+ * @returns The entry, and none without a catalog.
  */
-const unlaid = (): Config => ({
-  name: 'leandromatos/expo-unlaid',
-  files: EXPO_UNLAID_FILES,
-  rules: Object.fromEntries(LAYOUT_RULES.map(rule => [`leandromatos/${rule}`, 'off'])),
-})
+const selectCatalogEntries = (catalogFiles: string[]): Config[] => {
+  if (catalogFiles.length === 0) return []
+  const catalogEntry: Config = {
+    name: 'leandromatos/expo-catalog',
+    files: catalogFiles,
+    rules: Object.fromEntries(LAYOUT_RULES.map(rule => [`leandromatos/${rule}`, 'off'])),
+  }
+
+  return [catalogEntry]
+}

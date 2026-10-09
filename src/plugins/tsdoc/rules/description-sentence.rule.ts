@@ -1,15 +1,16 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, SENTENCE_TAGS } from '../constants/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/index.js'
+import { EMPTY_OPTIONS, OPTIONS_SCHEMA, SENTENCE_TAGS, TSDOC_TAG } from '../constants/index.js'
 import type { DescriptionSentenceMessageId, DocBlockTag, DocumentedNode, TsdocRule } from '../types/index.js'
-import { findDocBlock, inheritsDoc, lineLocationOf, parseDocBlock } from '../utils/index.js'
+import { buildLineLocation, findDocBlock, inheritsDoc, parseDocBlock } from '../utils/index.js'
 
 /**
- * What a description reads as: a capital, a digit, an underscore or a backtick first, and a period, a question mark,
- * an exclamation mark, a backtick or an emoji last. Nothing at all passes too.
+ * What a description reads as: a capital of any script, a digit, an underscore or a backtick first, and a period, a
+ * question mark, an exclamation mark, a backtick or an emoji last. Nothing at all passes too.
  */
-const SENTENCE_REG_EXP = /^\n?([A-Z`\d_][\s\S]*[.?!`\p{RGI_Emoji}]\s*)?$/v
+const SENTENCE_REG_EXP = /^\n?([\p{Lu}`\d_][\s\S]*[.?!`\p{RGI_Emoji}]\s*)?$/v
 
 /**
  * The main description of a documented function, and the text of its `@param`, `@returns` and `@throws`, read as
@@ -26,7 +27,7 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
     type: 'problem',
     docs: {
       description: 'The description of a documented function and the text of its tags read as sentences.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/tsdoc/docs/rules/description-sentence.md',
+      url: buildRuleDocsUrl('tsdoc', 'description-sentence'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -42,18 +43,17 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
       const comment = findDocBlock(sourceCode, node)
       if (!comment) return
       const docBlock = parseDocBlock(comment)
-      /* A comment that inherits its documentation takes its summary from there, so it has none of its own to read. */
       if (!inheritsDoc(docBlock) && !SENTENCE_REG_EXP.test(docBlock.description))
         context.report({
-          loc: lineLocationOf(docBlock.descriptionLine),
+          loc: buildLineLocation(docBlock.descriptionLine),
           messageId: 'notSentence',
           data: { part: 'description' },
         })
       for (const docBlockTag of docBlock.tags) {
         if (!SENTENCE_TAGS.has(docBlockTag.tag) || docBlockTag.description === '-') continue
-        if (SENTENCE_REG_EXP.test(sentenceOf(docBlockTag))) continue
+        if (SENTENCE_REG_EXP.test(readTagSentence(docBlockTag))) continue
         context.report({
-          loc: lineLocationOf(docBlockTag.line),
+          loc: buildLineLocation(docBlockTag.line),
           messageId: 'notSentence',
           data: { part: `text of @${docBlockTag.tag}` },
         })
@@ -81,8 +81,8 @@ export const descriptionSentence: TsdocRule<DescriptionSentenceMessageId> = {
  * @param docBlockTag - The tag.
  * @returns The text the sentence rule reads.
  */
-const sentenceOf = (docBlockTag: DocBlockTag): string => {
-  if (docBlockTag.tag !== 'throws' || docBlockTag.type !== null) return docBlockTag.description
+const readTagSentence = (docBlockTag: DocBlockTag): string => {
+  if (docBlockTag.tag !== TSDOC_TAG.throws || docBlockTag.type !== null) return docBlockTag.description
 
   return docBlockTag.description.replace(/^\S+\s*/, '')
 }

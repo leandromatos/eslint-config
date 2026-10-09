@@ -1,2 +1,2 @@
-/** The messages `result-named-by-verb` reports. */
-export type ResultNamedByVerbMessageId = 'missingParticiple'
+/** The messages `result-by-verb` reports. */
+export type ResultByVerbMessageId = 'missingParticiple'

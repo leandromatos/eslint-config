@@ -1,8 +1,8 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
-import { isMethod, isPublic, locate, memberNameOf } from '../../shared/utils/index.js'
+import { buildRuleDocsUrl, isMethod, isPublic, locateFile, readMemberName } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, MethodOrderMessageId } from '../types/index.js'
+import type { ArchitectureRule, MethodOrderMessageId, NamedMethod } from '../types/index.js'
 
 /**
  * The methods of a class in an ordered layer come in two blocks, public then private, each in
@@ -15,7 +15,7 @@ export const methodOrder: ArchitectureRule<MethodOrderMessageId> = {
     fixable: 'code',
     docs: {
       description: 'A class in an ordered layer lists its public methods alphabetically, then its private ones.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/method-order.md',
+      url: buildRuleDocsUrl('architecture', 'method-order'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -28,30 +28,22 @@ export const methodOrder: ArchitectureRule<MethodOrderMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [{ orderedSuffixes }] = context.options
     if (!where?.suffix || !orderedSuffixes.includes(where.suffix)) return {}
     const listener: TSESLint.RuleListener = {
       ClassBody: classBody => {
-        /* A method under a computed key has no name to sort by, so it is read past rather than placed. */
-        const methods = classBody.body.filter(
-          (member): member is TSESTree.MethodDefinition => isMethod(member) && !member.computed,
-        )
+        const methods = listNamedMethods(classBody)
         let isFixOffered = false
         for (const [index, method] of methods.entries()) {
           const before = methods[index - 1]
           if (!before) continue
           const messageId = judge(before, method)
           if (!messageId) continue
-          /* One fix sorts the whole class, so it rides on the first report and the rest carry none. */
-          const fix = fixUnless(isFixOffered, ruleFixer => sortAll(ruleFixer, context.sourceCode, methods))
+          // One fix sorts the whole class, so it rides on the first report and the rest carry none.
+          const fix = offerFixOnce(isFixOffered, ruleFixer => sortClassMethods(ruleFixer, context.sourceCode, methods))
           isFixOffered = true
-          context.report({
-            node: method,
-            messageId,
-            data: { method: memberNameOf(method), previous: memberNameOf(before) },
-            fix,
-          })
+          context.report({ node: method.node, messageId, data: { method: method.name, previous: before.name }, fix })
         }
       },
     }
@@ -61,32 +53,46 @@ export const methodOrder: ArchitectureRule<MethodOrderMessageId> = {
 }
 
 /**
- * What is wrong with two methods declared one after the other, if anything.
+ * Lists the methods of a class body the order places, each with its name. A method under a computed key has no name
+ * to sort by, so it is read past rather than placed, and a field between two methods stays where it is.
  *
- * A public method comes before a private one, and methods of the same visibility follow the
- * alphabet.
+ * @param classBody - The body of the class.
+ * @returns The methods, as the class declares them.
+ */
+const listNamedMethods = (classBody: TSESTree.ClassBody): NamedMethod[] =>
+  classBody.body.flatMap(member => {
+    if (!isMethod(member)) return []
+    const name = readMemberName(member)
+    if (name === null) return []
+    const namedMethod: NamedMethod = { node: member, name, isPublic: isPublic(member) }
+
+    return [namedMethod]
+  })
+
+/**
+ * Judges two methods declared one after the other.
+ *
+ * A public method comes before a private one, and methods of the same visibility follow the alphabet.
  *
  * @param before - The method declared first.
  * @param after - The method declared next.
  * @returns The message to report, or `null` when the order holds.
  */
-const judge = (before: TSESTree.MethodDefinition, after: TSESTree.MethodDefinition): MethodOrderMessageId | null => {
-  const wasPublic = isPublic(before)
-  const isNowPublic = isPublic(after)
-  if (!wasPublic && isNowPublic) return 'privateBeforePublic'
-  if (wasPublic === isNowPublic && memberNameOf(before).localeCompare(memberNameOf(after)) > 0) return 'outOfOrder'
+const judge = (before: NamedMethod, after: NamedMethod): MethodOrderMessageId | null => {
+  if (!before.isPublic && after.isPublic) return 'privateBeforePublic'
+  if (before.isPublic === after.isPublic && compareNames(before.name, after.name) > 0) return 'outOfOrder'
 
   return null
 }
 
 /**
- * The fix, unless the class already carries one.
+ * Offers the fix, unless the class already carries one.
  *
  * @param isOffered - Whether an earlier report of the class carries the fix.
  * @param fix - What sorts the class.
  * @returns The fix, and null where an earlier report carries it.
  */
-const fixUnless = (isOffered: boolean, fix: TSESLint.ReportFixFunction): TSESLint.ReportFixFunction | null => {
+const offerFixOnce = (isOffered: boolean, fix: TSESLint.ReportFixFunction): TSESLint.ReportFixFunction | null => {
   if (isOffered) return null
 
   return fix
@@ -102,51 +108,62 @@ const fixUnless = (isOffered: boolean, fix: TSESLint.ReportFixFunction): TSESLin
  * @param methods - The methods the order places, as the class declares them.
  * @returns The fix that sorts them.
  */
-const sortAll = (
+const sortClassMethods = (
   ruleFixer: TSESLint.RuleFixer,
   sourceCode: TSESLint.SourceCode,
-  methods: TSESTree.MethodDefinition[],
+  methods: NamedMethod[],
 ): TSESLint.RuleFix => {
-  const slots = methods.map(method => ({ start: startOf(sourceCode, method), end: method.range[1] }))
+  const slots = methods.map(method => [findMemberStart(sourceCode, method.node), method.node.range[1]] as const)
+  const ends = [...slots.map(([, end]) => end)]
+  const starts = [...slots.slice(1).map(([start]) => start), Math.max(...ends)]
   const text = [...methods]
-    .sort(compare)
+    .sort(compareMethods)
     .map((placed, index) => {
-      const end = slots[index]?.end
-      const between = sourceCode.text.slice(end, slots[index + 1]?.start ?? end)
+      const between = sourceCode.text.slice(ends[index], starts[index])
 
-      return `${sourceCode.text.slice(startOf(sourceCode, placed), placed.range[1])}${between}`
+      return `${sourceCode.text.slice(findMemberStart(sourceCode, placed.node), placed.node.range[1])}${between}`
     })
     .join('')
-  const start = Math.min(...slots.map(slot => slot.start))
-  const end = Math.max(...slots.map(slot => slot.end))
+  const start = Math.min(...slots.map(([slotStart]) => slotStart))
+  const end = Math.max(...ends)
 
   return ruleFixer.replaceTextRange([start, end], text)
 }
 
 /**
- * Where a member starts, its leading comments included, so a doc block travels with its method.
+ * Finds where a member starts, its leading comments included, so a doc block travels with its method.
  *
  * @param sourceCode - The source the member is written in.
  * @param member - The member the class declares.
  * @returns The offset the member opens at.
  */
-const startOf = (sourceCode: TSESLint.SourceCode, member: TSESTree.MethodDefinition): number => {
-  const first = sourceCode.getCommentsBefore(member)[0]
+const findMemberStart = (sourceCode: TSESLint.SourceCode, member: TSESTree.MethodDefinition): number => {
+  const [first] = sourceCode.getCommentsBefore(member)
   if (!first) return member.range[0]
 
   return first.range[0]
 }
 
 /**
- * The order the class wants two methods in: public first, then the alphabet.
+ * Compares two methods in the order the class wants them: public first, then the alphabet.
  *
  * @param left - One method.
  * @param right - The other.
  * @returns A negative number when the left one comes first, a positive one when it comes after, and zero for a tie.
  */
-const compare = (left: TSESTree.MethodDefinition, right: TSESTree.MethodDefinition): number => {
-  const visibility = Number(!isPublic(left)) - Number(!isPublic(right))
+const compareMethods = (left: NamedMethod, right: NamedMethod): number => {
+  const visibility = Number(!left.isPublic) - Number(!right.isPublic)
   if (visibility) return visibility
 
-  return memberNameOf(left).localeCompare(memberNameOf(right))
+  return compareNames(left.name, right.name)
 }
+
+/**
+ * Compares two names by the English alphabet, whatever the locale of the machine the linter runs on, so a fix written
+ * on one machine is the order another one reads.
+ *
+ * @param left - One name.
+ * @param right - The other.
+ * @returns A negative number when the left one comes first, a positive one when it comes after, and zero for a tie.
+ */
+const compareNames = (left: string, right: string): number => left.localeCompare(right, 'en')

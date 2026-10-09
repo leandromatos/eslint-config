@@ -23,3 +23,19 @@ export interface StringPattern {
   /** What the pattern says, for the message. */
   because: string
 }
+
+/** A pattern of the options with its regular expressions built, once per file. */
+export interface CompiledStringPattern {
+  /** The callee as the code writes it. */
+  callee: string
+  /** The property of the first argument that holds the string, when the argument is an object. */
+  property?: string
+  /** What the name of the declaration the call decorates has to match. */
+  target?: RegExp
+  /** What the string has to match. */
+  must?: RegExp
+  /** What the string must not match. */
+  mustNot?: RegExp
+  /** What the pattern says, for the message. */
+  because: string
+}

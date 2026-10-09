@@ -1,19 +1,18 @@
-# tsdoc/documented-function
+# leandromatos/tsdoc-documented-function
 
-Every method and every function a module declares carries a documentation comment, and the summary
-says what the name cannot.
+Every method and every function a module declares carries a documentation comment, and the summary says what the name
+cannot.
 
-The visibility decides nothing. A public method is read at its call site, where the body is not in
-view, and a private one is read by the next person to edit the class, who meets it the same way.
-Whether a name "already says it" is a judgment two authors make differently, so presence is not
-left to it. A summary that rewrites the name into a sentence is reported as if it were missing.
+The visibility decides nothing. A public method is read at its call site, where the body is not in view, and a private
+one is read by the next person to edit the class, who meets it the same way. Whether a name "already says it" is a
+judgment two authors make differently, so presence is not left to it. A summary that rewrites the name into a sentence
+is reported as if it were missing.
 
-A method an interface or a base class declares is no exception, with or without `override`. Its
-comment can take the contract's text with the inline tag TSDoc defines,
-`{@inheritDoc Owner.member}`, which counts as the comment.
+A method an interface or a base class declares is no exception, with or without `override`. Its comment can take the
+text of the contract with the inline tag TSDoc defines, `{@inheritDoc Owner.member}`, which counts as the comment.
 
-An overloaded function is documented on each signature, which is what the caller reads. The
-implementation below them is reached by no signature of its own, so it is asked for nothing.
+An overloaded function is documented on each signature, which is what the caller reads. The implementation below them
+is reached by no signature of its own, so it is asked for nothing.
 
 ## Rule details
 
@@ -41,8 +40,8 @@ export class UsersService {
   /**
    * Answers with a page of users, most recent first.
    *
-   * The listing is never cached: a page depends on what the query asked for, and a cached page
-   * would answer a query nobody made.
+   * The listing is never cached: a page depends on what the query asked for, and a cached page would answer a query
+   * nobody made.
    */
   async findAllUsers(): Promise<PaginatedEntity<UserEntity>> {}
 
@@ -59,7 +58,7 @@ export class UsersService {
 }
 
 /**
- * Writes a camel-case name the way a file name spells it, as `removeExtension` for `remove-extension`.
+ * Writes a camel-case name the way a file name spells it, as `remove-extension` for `removeExtension`.
  *
  * @param name - The name in camel case.
  * @returns The name in kebab case.
@@ -79,5 +78,4 @@ No. The text is the author's, and a generated summary would be the restatement t
 
 ## When not to use it
 
-A package whose surface is generated, or a codebase that documents at the module level rather than
-per symbol.
+A package whose surface is generated, or a codebase that documents at the module level rather than per symbol.

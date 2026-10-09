@@ -2,24 +2,23 @@ import type { TSESLint } from '@typescript-eslint/utils'
 
 import {
   DEFAULT_ARCHITECTURE,
+  DEFAULT_FILES,
   DEFAULT_NAMING,
-  DEFAULT_TESTING,
   DEFAULT_TEXT,
   DEFAULT_TSDOC,
   DEFAULT_TYPESCRIPT,
-  TS_SOURCES,
 } from '../configs/constants/index.js'
-import { RULES } from './constants/index.js'
+import { CONSTANT_RULES, RULES } from './constants/index.js'
 import { PACKAGE, VERSION } from './shared/constants/index.js'
 import type { PluginOptions } from './types/index.js'
 
 export type * from './types/index.js'
 
-/** The files a project's rules judge when a configuration names none. */
-const DEFAULT_FILES = TS_SOURCES
+/** What the testing rules read of the default architecture: the test tree, the map and the alias. */
+const { testFolder, testKinds, mirroringTestKinds, suffixToFolder, alias } = DEFAULT_ARCHITECTURE
 
 /** The prefix a configuration writes before a rule name, and the key it registers the plugin under. */
-const NAMESPACE = 'leandromatos'
+export const NAMESPACE = 'leandromatos'
 
 /**
  * Every rule of this package, under one namespace.
@@ -31,7 +30,7 @@ const NAMESPACE = 'leandromatos'
  */
 export const plugin: TSESLint.FlatConfig.Plugin = {
   meta: { name: PACKAGE, version: VERSION, namespace: NAMESPACE },
-  rules: Object.fromEntries(Object.entries(RULES).map(([name, { rule, group }]) => [`${group}-${name}`, rule])),
+  rules: Object.fromEntries([...RULES, ...CONSTANT_RULES].map(({ name, rule, group }) => [`${group}-${name}`, rule])),
 }
 
 /**
@@ -44,33 +43,31 @@ export const plugin: TSESLint.FlatConfig.Plugin = {
  * @param files - The files the rules judge, which defaults to the sources of a project.
  * @returns The configuration.
  */
-export const leandromatos = (
+export const buildPluginConfig = (
   pluginOptions: PluginOptions,
   files: string[] = DEFAULT_FILES,
 ): TSESLint.FlatConfig.Config => {
-  const name = `${NAMESPACE}/recommended`
+  const name = `${NAMESPACE}/rules`
   const plugins = { [NAMESPACE]: plugin }
   const rules: TSESLint.FlatConfig.Rules = Object.fromEntries(
-    Object.entries(RULES).map(([rule, { group }]) => [
-      `${NAMESPACE}/${group}-${rule}`,
-      ['error', pluginOptions[group]],
-    ]),
+    RULES.map(({ name: rule, group }) => [`${NAMESPACE}/${group}-${rule}`, ['error', pluginOptions[group]]]),
   )
 
   return { name, files, plugins, rules }
 }
 
 /*
- * A plugin's configurations are configurations, which is what `extends: ['leandromatos/recommended']` resolves to.
- * The default vocabulary is what this one carries; a project with another calls {@link leandromatos} with its own.
+ * A plugin's configurations are configurations, which is what `extends: [plugin.configs.recommended]` resolves to.
+ * The default vocabulary is what this one carries; a project with another calls `buildPluginConfig` with its own.
+ * The configuration names the plugin it turns on, so it is attached once the plugin exists.
  */
 Object.assign(plugin, {
   configs: {
     recommended: [
-      leandromatos({
+      buildPluginConfig({
         architecture: DEFAULT_ARCHITECTURE,
-        naming: DEFAULT_NAMING,
-        testing: DEFAULT_TESTING,
+        naming: { ...DEFAULT_NAMING, testFolder },
+        testing: { testFolder, testKinds, mirroringTestKinds, suffixToFolder, alias },
         text: DEFAULT_TEXT,
         tsdoc: DEFAULT_TSDOC,
         typescript: DEFAULT_TYPESCRIPT,

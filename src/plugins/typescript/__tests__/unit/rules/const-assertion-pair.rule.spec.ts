@@ -1,12 +1,16 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { constAssertionPair } from '../../../rules/const-assertion-pair.rule.js'
 import type { TypescriptOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [TypescriptOptions] = [{ ...EMPTY_OPTIONS, typeSuffix: 'type' }]
-const vocabulary = sourceFile('oauth', 'types', 'oauth.type.ts')
+const vocabulary = buildSourcePath('oauth', 'types', 'oauth.type.ts')
 const pair = ['export const OAuthScope = {', "  OPENID: 'openid',", "  EMAIL: 'email',", '} as const'].join('\n')
 
 ruleTester.run('const-assertion-pair', constAssertionPair, {
@@ -43,14 +47,14 @@ ruleTester.run('const-assertion-pair', constAssertionPair, {
     // An object of functions is a helper, and a record of fields is a value; neither is a vocabulary.
     {
       code: 'export const OAuthCacheKey = {\n  sessionId: (id: string) => id,\n} as const',
-      filename: sourceFile('oauth', 'utils', 'oauth-cache-key.util.ts'),
+      filename: buildSourcePath('oauth', 'utils', 'oauth-cache-key.util.ts'),
       options,
     },
     { code: "export const EXAMPLE_IDS = {\n  USER: '1',\n} as const", filename: vocabulary, options },
     // With no suffix declared, where the pair is written is nobody's business; the pair itself still is.
     {
       code: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
-      filename: sourceFile('oauth', 'constants', 'oauth.constant.ts'),
+      filename: buildSourcePath('oauth', 'constants', 'oauth.constant.ts'),
       options: [EMPTY_OPTIONS],
     },
     // A value a factory produced is a vocabulary the checker reads and this rule cannot.
@@ -68,7 +72,7 @@ ruleTester.run('const-assertion-pair', constAssertionPair, {
       options,
       errors: [{ messageId: 'missingType' }],
       output:
-        "const OAuthScope = {\n  OPENID: 'openid',\n} as const\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]",
+        "const OAuthScope = {\n  OPENID: 'openid',\n} as const\n\ntype OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]",
     },
 
     // A type written as something other than the derivation leaves the vocabulary typed by nothing.
@@ -103,9 +107,25 @@ ruleTester.run('const-assertion-pair', constAssertionPair, {
       errors: [{ messageId: 'wrongDerivation' }],
       output: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
     },
+    // An index read off a type, rather than off the value, repeats the vocabulary.
+    {
+      code: `${pair}\n\nexport type OAuthScope = Scopes[keyof typeof OAuthScope]`,
+      filename: vocabulary,
+      options,
+      errors: [{ messageId: 'wrongDerivation' }],
+      output: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
+    },
+    // An index read off another value types the vocabulary by that value.
+    {
+      code: `${pair}\n\nexport type OAuthScope = (typeof OtherScope)[keyof typeof OAuthScope]`,
+      filename: vocabulary,
+      options,
+      errors: [{ messageId: 'wrongDerivation' }],
+      output: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
+    },
     {
       code: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
-      filename: sourceFile('oauth', 'constants', 'oauth.constant.ts'),
+      filename: buildSourcePath('oauth', 'constants', 'oauth.constant.ts'),
       options,
       errors: [{ messageId: 'outsideTypes' }],
     },
@@ -130,7 +150,7 @@ ruleTester.run('const-assertion-pair, in a repository of several packages', cons
   invalid: [
     {
       code: `${pair}\n\nexport type OAuthScope = (typeof OAuthScope)[keyof typeof OAuthScope]`,
-      filename: packageSourceFile('apps/x', 'oauth', 'constants', 'oauth.constant.ts'),
+      filename: buildPackageSourcePath('apps/x', 'oauth', 'constants', 'oauth.constant.ts'),
       options,
       errors: [{ messageId: 'outsideTypes' }],
     },

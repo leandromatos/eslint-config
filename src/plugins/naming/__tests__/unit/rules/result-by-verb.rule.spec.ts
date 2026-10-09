@@ -1,9 +1,13 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { resultByVerb } from '../../../rules/result-by-verb.rule.js'
 import type { NamingOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
 const options: [NamingOptions] = [
   {
@@ -13,12 +17,14 @@ const options: [NamingOptions] = [
     testFolder: '__tests__',
   },
 ]
-const source = sourceFile('users', 'services', 'user.service.ts')
-const spec = sourceFile('users', '__tests__', 'user.service.spec.ts')
-const component = sourceFile('users', 'components', 'user-card.tsx')
+const source = buildSourcePath('users', 'services', 'user.service.ts')
+const spec = buildSourcePath('users', '__tests__', 'user.service.spec.ts')
+const component = buildSourcePath('users', 'components', 'user-card.tsx')
 
 ruleTester.run('result-by-verb', resultByVerb, {
   valid: [
+    // A declaration that holds nothing yet has no call to be named after.
+    { code: 'let password\npassword = hashPassword(raw)', filename: source, options },
     // A call on something the chain does not name produces nothing this rule can read.
     { code: 'const password = hashers[0](raw)', filename: source, options },
 
@@ -92,7 +98,7 @@ ruleTester.run('result-by-verb, in a repository of several packages', resultByVe
     // A role name is what a spec calls its subject, and the test folder is read under the package's own sources.
     {
       code: 'const result = hashPassword(raw)',
-      filename: packageSourceFile('apps/x', 'users', '__tests__', 'user.service.spec.ts'),
+      filename: buildPackageSourcePath('apps/x', 'users', '__tests__', 'user.service.spec.ts'),
       options,
     },
   ],

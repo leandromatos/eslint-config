@@ -1,2 +1,2 @@
-/** The messages `method-names-resource` reports. */
-export type MethodNamesResourceMessageId = 'missingResource'
+/** The messages `method-resource` reports. */
+export type MethodResourceMessageId = 'missingResource'

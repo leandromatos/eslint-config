@@ -1,13 +1,16 @@
-import { syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { descriptionSentence } from '../../../rules/description-sentence.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
+const ruleTester = createSyntaxRuleTester()
 
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
 
 ruleTester.run('description-sentence', descriptionSentence, {
   valid: [
+    // A capital is a capital in any script, so a sentence opening on an accented letter opens on one.
+    { code: '/** Ótimo. */\nfunction read() {}', options },
     // The sentence of a throws tag is the condition after its type, which may open in lower case.
     {
       code: '/**\n * Runs.\n *\n * @throws unknown Whatever the hook throws, as it was.\n */\nfunction run() {}',
@@ -91,7 +94,6 @@ ruleTester.run('description-sentence', descriptionSentence, {
     { code: '/** See {@link Reader} */\nfunction read() {}', options, errors: [{ messageId: 'notSentence' }] },
     { code: '/** Reads (fast.) */\nfunction read() {}', options, errors: [{ messageId: 'notSentence' }] },
     { code: '/** "Reads" a user. */\nfunction read() {}', options, errors: [{ messageId: 'notSentence' }] },
-    { code: '/** Ótimo. */\nfunction read() {}', options, errors: [{ messageId: 'notSentence' }] },
     // The last line of a description is what closes it.
     {
       code: '/**\n * Reads a user.\n *\n * second paragraph\n */\nfunction read() {}',

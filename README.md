@@ -1,22 +1,31 @@
 # ESLint Config
 
-Personal [ESLint](https://eslint.org) setup: a flat, type-aware configuration for TypeScript, React, JSON and Markdown, plus a plugin of rules of my own covering the language's own constructs, naming, documentation, structure, tests, and the strings a product ships.
+A flat, type-aware [ESLint](https://eslint.org) configuration for TypeScript, React, JSON and Markdown, in tiers, with
+a plugin that holds a project to its architecture, its naming, its tests and its documentation.
 
 ## ✨ Features
 
-- **One config, every project.** A single source of truth, so linting never drifts between repositories.
-- **A few rules of its own of its own.** The base config bans `enum`, refuses a bare `fs` where `node:fs` is meant, and refuses a `catch` that answers every failure with one value.
-- **Type-aware out of the box.** TypeScript rules that read the type-checker through `projectService`, catching what syntax cannot: floating promises, unsafe returns, deprecated APIs.
-- **One plugin, one namespace.** `leandromatos`, grouped by subject inside: `architecture`, `naming`, `testing`, `tsdoc`, `text` and `typescript`. Each rule ships the mechanism and takes the vocabulary as options, so no rule knows any one project.
-- **A tier per framework, the way the ecosystem names them.** `recommended` is what the ecosystem already wrote, `strict` adds every rule of this package with a vocabulary that reads no framework, and `nestjs`, `nextjs` and `expo` add the tree each one writes. A project takes the tier it is on and states only where it differs.
-- **Import boundaries read from the path.** A rule that answers what a file may import from where it sits, so a layered project enforces its architecture without hand-written patterns.
-- **Native flat config, ESM.** No `FlatCompat`, no compat shims. Written in TypeScript, published as `dist/`.
-- **Typed.** Every export ships declarations, so a TypeScript config file gets a checked array instead of an implicit `any`.
-- **Formatting is Prettier's job.** The config never formats; it switches off what would fight the formatter. Pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
+- **A tier per framework, the way the ecosystem names them.** `recommended` is what the ecosystem already wrote,
+  `strict` adds every rule of this package with a vocabulary that reads no framework, and `nestjs`, `nextjs` and
+  `expo` add the tree each one writes.
+- **Every default is an exported constant.** Each field of each tier is a constant of its own, such as
+  `NEXTJS_ROOT_CONTEXTS`, so a project extends a default by reading it rather than retyping it.
+- **A list joins, a function edits.** A list or a map a project passes joins the default of the tier; a function in
+  its place receives the default and answers the whole value, which is how an entry is removed.
+- **One plugin, one namespace.** `leandromatos`, grouped by subject inside: `architecture`, `naming`, `testing`,
+  `text`, `tsdoc` and `typescript`. Each rule carries the mechanism and takes the vocabulary as options.
+- **Type-aware.** The TypeScript rules read the type-checker through `projectService`, which catches what syntax
+  cannot: a floating promise, an unsafe return, a deprecated API.
+- **No cast, no `any`, no ternary outside JSX, no `else`.** `strict` holds the sources to the shape the type-checker
+  can check and a reader can follow.
+- **Formatting is Prettier's job.** The configuration never formats; it switches off what would fight the formatter.
+  It pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
+- **Native flat config, ESM, typed.** No `FlatCompat`. Every export ships declarations, so a TypeScript configuration
+  file gets a checked array.
 
 ## 🧭 How It Works
 
-The tiers are a ladder, and each rung takes what the one below it takes. A project picks the rung that names its framework and passes what differs:
+The tiers are a ladder, and each rung takes what the one below it takes:
 
 ```plaintext
 recommended   the rules the ecosystem already wrote, by file type
@@ -26,20 +35,14 @@ recommended   the rules the ecosystem already wrote, by file type
        └─ expo     plus the same tree, on the platform React Native gives it
 ```
 
-Every tier is a function, and every one takes the same options object: a project states only where it differs, and the tier carries the rest down. So the folder rules and the import rules read one vocabulary and cannot disagree.
+Every tier is a function, and every one takes the same options object, so a field means the same thing whichever tier
+a project is on. The folder rules and the import rules read one vocabulary, and cannot disagree.
 
-**The plugin** is rules with no vocabulary of their own. A rule knows the shape of a question, "does this file sit under the folder its suffix names?", and the options answer it for one project. Nothing here knows any product: a NestJS codebase turns them on with its folders, a React codebase with its own.
+The plugin holds rules with no vocabulary of their own. A rule knows the shape of a question, "does this file sit
+under the folder its suffix names?", and the options answer it for one project.
 
-A project that wants the rules with the default vocabulary and nothing else takes the plugin without a tier:
-
-```ts
-import { plugin } from '@leandromatos/eslint-config'
-import { defineConfig } from 'eslint/config'
-
-export default defineConfig([{ files: ['src/**/*.ts'], extends: [plugin.configs.recommended] }])
-```
-
-The type-aware layer uses typescript-eslint's `projectService`, which finds the nearest `tsconfig.json` on its own. So the type-checked rules need a `tsconfig.json` in your project; without one, the parser has no types to read. `typescript` is a peer dependency for that reason, even in a mostly-JavaScript project.
+The type-aware layer runs through the `projectService` of typescript-eslint, which finds the nearest
+`tsconfig.json` on its own, so a project needs one. `typescript` is a peer dependency for that reason.
 
 ## 📦 Installation
 
@@ -47,7 +50,8 @@ The type-aware layer uses typescript-eslint's `projectService`, which finds the 
 pnpm add --save-dev eslint typescript @leandromatos/eslint-config
 ```
 
-`eslint >= 10` and `typescript >= 5 < 7` are peer dependencies, so you bring your own. The upper bound on TypeScript tracks what typescript-eslint supports, since the type-aware layer runs through its parser. Node `>= 22.12.0` is required.
+`eslint >= 10` and `typescript >= 5 < 7` are peer dependencies. The upper bound on TypeScript follows what
+typescript-eslint supports. Node `>= 22.12.0` is required.
 
 ## 🚀 Quick Start
 
@@ -62,37 +66,29 @@ const eslintConfig: Config[] = configs.recommended()
 export default eslintConfig
 ```
 
-Every rule that reads no framework, with the folders this project has at its root:
+Every rule that reads no framework, with the folders this project keeps at the root of its sources:
 
 ```ts
-import type { Config } from '@leandromatos/eslint-config'
-import { configs } from '@leandromatos/eslint-config'
-
-const eslintConfig: Config[] = configs.strict({
-  ignores: ['agents'],
-  architecture: { rootContexts: ['config', 'shared'] },
-})
-
-export default eslintConfig
+const eslintConfig: Config[] = configs.strict({ architecture: { rootContexts: ['config', 'shared'] } })
 ```
 
-A project on a framework names its tier instead, and passes the same shape:
+A project on a framework names its tier, and passes the same shape:
 
 ```ts
-const eslintConfig: Config[] = configs.nestjs({ architecture: { rootContexts: ['database'] } })
+const eslintConfig: Config[] = configs.nestjs({ architecture: { rootContexts: ['factories'] } })
 ```
 
-Then run ESLint as usual, and Prettier separately for formatting:
+`rootContexts: ['factories']` joins the contexts the tier already names. Then run ESLint, and Prettier apart from it:
 
 ```bash
 pnpm exec eslint .
 ```
 
-### Editor and lint-staged setup
+### Editor and lint-staged
 
-Because formatting lives in Prettier and not ESLint, your editor and your pre-commit hook need both tools: Prettier to format, ESLint to fix defects. Skip this and formatting stops happening on save. `eslint --fix` does not format, so if Prettier is not wired up, nothing does. Nothing errors; the code just silently stops being formatted.
-
-VSCode, with the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extensions (`.vscode/settings.json`). Format with Prettier on save, and run ESLint's fixes as a separate action:
+`eslint --fix` does not format, so the editor and the pre-commit hook run both tools: Prettier to format, ESLint to
+fix defects. In VSCode, with the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extensions:
 
 ```json
 {
@@ -104,7 +100,8 @@ VSCode, with the [Prettier](https://marketplace.visualstudio.com/items?itemName=
 }
 ```
 
-[lint-staged](https://github.com/lint-staged/lint-staged), in the same order. Fix, then format, so Prettier has the last word on the result:
+In [lint-staged](https://github.com/lint-staged/lint-staged), fix first and format last, so Prettier has the final
+word:
 
 ```js
 export default {
@@ -119,164 +116,191 @@ export default {
 
 ### The tiers
 
-Every tier is a function taking one options object, and every group of that object merges over the tier's own vocabulary. One object reaches every plugin, so the folder rules and the import rules cannot end up with different vocabularies.
+| Tier                  | Takes                | Adds to the tier below                                                                        |
+| --------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| `configs.recommended` | `RecommendedOptions` | the rules the ecosystem already wrote, by file type                                           |
+| `configs.strict`      | `StrictOptions`      | every rule of this package, and the entries below                                             |
+| `configs.nestjs`      | `NestjsOptions`      | the layers NestJS writes, the order a class walks down them, the request objects passed whole |
+| `configs.nextjs`      | `NextjsOptions`      | the layers a React tree writes, modules under a container, the catalog kept out of the app    |
+| `configs.expo`        | `ExpoOptions`        | the same tree on React Native, the native folders, and the globals of the test runner         |
 
-| Tier                  | Takes                | Adds to the tier below                                                                             |
-| --------------------- | -------------------- | -------------------------------------------------------------------------------------------------- |
-| `configs.recommended` | `RecommendedOptions` | the rules the ecosystem already wrote, by file type                                                |
-| `configs.strict`      | `StrictOptions`      | every rule of this package, the documentation rules, the comment rule and the cycle rule           |
-| `configs.nestjs`      | `NestjsOptions`      | the layers a module is cut into, the order a class walks down them, and the Swagger and log shapes |
-| `configs.nextjs`      | `NextjsOptions`      | modules under a container, the App Router tree, and what a tool writes into the repository         |
-| `configs.expo`        | `ExpoOptions`        | the same tree on React Native, the native folders, and Jest as the test runner                     |
+What `configs.strict` adds to `recommended`:
 
-What `configs.strict` emits, in order:
+| Entry                         | What it holds                                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `leandromatos/rules`          | every rule of the plugin, each reading the group of its own subject                                     |
+| `tsdoc/syntax`                | every documentation comment parses as TSDoc, with its standard tags only                                |
+| the comment rule              | `leandromatos/tsdoc-comment-form` on the configuration files at the root, which no tier otherwise reads |
+| `import-x/no-cycle`           | no cycle, everywhere but in a barrel, and inside the project only                                       |
+| `leandromatos/casts`          | no cast, no non-null assertion, no `any` written by hand, specs included                                |
+| `leandromatos/unsafe-values`  | no value typed `any` travels, outside a spec                                                            |
+| `leandromatos/directives`     | a directive that turns a rule off says why, after `--`                                                  |
+| `leandromatos/control-flow`   | no `else`, no nested ternary, and no ternary but the direct child of a JSX expression                   |
+| `leandromatos/function-style` | every function an arrow, outside the `.tsx` files a component is declared in                            |
+| `leandromatos/constants`      | every value of a file of constants written once, and every field of a composed value read by name       |
 
-| Layer                                                              | What it is                                                                                                            |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `configs.recommended`                                              | the configuration below, every layer of it                                                                            |
-| `architecture`, `naming`, `testing`, `text`, `tsdoc`, `typescript` | every rule of this package, with the default vocabulary                                                               |
-| the syntax rule                                                    | `tsdoc/syntax`, from `eslint-plugin-tsdoc`: every documentation comment parses as TSDoc, with its standard tags only  |
-| the comment rule                                                   | `leandromatos/tsdoc-comment-form` on the root `*.mts` and `*.mjs`, which the type-aware layer never reaches           |
-| the cycle rule                                                     | `import-x/no-cycle`, everywhere but in a barrel, which re-exports its siblings by design, and inside the project only |
-
-[`src/configs`](src/configs/README.md) is the reference for what each tier emits and what each one takes. To see what a tier resolves to in your project, rather than reading this page, run [`@eslint/config-inspector`](https://github.com/eslint/config-inspector):
+[`src/configs`](src/configs/README.md) is the reference for what each tier emits and takes. To see what a tier
+resolves to in a project, run [`@eslint/config-inspector`](https://github.com/eslint/config-inspector):
 
 ```bash
 pnpm dlx @eslint/config-inspector
 ```
 
-### The configuration
+### The base configuration
 
-What `configs.recommended` is, and what `configs.strict` opens with. A stack of flat config objects, applied by file type:
+What `configs.recommended` is, and what every other tier opens with, by file type:
 
-| Layer        | Files                              | What it does                                                                                   |
-| ------------ | ---------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Base         | `.{js,jsx,mjs,cjs,ts,tsx,mts,cts}` | `@eslint/js` recommended plus rules of its own, `import-x`, `simple-import-sort`, `@stylistic` |
-| Type-checked | `.{ts,tsx,mts,cts}`                | typescript-eslint `recommendedTypeChecked` with `projectService`                               |
-| React        | `.tsx`                             | `eslint-plugin-react` and `eslint-plugin-react-hooks` flat configs, plus `jsx-a11y`            |
-| JSON         | `.{json,jsonc,json5}`              | `eslint-plugin-jsonc` recommended                                                              |
-| Markdown     | `.md`                              | `@eslint/markdown` structural rules                                                            |
-| Prettier     | all                                | `eslint-config-prettier`, applied last                                                         |
+| Layer        | Files                              | What it does                                                                        |
+| ------------ | ---------------------------------- | ----------------------------------------------------------------------------------- |
+| Base         | `.{js,jsx,mjs,cjs,ts,tsx,mts,cts}` | `@eslint/js` recommended, `import-x`, `simple-import-sort`, `@stylistic`, selectors |
+| Type-checked | `.{ts,tsx,mts,cts}`                | typescript-eslint `recommendedTypeChecked` with `projectService`                    |
+| React        | `.tsx`                             | `eslint-plugin-react`, `eslint-plugin-react-hooks` and `jsx-a11y`                   |
+| JSON         | `.{json,jsonc,json5}`              | `eslint-plugin-jsonc` recommended                                                   |
+| Markdown     | `.md`                              | `@eslint/markdown` structural rules                                                 |
+| Prettier     | all                                | `eslint-config-prettier`, then `curly` on `multi`, turned back on after it          |
 
-The rules each layer sets are in [`src/configs/recommended.config.ts`](src/configs/recommended.config.ts), and [`src/configs`](src/configs/README.md) is the reference for both configurations. Three of them are this package's own, written as selectors rather than as rules of the plugin, because ESLint already carries the mechanism:
+Three refusals are selectors rather than rules of the plugin, because ESLint already carries the mechanism:
 
-| What it refuses             | Why                                                                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `enum`                      | it emits runtime code no transpiler can inline, and a `const enum` from one version of a dependency runs against another |
-| a bare `fs`, `path`, `http` | without `node:`, a package of that name takes the builtin's place                                                        |
-| `.catch(() => null)`        | one value answers every failure, so a broken connection and a refused credential leave the same trace, which is none     |
+| What it refuses             | Why                                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `enum`                      | it emits runtime code no transpiler can inline                                                        |
+| a bare `fs`, `path`, `http` | without `node:`, a package of that name takes the place of the builtin                                |
+| `.catch(() => null)`        | one value answers every failure, so a broken connection and a refused credential leave the same trace |
 
-### No cast
-
-`configs.strict`, and every tier built on it, admits no cast in the sources, specs included: `@typescript-eslint/consistent-type-assertions` with `assertionStyle: 'never'`, and `@typescript-eslint/no-non-null-assertion`. A guard, a generic or the type a library declares says what a cast says and keeps the check. `as const` is no cast, since it narrows a literal to itself, and `satisfies` checks a value without changing its type, so both stay.
-
-Outside a spec, no value typed `any` travels either: the five `no-unsafe-*` rules of typescript-eslint are errors, so what `JSON.parse` or `Reflect.getMetadata` returns stops at `unknown`, where a guard narrows it. A spec keeps them off, because the asymmetric matchers of a test runner are typed `any` by design.
-
-The cast nothing else can replace goes behind a directive, and the directive says why: `@eslint-community/eslint-comments/require-description` reports an `eslint-disable` with no `-- <reason>`.
+`curly` is set to `multi` after `eslint-config-prettier`, which turns it off: a branch of one statement takes no
+braces, and one of several takes them.
 
 ### The plugin
 
-One plugin, [`eslint-plugin-leandromatos`](src/plugins/README.md), holding every rule. A namespace is global to a configuration and ESLint refuses a second plugin registered under a name another already took, so a word as common as `testing` is not a namespace to claim. The subject a rule is about is part of its name, so a configuration writes `leandromatos/architecture-known-suffix` and a report shows the same.
+One plugin, documented in [`src/plugins`](src/plugins/README.md). The subject of a rule opens its name, so a
+configuration writes `leandromatos/architecture-known-suffix` and a report shows the same.
 
-| Subject        | Rules | Judges                                                       | Reads                                       |
-| -------------- | ----- | ------------------------------------------------------------ | ------------------------------------------- |
-| `typescript`   | 1     | the constructs of the language: how a vocabulary is declared | the suffix of a type file                   |
-| `naming`       | 5     | what a value, a method and a fixture are called              | word lists                                  |
-| `tsdoc`        | 10    | the comments of a file: form, presence, tags                 | a column, whether a tool reads release tags |
-| `architecture` | 12    | where a file lives, what it is called, what a layer exposes  | the project's vocabulary                    |
-| `testing`      | 4     | how a spec is written and where it sits                      | the test folder and its kinds               |
-| `text`         | 1     | the strings the product ships                                | the patterns the brand decided              |
+| Subject        | Rules | Judges                                                           |
+| -------------- | ----- | ---------------------------------------------------------------- |
+| `architecture` | 12    | where a file lives, what it is called, what a layer exposes      |
+| `naming`       | 5     | what a value, a method and a fixture are called                  |
+| `testing`      | 4     | how a spec is written and where it sits                          |
+| `text`         | 1     | the strings a product ships                                      |
+| `tsdoc`        | 10    | the comments of a file: form, presence, tags                     |
+| `typescript`   | 3     | how a vocabulary is declared, and how a constant file is written |
 
-A rule reads the group of its own subject and nothing else, so a project states one vocabulary per subject. One markdown page per rule sits under `src/plugins/<subject>/docs/rules/<rule>.md`, which is where `meta.docs.url` points, so the editor shows the link beside the report: what the rule enforces, why, what fails, what passes, whether it fixes, and when not to use it.
+Each rule has a page under `src/plugins/<subject>/docs/rules/<rule>.md`, which `meta.docs.url` points at, so the
+editor links it beside the report.
 
 ### The exports
 
 There is no default export: a project names the tier it takes.
 
-| Export                 | What it is                                                                                                                                |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `configs`              | the five tiers: `recommended`, `strict`, `nestjs`, `nextjs`, `expo`                                                                       |
-| `plugin`               | the plugin object, for a project that reaches the rules without a tier                                                                    |
-| `Config`               | the type of one flat config entry, for annotating your own array                                                                          |
-| the tier option types  | `RecommendedOptions`, `StrictOptions`, `NestjsOptions`, `NextjsOptions`, `ExpoOptions`, with every group documented for the editor        |
-| the group option types | `ArchitectureOptions`, `NamingOptions`, `TestingOptions`, `TextOptions`, `TsdocOptions`, `TypescriptOptions` and what they are built from |
-| the `DEFAULT_*` values | the default vocabulary a tier merges over, to spread and extend                                                                           |
-| `SUFFIX_TO_FOLDER`     | the default map of layer suffix to folder, which every default that names a folder reads                                                  |
-| the `*_FILES` globs    | `DEFAULT_FILES` (strict and the plugin), `NESTJS_FILES`, `NEXTJS_FILES`, `EXPO_FILES`: what each tier judges by default, to extend        |
-| `PERIOD`, `NO_PERIOD`  | the two string patterns a text rule is written with                                                                                       |
+| Export                           | What it is                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `configs`                        | the five tiers                                                                                         |
+| `plugin`                         | the plugin, for a project that reaches the rules without a tier                                        |
+| `Config`                         | the type of one flat configuration entry                                                               |
+| the option types                 | `RecommendedOptions`, `StrictOptions`, `NestjsOptions`, `NextjsOptions`, `ExpoOptions`, and each group |
+| `DEFAULT_*`                      | every field of `strict`, one constant each, and `DEFAULT_ARCHITECTURE` and the other groups whole      |
+| `NESTJS_*`, `NEXTJS_*`, `EXPO_*` | every field each framework tier changes, and its groups whole                                          |
+| the suffix dictionary            | `AGNOSTIC_SUFFIX_DICTIONARY`, `NESTJS_SUFFIX_DICTIONARY`, `REACT_SUFFIX_DICTIONARY` and their union    |
+| `CONTROLLED_LANGUAGE`            | the house voice, opt-in, and each of its lists as a constant of its own                                |
+| `PERIOD`, `NO_PERIOD`            | the two string patterns a text rule is written with                                                    |
 
 ## ⚙️ Configuration
 
-### Configuring a tier
+### Extending a default
 
-Every group of the options merges over its own defaults, so a project writes only what differs from the defaults. What the defaults hold is the vocabulary: which suffix lives in which folder, what a mirror folder is, what a test kind is. It is declared once, here, rather than in every project.
-
-The defaults are exported values, not buried ones: `SUFFIX_TO_FOLDER` and the `DEFAULT_*` groups live in [`src/configs/constants/defaults.constant.ts`](src/configs/constants/defaults.constant.ts) and come out of `@leandromatos/eslint-config`. [Changing what a tier does](#changing-what-a-tier-does) shows how to extend them.
-
-```ts
-import type { Config, NestjsOptions, StringPattern } from '@leandromatos/eslint-config'
-import { configs } from '@leandromatos/eslint-config'
-
-const STRING_PATTERNS: StringPattern[] = [
-  { callee: 'this.logger.warn', mustNot: '\\.$', because: 'a log line reads as a line, not a sentence' },
-]
-
-const nestjsOptions: NestjsOptions = {
-  ignores: ['agents'],
-  naming: { resourceFreeStems: ['auth'] },
-  architecture: { rootContexts: ['config', 'shared'] },
-  text: { stringPatterns: STRING_PATTERNS },
-}
-
-const eslintConfig: Config[] = configs.nestjs(nestjsOptions)
-
-export default eslintConfig
-```
-
-| Option         | Required | Default                                              | Description                                      |
-| -------------- | -------- | ---------------------------------------------------- | ------------------------------------------------ |
-| `files`        | No       | `src/`, `{apps,libs,packages}/*/src/` and `scripts/` | The files the rules judge                        |
-| `ignores`      | No       | none                                                 | What the linter never reads, beyond the defaults |
-| `basePath`     | No       | the repository                                       | The package a tier reads, in a monorepo          |
-| `architecture` | No       | the default layout                                   | Merged over the tier's architecture vocabulary   |
-| `naming`       | No       | the default words                                    | Merged over the tier's naming vocabulary         |
-| `testing`      | No       | the default test tree                                | Merged over the tier's testing vocabulary        |
-| `text`         | No       | the tier's own shapes                                | Merged over the tier's text vocabulary           |
-| `tsdoc`        | No       | column 120, no tool for release tags                 | Merged over `DEFAULT_TSDOC`                      |
-| `typescript`   | No       | the `type` suffix                                    | Merged over `DEFAULT_TYPESCRIPT`                 |
-
-The rules that read where a file sits judge it against its source root: the outermost `src/` between the working directory and the file. The default `files` reads the `src/` of the repository and the `src/` of each package one level under `apps/`, `libs/` or `packages/`, so a monorepo or a serverless repository names nothing, and the `scripts/` at the root of the repository, in `.ts` or `.mts`; the configuration files at the root stay out, and another layout names its sources in `files`. Each package is judged under its own `src/`, against its own `package.json`. A file with no `src/` in its path is left alone by those rules.
-
-`configs.recommended` takes `ignores` alone: the base layer judges every file a project holds rather than its sources, so the only thing to state is what the linter never reads.
-
-Names no declaration carries live in the naming group, and this package forbids one: `data`, which says what a value is made of rather than what it is. A project that has to write a name a contract imposes passes its own list:
-
-```ts
-configs.strict({ naming: { forbiddenNames: [] } })
-```
-
-### A tier per package
-
-In a monorepo whose packages sit on different stacks, the root configuration takes `configs.strict` once, and each package takes the tier of its stack with `basePath`. The tier then reads its globs under that package, and leaves the layers of `recommended` to the root, which carries them once for the whole repository; only the entry that ignores what a tool writes comes along, under the package.
+A list or a map a project passes joins the default of the tier, each item once. A function in its place receives a
+copy of the default and answers the whole value, which is how an entry is removed. Anything else replaces the default.
 
 ```ts
 import type { Config } from '@leandromatos/eslint-config'
 import { configs } from '@leandromatos/eslint-config'
 
+const eslintConfig: Config[] = configs.nextjs({
+  architecture: {
+    // Joins the contexts of the tier.
+    rootContexts: ['docs'],
+    // Edits the kinds of the tier: every one but `smoke`.
+    testKinds: kinds => kinds.filter(kind => kind !== 'smoke'),
+  },
+})
+
+export default eslintConfig
+```
+
+Every field of every tier is an exported constant, named after the tier and the field, so a project that builds a
+value of its own reads the default by name:
+
+```ts
+import { configs, NEXTJS_ROOT_CONTEXTS } from '@leandromatos/eslint-config'
+
+// The roots of the tier with the one this project adds, read by the tier and by an entry of the project's own.
+const ROOT_CONTEXTS = [...NEXTJS_ROOT_CONTEXTS, 'docs']
+
+export default [
+  ...configs.nextjs({ architecture: { rootContexts: () => ROOT_CONTEXTS } }),
+  { files: ROOT_CONTEXTS.map(root => `src/${root}/**/*.tsx`), rules: { 'react/display-name': 'error' } },
+]
+```
+
+A suffix no dictionary carries is named with the folder that holds it, so the configuration never guesses a plural:
+
+```ts
+configs.strict({ architecture: { suffixToFolder: { widget: 'widgets' }, suffixDictionary: { widget: 'widgets' } } })
+```
+
+### The options
+
+| Option         | Default                                                 | Description                                                      |
+| -------------- | ------------------------------------------------------- | ---------------------------------------------------------------- |
+| `files`        | `src/`, `{apps,libs,packages}/*/src/` and `scripts/`    | the files the rules judge                                        |
+| `ignores`      | what a build, a coverage run and the tier's tools write | what the linter never reads                                      |
+| `basePath`     | the repository                                          | the package a tier reads, in a monorepo                          |
+| `architecture` | `DEFAULT_ARCHITECTURE`, or the tier's                   | the shape of the project, read by the folder and import rules    |
+| `naming`       | `DEFAULT_NAMING`, or the tier's                         | what a value, a method and a fixture are called                  |
+| `testing`      | the tier's HTTP client, when it has one                 | how an end-to-end spec reaches the application                   |
+| `text`         | no pattern                                              | the strings the product ships                                    |
+| `tsdoc`        | column 80, no tool for release tags                     | how a comment is written                                         |
+| `typescript`   | the `type` suffix                                       | where a vocabulary is declared                                   |
+| `presets`      | none                                                    | the presets applied over the tier, such as `CONTROLLED_LANGUAGE` |
+
+The test folder and the test kinds are said once, in `architecture`, and every plugin that reads them is handed the
+same value.
+
+The rules that read where a file sits judge it against its source root: the outermost `src/` between the working
+directory and the file. A file with no `src/` in its path is left alone by those rules.
+
+`configs.nextjs` also takes `catalog` (false when the project keeps no Storybook), and `configs.expo` takes `catalog`
+and `runner` (`jest` by default, the runner Expo ships a preset for, or `vitest`).
+
+### The house voice
+
+`CONTROLLED_LANGUAGE` is the voice of the house, taken on purpose rather than by a tier: no name that ends in `data`,
+comments wrapped at column 120, the condition the fix of a throw writes for an internal error, and the shape of the
+logs, the exception titles and the Swagger text of a NestJS service.
+
+```ts
+configs.nestjs({ presets: [CONTROLLED_LANGUAGE], naming: { resourceFreeStems: ['auth'] } })
+```
+
+A preset is applied over the tier before the options of the project, so a list the project passes joins both. A
+project writes a preset of its own the same way, as a `Preset`.
+
+### A tier per package
+
+In a monorepo whose packages sit on different stacks, the root takes `configs.strict` once, and each package takes the
+tier of its stack with `basePath`. The tier reads its globs under that package and leaves the layers of
+`recommended` to the root.
+
+```ts
 const eslintConfig: Config[] = [
   ...configs.strict(),
   ...configs.nextjs({ basePath: 'packages/web' }),
   ...configs.expo({ basePath: 'packages/mobile' }),
 ]
-
-export default eslintConfig
 ```
 
 ### The plugin on its own
 
-A project that wants the rules and not a tier takes the plugin alone. Two ways, by how much of the vocabulary the project brings.
-
-**The default vocabulary, whole.** The plugin's own configuration, reached the way ESLint documents:
+The default vocabulary, whole, the way ESLint documents a plugin's configuration:
 
 ```ts
 import { plugin } from '@leandromatos/eslint-config'
@@ -285,142 +309,82 @@ import { defineConfig } from 'eslint/config'
 export default defineConfig([{ files: ['src/**/*.ts'], extends: [plugin.configs.recommended] }])
 ```
 
-**One rule at a time.** The plugin object is exported for that:
+One rule at a time:
 
 ```ts
-import { plugin } from '@leandromatos/eslint-config'
+import { DEFAULT_NAMING, plugin } from '@leandromatos/eslint-config'
 
 export default [
   {
     files: ['src/**/*.ts'],
     plugins: { leandromatos: plugin },
-    rules: { 'leandromatos/naming-value-case': ['error', namingOptions] },
+    rules: { 'leandromatos/naming-value-case': ['error', { ...DEFAULT_NAMING, testFolder: '__tests__' }] },
   },
 ]
 ```
 
-### Changing what a tier does
+### Overriding the result
 
-Three ways, narrowest first. Reach for the first that answers the question: the earlier ones keep one vocabulary, and the last one is the escape hatch.
-
-**Pass an option.** Every group merges over the tier's own default, so a project states only what differs. That is the whole of the surface above.
-
-**Extend a default.** The values a tier merges over are exported, so a project adds to the default vocabulary instead of retyping it. `SUFFIX_TO_FOLDER` is the map every folder name comes from, and `DEFAULT_ARCHITECTURE`, `DEFAULT_NAMING`, `DEFAULT_TSDOC`, `DEFAULT_TESTING`, `DEFAULT_TEXT` and `DEFAULT_TYPESCRIPT` are what each group starts from:
-
-```ts
-import { configs, DEFAULT_NAMING, SUFFIX_TO_FOLDER } from '@leandromatos/eslint-config'
-
-export default configs.strict({
-  // The default folders, plus the one this project owns.
-  architecture: { suffixToFolder: { ...SUFFIX_TO_FOLDER, widget: 'widgets' } },
-  // The default participles, plus the verbs of this domain.
-  naming: { verbParticiples: { ...DEFAULT_NAMING.verbParticiples, enqueue: 'enqueued' } },
-})
-```
-
-Spread them; never mutate them. Every project in one ESLint process shares the object.
-
-The files a tier judges are exported the same way, so a project that keeps code outside `src/` adds the directory instead of retyping the tier's globs:
+A tier returns an array of flat configuration entries, so an entry appended after it wins, as ESLint documents for a
+shareable configuration: "You can override settings from the shareable config by adding them directly into your
+`eslint.config.js` file after importing the shareable config"
+([Overriding settings](https://eslint.org/docs/latest/extend/shareable-configs#overriding-settings-from-shareable-configs)).
 
 ```ts
-import { configs, NESTJS_FILES } from '@leandromatos/eslint-config'
-
-export default configs.nestjs({ files: [...NESTJS_FILES, 'scripts/**/*.ts', 'tests/**/*.ts'] })
-```
-
-A framework tier (`nestjs`, `nextjs`, `expo`) merges `architecture.suffixToFolder` into the map of the tier, so a project there names only the suffixes it adds: `configs.nestjs({ architecture: { suffixToFolder: { exception: 'exceptions' } } })` keeps every layer the tier names.
-
-**Override the result.** A tier returns an array of flat config entries, so what ESLint says about a shareable config applies: append your own entries, and the later one wins. That is how ESLint documents it. "You can override settings from the shareable config by adding them directly into your `eslint.config.js` file after importing the shareable config" ([Overriding settings](https://eslint.org/docs/latest/extend/shareable-configs#overriding-settings-from-shareable-configs)).
-
-```ts
-import type { Config } from '@leandromatos/eslint-config'
-import { configs } from '@leandromatos/eslint-config'
-
 const eslintConfig: Config[] = [
-  ...configs.strict(strictOptions),
-  // Anything from here wins over the tier.
+  ...configs.strict(),
   { files: ['scripts/**/*.ts'], rules: { 'leandromatos/architecture-barrel-per-directory': 'off' } },
 ]
-
-export default eslintConfig
 ```
 
-### A TypeScript config file
+### A TypeScript configuration file
 
-An `eslint.config.mts` that spreads the array and exports it directly can fail to type-check with TS2883, _the inferred type of 'default' cannot be named_. TypeScript infers that array from `typescript-eslint`, `eslint` and `@eslint/core`, and it will only write a type the project can name. Under pnpm those packages sit in `node_modules/.pnpm/<name>@<version>_<hash>/`, which has no name a consumer can write, so the inference has nowhere to land.
-
-Annotate the array instead. `Config` comes from this package, which the project already names:
+An `eslint.config.mts` that exports the array a tier answers can fail with TS2883, _the inferred type of 'default'
+cannot be named_: TypeScript infers it from packages that, under pnpm, sit in a directory no consumer can name.
+Annotate the array with `Config`, which this package exports:
 
 ```ts
-import type { Config, StrictOptions } from '@leandromatos/eslint-config'
-import { configs } from '@leandromatos/eslint-config'
-
-const strictOptions: StrictOptions = { ignores: ['coverage'] }
-
-const eslintConfig: Config[] = configs.strict(strictOptions)
-
-export default eslintConfig
+const eslintConfig: Config[] = configs.strict()
 ```
 
-The annotation is harmless everywhere else, so a project on `.mts` can write it from the start rather than waiting for the error.
-
-`defineConfig` from `eslint/config` does not take `Config`. It reads an entry as `@eslint/core` describes one, and a rule of this package is typed as `typescript-eslint` describes one, so that it can read a TypeScript node and its own options. The two spell `languageOptions` differently and neither is wrong, so a project that wants `extends` wraps only the entry that uses it:
-
-```ts
-const eslintConfig: Config[] = [
-  ...configs.nextjs(),
-  ...defineConfig([{ files: ['src/**/*.tsx'], extends: [somePolicy] }]),
-]
-```
-
-### A React project
-
-The `nextjs` and `expo` tiers name what a Bulletproof tree needs, so a React project takes its tier without restating the layout.
-
-| Default            | What it holds                                                 | Why                                                                                                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `moduleContainers` | `features`, `libs`, `modules`, `scripts`                      | those hold modules rather than layers, so the layer starts one segment later: `features/devices/screens` is the module `devices` and the layer `screens`, and `scripts/shadcn-to-storybook/utils` is a script with layers of its own |
-| `rootContexts`     | what sits at the root of the sources and answers to no module | `app`, `assets`, `storybook`, `styles`, `theme` on the web; the Expo tier names its own                                                                                                                                              |
-| `suffixToFolder`   | plus `hook`, `screen`, `store`, `provider`, `query`, `key`    | the layers a React project writes, read from the projects that write them                                                                                                                                                            |
-| `effectHooks`      | `useEffect`, `useLayoutEffect`, `useInsertionEffect`          | what `architecture-effect-in-hook` keeps out of a component                                                                                                                                                                          |
-
-A project that writes effects in components today turns that last one off by naming no effect, and turns it back on a file at a time:
+`defineConfig` from `eslint/config` reads an entry as `@eslint/core` describes one, and a rule of this package is
+typed as typescript-eslint describes one, so a project that wants `extends` wraps only the entry that uses it:
 
 ```ts
-configs.nextjs({ architecture: { effectHooks: [] } })
+const eslintConfig: Config[] = [...configs.nextjs(), ...defineConfig([{ files: ['src/**/*.tsx'], extends: [policy] }])]
 ```
 
 ### Import boundaries
 
-Some projects organize code by layer: a `services` folder holding `*.service.ts`, an `entities` folder holding `*.entity.ts`, and an `index.ts` barrel in each. Once that convention holds, `architecture-import-boundaries` reads a file's own path and answers what it may import.
+A project organized by layer keeps a `services` folder of `*.service.ts`, an `entities` folder of `*.entity.ts`, and
+an `index.ts` barrel in each. `architecture-import-boundaries` reads the path of a file and answers what it may import:
 
-| From                                              | Import                                        | Verdict                             |
-| ------------------------------------------------- | --------------------------------------------- | ----------------------------------- |
-| `tokens.module.ts`, which carries no layer suffix | `@/authorizer/tokens/services`                | Allowed                             |
-| `tokens.module.ts`                                | `@/authorizer/tokens/services/tokens.service` | Names a file of a layer             |
-| `entities/token.entity.ts`                        | `@/authorizer/users/services`                 | Allowed                             |
-| `entities/token.entity.ts`                        | `@/authorizer/users/services/users.service`   | Names a file of another layer       |
-| `entities/token.entity.ts`                        | `@/authorizer/tokens/entities/session.entity` | Allowed                             |
-| `entities/token.entity.ts`                        | `@/authorizer/tokens/entities`                | Its own barrel, which re-exports it |
+| From                                              | Import                                      | Verdict                             |
+| ------------------------------------------------- | ------------------------------------------- | ----------------------------------- |
+| `tokens.module.ts`, which carries no layer suffix | `@/accounts/tokens/services`                | allowed                             |
+| `tokens.module.ts`                                | `@/accounts/tokens/services/tokens.service` | names a file of a layer             |
+| `entities/token.entity.ts`                        | `@/accounts/users/services`                 | allowed                             |
+| `entities/token.entity.ts`                        | `@/accounts/users/services/users.service`   | names a file of another layer       |
+| `entities/token.entity.ts`                        | `@/accounts/tokens/entities/session.entity` | allowed                             |
+| `entities/token.entity.ts`                        | `@/accounts/tokens/entities`                | its own barrel, which re-exports it |
 
-That last row is the one that surprises people. A file cannot go through the barrel of the layer it lives in, because that barrel re-exports the file itself. `token.entity` → `index` → `token.entity` is a cycle. Siblings are reached directly instead, and only inside the caller's own layer directory: a direct `*.entity` import from a different directory is still blocked, which is the hole the barrel exists to close.
-
-A barrel answers to none of it, since re-exporting its siblings is its job. `.ts` and `.tsx` are one population: a hook in a React project carries its suffix the same way a service does. With `testFolder` set, production code cannot import from it, while everything inside it can, since tests are never part of a production import graph. With `testingFolder` set (`testing` by default), the same holds for a testing folder, local or the entry of a package such as `@graphabits/nestjs/database/testing`: a spec, the test tree and another testing folder may import it, production code may not, because it depends on what a production install leaves out. A file whose suffix is in `developmentSuffixes` counts as test code too: the `nextjs` and `expo` tiers name `stories`, since the catalog loads a story and the application never does. The `mockFolder` (`__mocks__` by default) is part of the test tree: Vitest, Jest and Storybook read the stand-in of a module from it, beside that module and under the same file name, so it needs no barrel, mirrors nothing and is never imported by production code.
-
-The rule reads `suffixToFolder`, `alias`, `testFolder`, `testingFolder`, `mockFolder` and `developmentSuffixes` from the `architecture` group, so the folder rules and the import rules cannot end up with different vocabularies. Its own page is [`architecture-import-boundaries`](src/plugins/architecture/docs/rules/import-boundaries.md).
-
-Cycles are a separate question: `configs.strict` sets `import-x/no-cycle` on everything but a barrel, and the walk stops at the edge of the project. A cycle between two files of a dependency is not the project's to break.
-
-Both halves of the import graph are configured by `recommended`, and neither is a default: the resolver, so an alias and an extensionless import resolve at all, and the extensions the plugin may open, so the walk does not stop at the first TypeScript file it reaches.
+A file cannot reach the barrel of its own layer, which re-exports the file itself, so siblings are imported directly.
+Production code never imports the test folder, the testing folder of a package or a story, since a production install
+leaves them out. The rule reads `suffixToFolder`, `alias`, `testFolder`, `testingFolder`, `mockFolder` and
+`developmentSuffixes` from `architecture`; its page is
+[`architecture-import-boundaries`](src/plugins/architecture/docs/rules/import-boundaries.md).
 
 ## 🏷️ Versioning
 
-Semver, published to npm. Peers are `eslint >= 10` and `typescript >= 5 < 7`, on Node `>= 22.12.0`; an ESLint major that changes the flat config API ships as a major here too. A rule that starts reporting what it used to pass is a breaking change, and so is a renamed option. Snapshots publish to the `snapshot` dist-tag as `X.Y.Z-snapshot.YYYYMMDD.N`; stable releases go to `latest`.
+Semver, published to npm. A rule that starts reporting what it used to pass is a breaking change, and so is a renamed
+option or export. Snapshots publish to the `snapshot` dist-tag as `X.Y.Z-snapshot.YYYYMMDD.N`; stable releases go to
+`latest`.
 
 ## 🤝 Contributing
 
-This repository follows [Conventional Commits](https://www.conventionalcommits.org). See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, releases, and local setup.
+This repository follows [Conventional Commits](https://www.conventionalcommits.org). See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, the releases and the local setup.
 
 ## 📄 License
 
-This software is free and open source, released by Leandro Matos under the MIT License. See the [LICENSE](LICENSE) file for the full terms.
+Free and open source, released by Leandro Matos under the MIT License. See [LICENSE](LICENSE).

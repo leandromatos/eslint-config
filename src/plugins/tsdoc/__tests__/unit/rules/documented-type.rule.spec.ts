@@ -1,11 +1,16 @@
-import { packageSourceFile, sourceFile, syntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import {
+  buildPackageSourcePath,
+  buildSourcePath,
+  createSyntaxRuleTester,
+} from '../../../../../__tests__/utils/index.js'
+import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { documentedType } from '../../../rules/documented-type.rule.js'
 import type { TsdocOptions } from '../../../types/index.js'
 
-const ruleTester = syntaxRuleTester()
-const options: [TsdocOptions] = [{ commentWidth: 120, readsReleaseTags: false }]
-const source = sourceFile('users', 'types', 'users.type.ts')
-const spec = sourceFile('users', '__tests__', 'unit', 'users.spec.ts')
+const ruleTester = createSyntaxRuleTester()
+const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]
+const source = buildSourcePath('users', 'types', 'users.type.ts')
+const spec = buildSourcePath('users', '__tests__', 'unit', 'users.spec.ts')
 
 ruleTester.run('documented-type', documentedType, {
   valid: [
@@ -152,7 +157,7 @@ ruleTester.run('documented-type, in a repository of several packages', documente
     },
     {
       code: 'export class UserFixture {}',
-      filename: packageSourceFile('libs/x', 'users', 'types', 'users.type.ts'),
+      filename: buildPackageSourcePath('libs/x', 'users', 'types', 'users.type.ts'),
       options,
       errors: [{ messageId: 'undocumented', data: { name: 'UserFixture' } }],
     },

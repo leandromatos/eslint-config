@@ -1,10 +1,11 @@
-# architecture/mirrored-source
+# leandromatos/architecture-mirrored-source
 
 A file under a mirror folder mirrors a file in the tree beside that folder.
 
-A mirror exists so that finding the type of a service, or the spec of a factory, is the same walk
-as finding the service or the factory. A file that mirrors nothing is a file whose source was
-renamed, moved or deleted, and nothing else notices.
+A mirror exists so that finding the type of a service, or the spec of a factory, is the same walk as finding the
+service or the factory. A file that mirrors nothing is a file whose source was renamed, moved or deleted, and nothing
+else notices. The source is read written as a module or as a component: `user.screen.spec.tsx` mirrors
+`user.screen.tsx`.
 
 ## Rule details
 
@@ -26,21 +27,23 @@ src/users/__tests__/e2e/users.spec.ts                    ← a kind that mirrors
 src/users/types/__mocks__/users.type.ts                  ← a stand-in, paired with its module by name
 ```
 
-The vocabulary of the tests of a module, shared by its specs and mirroring no file, sits at the
-root of the test tree's `types/` and is named after the module: `users/__tests__/types/users.type.ts`.
+The vocabulary of the tests of a module, shared by its specs and mirroring no file, sits at the root of the `types/`
+of the test tree and is named after the module: `users/__tests__/types/users.type.ts`.
 
-A module split by platform, as `toggle.ios.tsx` and `toggle.android.tsx`, is imported as
-`./toggle`, so `types/toggle.type.ts` mirrors either file.
+A module split by platform, as `toggle.ios.tsx` and `toggle.android.tsx`, or `badge.native.tsx` and `badge.web.tsx`, is
+imported as `./toggle`, so `types/toggle.type.ts` mirrors any of them, and the report names the shared file.
 
 ## Options
 
+Read from the `architecture` group of the options.
+
 | Option                    | Type                     | What it decides                                                                    |
 | ------------------------- | ------------------------ | ---------------------------------------------------------------------------------- |
-| `suffixToFolder`          | `Record<string, string>` | Which folder holds which layer                                                     |
-| `mirrorFolders`           | `string[]`               | The folders that mirror the tree                                                   |
-| `testFolder`, `testKinds` | `string`, `string[]`     | Where tests live and which kinds exist                                             |
-| `mirroringTestKinds`      | `string[]`               | The kinds whose specs mirror one source; the others assert a property of the whole |
-| `mockFolder`              | `string`                 | The folder of stand-ins, which mirror nothing                                      |
+| `suffixToFolder`          | `Record<string, string>` | which folder holds which layer                                                     |
+| `mirrorFolders`           | `string[]`               | the folders that mirror the tree                                                   |
+| `testFolder`, `testKinds` | `string`, `string[]`     | where tests live and which kinds exist                                             |
+| `mirroringTestKinds`      | `string[]`               | the kinds whose specs mirror one source; the others assert a property of the whole |
+| `mockFolder`              | `string`                 | the folder of stand-ins, which mirror nothing                                      |
 
 ## Fixable
 

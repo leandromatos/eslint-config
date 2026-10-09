@@ -1,13 +1,18 @@
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 
-import { fileRuleTester, optionsWith, packageSourceFile, sourceFile } from '../../../../../__tests__/utils/index.js'
+import {
+  buildFixturePath,
+  buildPackageSourcePath,
+  buildSourcePath,
+  createFileRuleTester,
+  extendRuleOptions,
+} from '../../../../../__tests__/utils/index.js'
 import { EMPTY_OPTIONS } from '../../../constants/index.js'
 import { mirroredSource } from '../../../rules/mirrored-source.rule.js'
 import type { ArchitectureOptions } from '../../../types/index.js'
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'fixtures', 'mirrored-source')
-const ruleTester = fileRuleTester(root)
+const root = buildFixturePath(import.meta.url, 'mirrored-source')
+const ruleTester = createFileRuleTester(root)
 const options: [ArchitectureOptions] = [
   {
     ...EMPTY_OPTIONS,
@@ -22,80 +27,84 @@ const options: [ArchitectureOptions] = [
 ruleTester.run('mirrored-source', mirroredSource, {
   valid: [
     // A file with no suffix mirrors nothing by name.
-    { code: 'export const read = () => 1', filename: sourceFile('users', 'types', 'read.ts'), options },
+    { code: 'export const read = () => 1', filename: buildSourcePath('users', 'types', 'read.ts'), options },
     // A suffix whose folder is not a mirror is judged by where it lives, not by what it mirrors.
-    { code: 'export class UserService {}', filename: sourceFile('users', 'services', 'user.service.ts'), options },
+    { code: 'export class UserService {}', filename: buildSourcePath('users', 'services', 'user.service.ts'), options },
     // A type file outside the mirror folder is the types rule's business, not this one's.
-    { code: 'export interface UserRole {\n  name: string\n}', filename: sourceFile('users', 'user.type.ts'), options },
+    {
+      code: 'export interface UserRole {\n  name: string\n}',
+      filename: buildSourcePath('users', 'user.type.ts'),
+      options,
+    },
     // A mirror folder inside a test kind mirrors that kind's own tree, where a spec and a helper sit side by side.
     {
       code: 'export const boot = () => 1',
-      filename: sourceFile('users', '__tests__', 'unit', 'types', 'user.service.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'types', 'user.service.type.ts'),
       options,
     },
     // A file under the test tree that names no kind may stand for a plain file or for a test of any kind.
     {
       code: 'describe("UserService", () => {})',
-      filename: sourceFile('users', '__tests__', 'types', 'user.service.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'types', 'user.service.type.ts'),
       options,
     },
 
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
-      filename: sourceFile('users', 'types', 'services', 'user.service.type.ts'),
+      filename: buildSourcePath('users', 'types', 'services', 'user.service.type.ts'),
       options,
     },
     {
       code: "describe('UserService', () => {})",
-      filename: sourceFile('users', '__tests__', 'unit', 'services', 'user.service.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'services', 'user.service.spec.ts'),
       options,
     },
     {
       code: "describe('Users', () => {})",
-      filename: sourceFile('users', '__tests__', 'e2e', 'users.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'e2e', 'users.spec.ts'),
       options,
     },
     {
       code: 'export interface UserRole {\n  name: string\n}',
-      filename: sourceFile('users', 'types', 'users.type.ts'),
+      filename: buildSourcePath('users', 'types', 'users.type.ts'),
       options,
     },
     {
       code: 'export interface ServiceOptions {\n  name: string\n}',
-      filename: sourceFile('users', 'services', 'types', 'services.type.ts'),
+      filename: buildSourcePath('users', 'services', 'types', 'services.type.ts'),
       options,
     },
     // A screen is written in `.tsx`, and the spec of one mirrors it under that extension.
     {
       code: "describe('UserScreen', () => {})",
-      filename: sourceFile('users', '__tests__', 'unit', 'screens', 'user.screen.spec.tsx'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'screens', 'user.screen.spec.tsx'),
       options,
     },
     // The type beside a screen mirrors it under that extension too.
     {
       code: 'export interface UserScreenProps {\n  userId: string\n}',
-      filename: sourceFile('users', 'types', 'screens', 'user.screen.type.ts'),
+      filename: buildSourcePath('users', 'types', 'screens', 'user.screen.type.ts'),
       options,
     },
     // A stand-in in the mock folder is paired with its module by name, by the test runner, so it mirrors nothing.
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
-      filename: sourceFile('users', 'types', 'services', '__mocks__', 'user.service.type.ts'),
-      options: optionsWith(options, { mockFolder: '__mocks__' }),
+      filename: buildSourcePath('users', 'types', 'services', '__mocks__', 'user.service.type.ts'),
+      options: extendRuleOptions(options, { mockFolder: '__mocks__' }),
     },
   ],
   invalid: [
     // A mirror folder inside the test tree, naming a kind, mirrors a spec of that kind.
     {
       code: 'export interface MissingParams {\n  id: string\n}',
-      filename: sourceFile('users', '__tests__', 'types', 'unit', 'missing.service.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'types', 'unit', 'missing.service.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },
     // A spec written straight under the test folder mirrors a source of the tree beside it.
     {
       code: 'describe("Missing", () => {})',
-      filename: sourceFile('users', '__tests__', 'missing.spec.ts'),
+      filename: buildSourcePath('users', '__tests__', 'missing.spec.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },
@@ -103,41 +112,35 @@ ruleTester.run('mirrored-source', mirroredSource, {
     // A mirror folder inside a test kind mirrors a spec of that kind, which this tree does not hold.
     {
       code: 'export interface MissingParams {\n  id: string\n}',
-      filename: sourceFile('users', '__tests__', 'unit', 'types', 'missing.service.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'unit', 'types', 'missing.service.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },
     // A mirror folder under the test tree, naming no kind, mirrors a plain file or a spec of any kind.
     {
       code: 'export interface MissingParams {\n  id: string\n}',
-      filename: sourceFile('users', '__tests__', 'types', 'missing.service.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'types', 'missing.service.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },
 
     {
       code: 'export interface MissingParams {\n  id: string\n}',
-      filename: sourceFile('users', 'types', 'services', 'missing.service.type.ts'),
+      filename: buildSourcePath('users', 'types', 'services', 'missing.service.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },
   ],
 })
 
-const monorepoRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'fixtures',
-  'mirrored-source-monorepo',
-)
-const monorepoRuleTester = fileRuleTester(monorepoRoot)
+const monorepoRoot = buildFixturePath(import.meta.url, 'mirrored-source-monorepo')
+const monorepoRuleTester = createFileRuleTester(monorepoRoot)
 
 monorepoRuleTester.run('mirrored-source, in a repository of several packages', mirroredSource, {
   valid: [
     {
       code: 'export interface FindOneUserParams {\n  userId: string\n}',
-      filename: packageSourceFile('apps/api', 'users', 'types', 'services', 'user.service.type.ts'),
+      filename: buildPackageSourcePath('apps/api', 'users', 'types', 'services', 'user.service.type.ts'),
       options,
     },
     {
@@ -150,14 +153,14 @@ monorepoRuleTester.run('mirrored-source, in a repository of several packages', m
     // The expected path is written from the working directory, so it names the package the source belongs to.
     {
       code: 'export interface MissingParams {}',
-      filename: packageSourceFile('apps/api', 'users', 'types', 'services', 'missing.service.type.ts'),
+      filename: buildPackageSourcePath('apps/api', 'users', 'types', 'services', 'missing.service.type.ts'),
       options,
       errors: [
         {
           messageId: 'noSource',
           data: {
             file: 'missing.service.type.ts',
-            expected: `${packageSourceFile('apps/api', 'users', 'services', 'missing.service.ts')} or ${packageSourceFile('apps/api', 'users', 'services', 'missing.service.tsx')}`,
+            expected: `${buildPackageSourcePath('apps/api', 'users', 'services', 'missing.service.ts')} or ${buildPackageSourcePath('apps/api', 'users', 'services', 'missing.service.tsx')}`,
           },
         },
       ],
@@ -170,19 +173,19 @@ ruleTester.run('mirrored-source, in a driver inside its capability', mirroredSou
     // The driver's mirror reads the driver's own tree, and its vocabulary is named after the driver.
     {
       code: 'export interface KeyvServiceOptions {}',
-      filename: sourceFile('cache', 'keyv', 'types', 'services', 'keyv.service.type.ts'),
+      filename: buildSourcePath('cache', 'keyv', 'types', 'services', 'keyv.service.type.ts'),
       options,
     },
     {
       code: 'export interface KeyvOptions {}',
-      filename: sourceFile('cache', 'keyv', 'types', 'keyv.type.ts'),
+      filename: buildSourcePath('cache', 'keyv', 'types', 'keyv.type.ts'),
       options,
     },
   ],
   invalid: [
     {
       code: 'export interface MissingOptions {}',
-      filename: sourceFile('cache', 'keyv', 'types', 'services', 'missing.service.type.ts'),
+      filename: buildSourcePath('cache', 'keyv', 'types', 'services', 'missing.service.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },
@@ -194,7 +197,13 @@ ruleTester.run('mirrored-source, over a module split by platform', mirroredSourc
     // The props both platform files take mirror the name a caller imports, which neither file is called.
     {
       code: 'export interface ToggleProps {\n  isOn: boolean\n}',
-      filename: sourceFile('components', 'native', 'types', 'toggle.type.ts'),
+      filename: buildSourcePath('components', 'native', 'types', 'toggle.type.ts'),
+      options,
+    },
+    // A module split between the device and the web mirrors the same name.
+    {
+      code: 'export interface BadgeProps {\n  count: number\n}',
+      filename: buildSourcePath('components', 'native', 'types', 'badge.type.ts'),
       options,
     },
   ],
@@ -202,7 +211,7 @@ ruleTester.run('mirrored-source, over a module split by platform', mirroredSourc
     // The report names the shared file, which is the one to create when no platform splits it.
     {
       code: 'export interface SwitchProps {\n  isOn: boolean\n}',
-      filename: sourceFile('components', 'native', 'types', 'switch.type.ts'),
+      filename: buildSourcePath('components', 'native', 'types', 'switch.type.ts'),
       options,
       errors: [
         {
@@ -222,14 +231,14 @@ ruleTester.run('mirrored-source, in the types of a test tree', mirroredSource, {
     // The vocabulary of the tests of a module, shared by its specs, is named after the module and mirrors nothing.
     {
       code: 'export interface AccountAttributes {\n  id: string\n}',
-      filename: sourceFile('users', '__tests__', 'types', 'users.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'types', 'users.type.ts'),
       options,
     },
   ],
   invalid: [
     {
       code: 'export interface AccountAttributes {\n  id: string\n}',
-      filename: sourceFile('users', '__tests__', 'types', 'accounts.type.ts'),
+      filename: buildSourcePath('users', '__tests__', 'types', 'accounts.type.ts'),
       options,
       errors: [{ messageId: 'noSource' }],
     },

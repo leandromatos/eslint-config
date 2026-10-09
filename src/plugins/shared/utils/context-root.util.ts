@@ -9,7 +9,7 @@ import { carriesResponsibilities } from './carries-responsibilities.util.js'
  * named after it is what the context is, so it sits at the root rather than in the folder of its suffix, the way
  * `users.module.ts` sits at the root of `users/`.
  *
- * Both halves are needed. The name alone would take `particle-object.constant.ts` out of `constants/` for sitting
+ * Both halves are needed. The name alone would take `retry-policy.constant.ts` out of `constants/` for sitting
  * in a directory of the same name, and the responsibilities alone say nothing about which file is the root one.
  *
  * @param sourceRoot - The source root the file sits under.

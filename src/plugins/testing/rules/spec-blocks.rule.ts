@@ -1,12 +1,40 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate, receiverOf } from '../../shared/utils/index.js'
+import {
+  buildRuleDocsUrl,
+  isFunctionNode,
+  locateFile,
+  readChildNodes,
+  readReceiver,
+  unwrapAwait,
+} from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 import type { SpecBlocksMessageId, TestingRule } from '../types/index.js'
 
+/** The calls a test is written with, bare or through a modifier: `it`, `test`, `it.only`, `it.each([...])`. */
 const TEST_CALLS = new Set(['it', 'test'])
+
+/** The members that leave a call a test, across Vitest, Jest and Playwright. */
+const TEST_MODIFIERS = new Set([
+  'concurrent',
+  'each',
+  'fail',
+  'failing',
+  'fails',
+  'fixme',
+  'only',
+  'runIf',
+  'sequential',
+  'skip',
+  'skipIf',
+  'todo',
+])
+
+/** A comment that names a block, which the blank line already does. */
 const BLOCK_LABEL_REG_EXP = /^\s*(arrange|act|assert)\b/i
+
+/** Arrange, act and assert. */
 const BLOCKS_AT_MOST = 3
 
 /**
@@ -20,7 +48,7 @@ export const specBlocks: TestingRule<SpecBlocksMessageId> = {
     type: 'problem',
     docs: {
       description: 'A test body has at most three blocks, separated by blank lines.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/testing/docs/rules/spec-blocks.md',
+      url: buildRuleDocsUrl('testing', 'spec-blocks'),
       dialects: ['TypeScript'],
     },
     fixable: 'whitespace',
@@ -34,41 +62,35 @@ export const specBlocks: TestingRule<SpecBlocksMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [{ testFolder }] = context.options
     if (!where || !where.segments.includes(testFolder)) return {}
     const { sourceCode } = context
     const listener: TSESLint.RuleListener = {
       CallExpression: callExpression => {
-        if (callExpression.callee.type !== AST_NODE_TYPES.Identifier || !TEST_CALLS.has(callExpression.callee.name))
-          return
-        const body = testBodyOf(callExpression)
+        if (!isTestCall(callExpression)) return
+        const body = findTestBody(callExpression)
         if (!body) return
         const blocks = splitByBlankLines(body.body, sourceCode.lines)
-        if (blocks.length > BLOCKS_AT_MOST) {
+        if (blocks.length > BLOCKS_AT_MOST)
           context.report({ node: body, messageId: 'tooManyBlocks', data: { count: String(blocks.length) } })
-        }
-        const assertion = firstAssertionOf(body.body)
+        const assertion = findFirstAssertion(body.body)
         if (!assertion) return
-        /* v8 ignore next -- the assertion came from the statements the blocks were split from */
-        const assertBlock = blocks.find(block => block.includes(assertion)) ?? []
-        const act = assertBlock
-          .slice(0, assertBlock.indexOf(assertion))
-          .find(statement => !isRead(statement, sourceCode))
+        const assertBlock = blocks.filter(block => block.includes(assertion)).flat()
+        const act = assertBlock.slice(0, assertBlock.indexOf(assertion)).find(statement => !isRead(statement))
         if (act)
           context.report({
             node: assertion,
             messageId: 'assertJoinsAct',
-            /* The blank line opens before the indentation of the assertion, so the line it leaves behind is empty. */
+            // The blank line opens before the indentation of the assertion, so the line it leaves behind is empty.
             fix: ruleFixer =>
               ruleFixer.insertTextBeforeRange(
                 [sourceCode.getIndexFromLoc({ line: assertion.loc.start.line, column: 0 }), 0],
                 '\n',
               ),
           })
-        for (const comment of sourceCode.getCommentsInside(body)) {
+        for (const comment of sourceCode.getCommentsInside(body))
           if (BLOCK_LABEL_REG_EXP.test(comment.value)) context.report({ node: comment, messageId: 'labelComment' })
-        }
       },
     }
 
@@ -82,27 +104,60 @@ export const specBlocks: TestingRule<SpecBlocksMessageId> = {
  * @param callExpression - The `it` or `test` call.
  * @returns The body, and null for a test written without one.
  */
-const testBodyOf = (callExpression: TSESTree.CallExpression): TSESTree.BlockStatement | null => {
+const findTestBody = (callExpression: TSESTree.CallExpression): TSESTree.BlockStatement | null => {
   const callback = callExpression.arguments[1]
-  if (!callback) return null
-  const isFunction =
-    callback.type === AST_NODE_TYPES.ArrowFunctionExpression || callback.type === AST_NODE_TYPES.FunctionExpression
-  if (!isFunction || callback.body.type !== AST_NODE_TYPES.BlockStatement) return null
+  if (!isFunctionNode(callback) || callback.body.type !== AST_NODE_TYPES.BlockStatement) return null
 
   return callback.body
 }
 
 /**
- * A statement that only reads a value the assertions look at: a declaration with nothing awaited
- * in it. Anything else before the first assertion in its block is the act, which the blank line
- * should have set apart.
+ * Whether a call writes a test: `it` or `test`, bare, through a modifier such as `it.only`, or called on what a
+ * modifier such as `it.each([...])` returns.
+ *
+ * @param callExpression - The call the rule reads.
+ * @returns Whether it writes a test.
+ */
+const isTestCall = (callExpression: TSESTree.CallExpression): boolean => {
+  let root: TSESTree.Node = callExpression.callee
+  while (root.type === AST_NODE_TYPES.CallExpression || root.type === AST_NODE_TYPES.MemberExpression) {
+    if (root.type === AST_NODE_TYPES.MemberExpression && !isTestModifier(root)) return false
+    root = readReceiver(root)
+  }
+
+  return root.type === AST_NODE_TYPES.Identifier && TEST_CALLS.has(root.name)
+}
+
+/**
+ * Whether a member of a test call keeps it a test, as `only` and `each` do, rather than naming a group, a hook or a
+ * step of one: `test.describe`, `test.beforeEach`, `test.step`.
+ *
+ * @param member - The member the call reads.
+ * @returns Whether it is a modifier of a test.
+ */
+const isTestModifier = (member: TSESTree.MemberExpression): boolean =>
+  member.property.type === AST_NODE_TYPES.Identifier && TEST_MODIFIERS.has(member.property.name)
+
+/**
+ * Whether a statement only reads a value the assertions look at: a declaration with nothing awaited in it. Anything
+ * else before the first assertion in its block is the act, which the blank line should have set apart.
  *
  * @param statement - The statement the block holds.
- * @param sourceCode - The source the statement is written in.
  * @returns Whether it only reads.
  */
-const isRead = (statement: TSESTree.Statement, sourceCode: TSESLint.SourceCode): boolean =>
-  statement.type === AST_NODE_TYPES.VariableDeclaration && !/\bawait\b/.test(sourceCode.getText(statement))
+const isRead = (statement: TSESTree.Statement): boolean =>
+  statement.type === AST_NODE_TYPES.VariableDeclaration && !hasAwait(statement)
+
+/**
+ * Whether a node awaits something of its own: an `await` in it, and not one inside a function it declares, which waits
+ * only when that function is called.
+ *
+ * @param node - The node the walk reads.
+ * @returns Whether it awaits.
+ */
+const hasAwait = (node: TSESTree.Node): boolean =>
+  node.type === AST_NODE_TYPES.AwaitExpression ||
+  readChildNodes(node).some(child => !isFunctionNode(child) && hasAwait(child))
 
 /**
  * The first statement that is an `expect(...)` call, awaited or not.
@@ -110,7 +165,7 @@ const isRead = (statement: TSESTree.Statement, sourceCode: TSESLint.SourceCode):
  * @param statements - The statements of the test body, in order.
  * @returns The assertion, and null for a body that asserts nothing.
  */
-const firstAssertionOf = (statements: TSESTree.Statement[]): TSESTree.Statement | null =>
+const findFirstAssertion = (statements: TSESTree.Statement[]): TSESTree.Statement | null =>
   statements.find(
     statement =>
       statement.type === AST_NODE_TYPES.ExpressionStatement && isExpectCall(unwrapAwait(statement.expression)),
@@ -125,23 +180,11 @@ const firstAssertionOf = (statements: TSESTree.Statement[]): TSESTree.Statement 
 const isExpectCall = (expression: TSESTree.Expression): boolean => {
   let current: TSESTree.Node = expression
   while (current.type === AST_NODE_TYPES.CallExpression || current.type === AST_NODE_TYPES.MemberExpression)
-    current = receiverOf(current)
+    current = readReceiver(current)
   if (current.type !== AST_NODE_TYPES.Identifier || current.name !== 'expect') return false
   const parent = current.parent
 
   return parent?.type === AST_NODE_TYPES.CallExpression && parent.callee === current
-}
-
-/**
- * The expression an `await` waits for, so an awaited call is read as the call.
- *
- * @param expression - The expression, awaited or not.
- * @returns The expression without the `await`.
- */
-const unwrapAwait = (expression: TSESTree.Expression): TSESTree.Expression => {
-  if (expression.type === AST_NODE_TYPES.AwaitExpression) return expression.argument
-
-  return expression
 }
 
 /**

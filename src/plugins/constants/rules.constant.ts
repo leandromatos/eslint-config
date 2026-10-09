@@ -13,6 +13,7 @@ import {
   typeSuffix,
 } from '../architecture/rules/index.js'
 import { expectedPrefix, forbiddenName, methodResource, resultByVerb, valueCase } from '../naming/rules/index.js'
+import { listGroupRules } from '../shared/utils/index.js'
 import { describesSource, e2eOverHttp, specBlocks, typedFixture } from '../testing/rules/index.js'
 import { stringPattern } from '../text/rules/index.js'
 import {
@@ -28,46 +29,71 @@ import {
   unreadTag,
 } from '../tsdoc/rules/index.js'
 import type { OptionsGroup } from '../types/index.js'
-import { constAssertionPair } from '../typescript/rules/index.js'
+import { composedConstant, constAssertionPair, repeatedLiteral } from '../typescript/rules/index.js'
+
+/** The group the rules about the language itself read, which both lists of them name. */
+const TYPESCRIPT_GROUP: OptionsGroup = 'typescript'
 
 /**
- * Every rule this plugin carries, by the name a configuration writes, and the group of the options it reads.
+ * Every rule this plugin carries, each with the name a configuration writes and the group of the options it reads.
  *
- * One plugin holds them all, so the subject a rule belongs to is what this map records rather than what the rule
+ * One plugin holds them all, so the subject a rule belongs to is what this list records rather than what the rule
  * name says. A rule reads one group and nothing else, which is what lets a project state a vocabulary per subject.
  */
-export const RULES = {
-  'argument-passed-whole': { rule: argumentPassedWhole, group: 'architecture' },
-  'barrel-per-directory': { rule: barrelPerDirectory, group: 'architecture' },
-  'effect-in-hook': { rule: effectInHook, group: 'architecture' },
-  'import-boundaries': { rule: importBoundaries, group: 'architecture' },
-  'known-directory': { rule: knownDirectory, group: 'architecture' },
-  'known-suffix': { rule: knownSuffix, group: 'architecture' },
-  'method-order': { rule: methodOrder, group: 'architecture' },
-  'mirrored-source': { rule: mirroredSource, group: 'architecture' },
-  'one-export-per-util': { rule: oneExportPerUtil, group: 'architecture' },
-  'stepdown-order': { rule: stepdownOrder, group: 'architecture' },
-  'type-suffix': { rule: typeSuffix, group: 'architecture' },
-  'types-folder': { rule: typesFolder, group: 'architecture' },
-  'expected-prefix': { rule: expectedPrefix, group: 'naming' },
-  'forbidden-name': { rule: forbiddenName, group: 'naming' },
-  'method-resource': { rule: methodResource, group: 'naming' },
-  'result-by-verb': { rule: resultByVerb, group: 'naming' },
-  'value-case': { rule: valueCase, group: 'naming' },
-  'comment-form': { rule: commentForm, group: 'tsdoc' },
-  'link-symbols': { rule: linkSymbols, group: 'tsdoc' },
-  'documented-function': { rule: documentedFunction, group: 'tsdoc' },
-  'documented-type': { rule: documentedType, group: 'tsdoc' },
-  'throws-tag': { rule: throwsTag, group: 'tsdoc' },
-  'param-tag': { rule: paramTag, group: 'tsdoc' },
-  'returns-tag': { rule: returnsTag, group: 'tsdoc' },
-  'description-sentence': { rule: descriptionSentence, group: 'tsdoc' },
-  'typeless-tag': { rule: typelessTag, group: 'tsdoc' },
-  'unread-tag': { rule: unreadTag, group: 'tsdoc' },
-  'describes-source': { rule: describesSource, group: 'testing' },
-  'e2e-over-http': { rule: e2eOverHttp, group: 'testing' },
-  'spec-blocks': { rule: specBlocks, group: 'testing' },
-  'typed-fixture': { rule: typedFixture, group: 'testing' },
-  'string-pattern': { rule: stringPattern, group: 'text' },
-  'const-assertion-pair': { rule: constAssertionPair, group: 'typescript' },
-} as const satisfies Record<string, { rule: unknown; group: OptionsGroup }>
+export const RULES = [
+  ...listGroupRules('architecture' satisfies OptionsGroup, {
+    'argument-passed-whole': argumentPassedWhole,
+    'barrel-per-directory': barrelPerDirectory,
+    'effect-in-hook': effectInHook,
+    'import-boundaries': importBoundaries,
+    'known-directory': knownDirectory,
+    'known-suffix': knownSuffix,
+    'method-order': methodOrder,
+    'mirrored-source': mirroredSource,
+    'one-export-per-util': oneExportPerUtil,
+    'stepdown-order': stepdownOrder,
+    'type-suffix': typeSuffix,
+    'types-folder': typesFolder,
+  }),
+  ...listGroupRules('naming' satisfies OptionsGroup, {
+    'expected-prefix': expectedPrefix,
+    'forbidden-name': forbiddenName,
+    'method-resource': methodResource,
+    'result-by-verb': resultByVerb,
+    'value-case': valueCase,
+  }),
+  ...listGroupRules('testing' satisfies OptionsGroup, {
+    'describes-source': describesSource,
+    'e2e-over-http': e2eOverHttp,
+    'spec-blocks': specBlocks,
+    'typed-fixture': typedFixture,
+  }),
+  ...listGroupRules('text' satisfies OptionsGroup, {
+    'string-pattern': stringPattern,
+  }),
+  ...listGroupRules('tsdoc' satisfies OptionsGroup, {
+    'comment-form': commentForm,
+    'description-sentence': descriptionSentence,
+    'documented-function': documentedFunction,
+    'documented-type': documentedType,
+    'link-symbols': linkSymbols,
+    'param-tag': paramTag,
+    'returns-tag': returnsTag,
+    'throws-tag': throwsTag,
+    'typeless-tag': typelessTag,
+    'unread-tag': unreadTag,
+  }),
+  ...listGroupRules(TYPESCRIPT_GROUP, {
+    'const-assertion-pair': constAssertionPair,
+  }),
+]
+
+/**
+ * The rules that read a file of constants, which a configuration turns on for those files alone with `files`. They
+ * read no group: `composed-constant` takes nothing, and `repeated-literal` takes the options of
+ * `sonarjs/no-duplicate-string`.
+ */
+export const CONSTANT_RULES = listGroupRules(TYPESCRIPT_GROUP, {
+  'composed-constant': composedConstant,
+  'repeated-literal': repeatedLiteral,
+})

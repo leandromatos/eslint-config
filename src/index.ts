@@ -18,44 +18,39 @@ export const configs = {
   expo,
 }
 
-/*
- * Re-exported so a project needs one import, not two. Nothing runs at import time: the filesystem walk happens when the
- * factory is called.
- */
-
-/*
- * The default vocabulary, to spread and extend rather than retype, the dictionary that spells its folders, and the
- * files each tier judges, for a project that adds a directory to them.
- */
-export {
-  DEFAULT_ARCHITECTURE,
-  DEFAULT_FILES,
-  DEFAULT_NAMING,
-  DEFAULT_TESTING,
-  DEFAULT_TEXT,
-  DEFAULT_TSDOC,
-  DEFAULT_TYPESCRIPT,
-  EXPO_FILES,
-  NESTJS_FILES,
-  NEXTJS_FILES,
-  NO_PERIOD,
-  PERIOD,
-  SUFFIX_DICTIONARY,
-  SUFFIX_TO_FOLDER,
+export * from './configs/constants/index.js'
+export * from './configs/errors/index.js'
+export type {
+  AgnosticSuffix,
+  ArchitectureExtension,
+  Config,
+  DictionarySuffix,
+  ExpoOptions,
+  FieldExtension,
+  GroupExtension,
+  ListExtension,
+  MapExtension,
+  NestjsOptions,
+  NextjsOptions,
+  Preset,
+  RecommendedOptions,
+  StrictOptions,
+  TestingExtension,
+  TestRunner,
+  TierVocabulary,
 } from './configs/index.js'
-
-/* The rules themselves, for a project that reaches them by `extends` rather than by taking a tier. */
+export type { ArchitectureOptions, WholeArgument } from './plugins/architecture/types/index.js'
+export type { PluginOptions } from './plugins/index.js'
 export { plugin } from './plugins/index.js'
-export type * from './plugins/types/index.js'
-
-/*
- * The vocabularies the rules judge against. A project annotates its own configuration with these, so a value written
- * in the wrong shape fails where it is written rather than where it is read.
- */
-export type * from './configs/types/index.js'
-export type * from './plugins/architecture/types/index.js'
-export type * from './plugins/naming/types/index.js'
-export type * from './plugins/testing/types/index.js'
-export type * from './plugins/text/types/index.js'
-export type * from './plugins/tsdoc/types/index.js'
-export type * from './plugins/typescript/types/index.js'
+export type {
+  ForbiddenName,
+  ForbiddenWord,
+  ForbiddenWordPosition,
+  NamingOptions,
+  ValueCase,
+  ValueCasing,
+} from './plugins/naming/types/index.js'
+export type { HttpTest, TestingOptions } from './plugins/testing/types/index.js'
+export type { StringPattern, TextOptions } from './plugins/text/types/index.js'
+export type { ThrowsCondition, TsdocOptions } from './plugins/tsdoc/types/index.js'
+export type { TypescriptOptions } from './plugins/typescript/types/index.js'

@@ -4,15 +4,19 @@ import path from 'node:path'
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { locate, toPascalCase } from '../../shared/utils/index.js'
+import { buildRuleDocsUrl, findTestSuffix, locateFile, toPascalCase } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { SpecDescribesSourceMessageId, TestingRule } from '../types/index.js'
+import type { DescribesSourceMessageId, TestingRule } from '../types/index.js'
 
+/** The call a spec opens its outermost block with. */
 const DESCRIBE = 'describe'
 
-/** What a source exports by name: a declaration of its own, or names re-exported in a list. */
-const EXPORT_REG_EXP =
-  /^export (?:abstract )?(?:const|class|function|interface|type|enum) (\w+)|^export (?:type )?\{([^}]*)\}/gm
+/** A declaration a source exports under its own name, whatever the keywords before it. */
+const DECLARED_EXPORT_REG_EXP =
+  /^export (?:declare )?(?:default )?(?:abstract )?(?:async )?(?:const|let|var|class|function\*?|interface|type|enum) (\w+)/gm
+
+/** A list of names a source exports, written on one line or over several. */
+const LISTED_EXPORT_REG_EXP = /^export (?:type )?\{([^}]*)\}/gm
 
 /**
  * Every outermost `describe` of a spec that mirrors a source names something that source exports:
@@ -22,12 +26,12 @@ const EXPORT_REG_EXP =
  * reports on it. The source's exports are read from its file; where the source cannot be read,
  * the name of the file stands in.
  */
-export const describesSource: TestingRule<SpecDescribesSourceMessageId> = {
+export const describesSource: TestingRule<DescribesSourceMessageId> = {
   meta: {
     type: 'problem',
     docs: {
       description: 'The outermost describe of a mirroring spec names the mirrored source.',
-      url: 'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/testing/docs/rules/describes-source.md',
+      url: buildRuleDocsUrl('testing', 'describes-source'),
       dialects: ['TypeScript'],
     },
     messages: {
@@ -38,10 +42,9 @@ export const describesSource: TestingRule<SpecDescribesSourceMessageId> = {
     defaultOptions: [EMPTY_OPTIONS],
   },
   create: context => {
-    const where = locate(context)
+    const where = locateFile(context)
     const [{ testFolder, mirroringTestKinds, suffixToFolder }] = context.options
-    const testSuffix = Object.keys(suffixToFolder).find(key => suffixToFolder[key] === testFolder)
-    if (!where || where.suffix !== testSuffix) return {}
+    if (!where || where.suffix !== findTestSuffix(suffixToFolder, testFolder)) return {}
     const at = where.segments.indexOf(testFolder)
     const kind = where.segments[at + 1]
     if (at < 0 || !kind || !mirroringTestKinds.includes(kind)) return {}
@@ -49,9 +52,9 @@ export const describesSource: TestingRule<SpecDescribesSourceMessageId> = {
       where.sourceRoot,
       ...where.segments.slice(0, at),
       ...where.segments.slice(at + 2),
-      `${where.stem}.ts`,
+      where.stem,
     )
-    const expected = expectedSubjectsOf(exportsOf(source), where.stem)
+    const expected = listExpectedSubjects(readSourceExports(source), where.stem)
     const listener: TSESLint.RuleListener = {
       'Program > ExpressionStatement > CallExpression': (callExpression: TSESTree.CallExpression) => {
         if (callExpression.callee.type !== AST_NODE_TYPES.Identifier || callExpression.callee.name !== DESCRIBE) return
@@ -72,37 +75,28 @@ export const describesSource: TestingRule<SpecDescribesSourceMessageId> = {
 }
 
 /**
- * The names a source file exports, and none when the file cannot be read.
+ * Reads the names a source file exports, written as a module or as a component, and none when neither can be read.
  *
- * @param source - The absolute path of the mirrored source.
+ * @param sourceWithoutExtension - The absolute path of the mirrored source, up to its extension.
  * @returns The names it exports.
  */
-const exportsOf = (source: string): string[] => {
-  if (!fs.existsSync(source)) return []
+const readSourceExports = (sourceWithoutExtension: string): string[] => {
+  const source = [`${sourceWithoutExtension}.ts`, `${sourceWithoutExtension}.tsx`].find(file => fs.existsSync(file))
+  if (!source) return []
   const text = fs.readFileSync(source, 'utf8')
-
-  return [...text.matchAll(EXPORT_REG_EXP)].flatMap(namesOf)
-}
-
-/**
- * What one match exports: the name it declares, or the names it re-exports, each under the name it leaves by.
- *
- * @param regExpExecArray - One match of the export pattern.
- * @returns The names.
- */
-const namesOf = (regExpExecArray: RegExpExecArray): string[] => {
-  const declared = regExpExecArray[1]
-  if (declared) return [declared]
-
-  /* v8 ignore next -- the pattern matched one of its two groups */
-  return (regExpExecArray[2] ?? '').split(',').map(
-    name =>
-      name
+  const declared = [...text.matchAll(DECLARED_EXPORT_REG_EXP)].flatMap(match => match.slice(1, 2))
+  const listed = [...text.matchAll(LISTED_EXPORT_REG_EXP)]
+    .flatMap(match => match.slice(1, 2))
+    .flatMap(list => list.split(','))
+    .flatMap(entry =>
+      entry
         .trim()
         .split(/\s+as\s+/)
-        /* v8 ignore next -- a name split on `as` always has a last part */
-        .pop() ?? '',
-  )
+        .slice(-1),
+    )
+    .filter(Boolean)
+
+  return [...declared, ...listed]
 }
 
 /**
@@ -113,7 +107,7 @@ const namesOf = (regExpExecArray: RegExpExecArray): string[] => {
  * @param stem - The file name before its suffix.
  * @returns The names.
  */
-const expectedSubjectsOf = (exported: string[], stem: string): string[] => {
+const listExpectedSubjects = (exported: string[], stem: string): string[] => {
   if (exported.length) return exported
 
   return [toPascalCase(stem), toPascalCase(stem.replace(/\.[^.]+$/, ''))]

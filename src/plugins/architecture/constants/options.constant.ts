@@ -1,69 +1,32 @@
-import type { JSONSchema4 } from '@typescript-eslint/utils/json-schema'
+import { STRING_LIST_SCHEMA, STRING_MAP_SCHEMA, STRING_SCHEMA } from '../../shared/constants/index.js'
+import { buildListSchema, buildMapSchema, buildObjectSchema } from '../../shared/utils/index.js'
 
 /**
  * What a configuration of the `architecture` rules has to hand them.
  *
  * Every rule of this plugin takes the same object, so the schema is declared once and each rule points at it.
- * `additionalProperties` is false on purpose: a field the plugin does not read is a field somebody meant to
- * spell differently.
  */
-export const OPTIONS_SCHEMA: JSONSchema4 = {
-  type: 'object',
-  properties: {
-    alias: { type: 'string' },
-    suffixFreeFolders: { type: 'array', items: { type: 'string' } },
-    coLocatedTypeSuffixes: { type: 'array', items: { type: 'string' } },
-    suffixToFolder: { type: 'object', additionalProperties: { type: 'string' } },
-    folderlessSuffixes: { type: 'array', items: { type: 'string' } },
-    effectHooks: { type: 'array', items: { type: 'string' } },
-    definitionTimeDirectives: { type: 'array', items: { type: 'string' } },
-    baseFolders: { type: 'array', items: { type: 'string' } },
-    moduleContainers: { type: 'array', items: { type: 'string' } },
-    barrelledContainers: { type: 'array', items: { type: 'string' } },
-    mirrorFolders: { type: 'array', items: { type: 'string' } },
-    rootContexts: { type: 'array', items: { type: 'string' } },
-    executedFolders: { type: 'array', items: { type: 'string' } },
-    typeSuffixes: { type: 'object', additionalProperties: { type: 'array', items: { type: 'string' } } },
-    orderedSuffixes: { type: 'array', items: { type: 'string' } },
-    wholeArguments: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: { suffix: { type: 'string' }, objects: { type: 'array', items: { type: 'string' } } },
-        required: ['suffix', 'objects'],
-        additionalProperties: false,
-      },
-    },
-    testFolder: { type: 'string' },
-    testingFolder: { type: 'string' },
-    mockFolder: { type: 'string' },
-    developmentSuffixes: { type: 'array', items: { type: 'string' } },
-    testKinds: { type: 'array', items: { type: 'string' } },
-    mirroringTestKinds: { type: 'array', items: { type: 'string' } },
-  },
-  required: [
-    'alias',
-    'suffixFreeFolders',
-    'coLocatedTypeSuffixes',
-    'suffixToFolder',
-    'folderlessSuffixes',
-    'effectHooks',
-    'definitionTimeDirectives',
-    'baseFolders',
-    'moduleContainers',
-    'barrelledContainers',
-    'mirrorFolders',
-    'rootContexts',
-    'executedFolders',
-    'typeSuffixes',
-    'orderedSuffixes',
-    'wholeArguments',
-    'testFolder',
-    'testingFolder',
-    'mockFolder',
-    'developmentSuffixes',
-    'testKinds',
-    'mirroringTestKinds',
-  ],
-  additionalProperties: false,
-}
+export const OPTIONS_SCHEMA = buildObjectSchema({
+  alias: STRING_SCHEMA,
+  suffixFreeFolders: STRING_LIST_SCHEMA,
+  coLocatedTypeSuffixes: STRING_LIST_SCHEMA,
+  suffixToFolder: STRING_MAP_SCHEMA,
+  folderlessSuffixes: STRING_LIST_SCHEMA,
+  effectHooks: STRING_LIST_SCHEMA,
+  definitionTimeDirectives: STRING_LIST_SCHEMA,
+  baseFolders: STRING_LIST_SCHEMA,
+  moduleContainers: STRING_LIST_SCHEMA,
+  barrelledContainers: STRING_LIST_SCHEMA,
+  mirrorFolders: STRING_LIST_SCHEMA,
+  rootContexts: STRING_LIST_SCHEMA,
+  executedFolders: STRING_LIST_SCHEMA,
+  typeSuffixes: buildMapSchema(STRING_LIST_SCHEMA),
+  orderedSuffixes: STRING_LIST_SCHEMA,
+  wholeArguments: buildListSchema(buildObjectSchema({ suffix: STRING_SCHEMA, objects: STRING_LIST_SCHEMA })),
+  testFolder: STRING_SCHEMA,
+  testingFolder: STRING_SCHEMA,
+  mockFolder: STRING_SCHEMA,
+  developmentSuffixes: STRING_LIST_SCHEMA,
+  testKinds: STRING_LIST_SCHEMA,
+  mirroringTestKinds: STRING_LIST_SCHEMA,
+})
