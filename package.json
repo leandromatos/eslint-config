@@ -1,6 +1,6 @@
 {
   "name": "@leandromatos/eslint-config",
-  "version": "7.1.0",
+  "version": "8.0.0",
   "description": "ESLint flat configurations in tiers, from a framework-agnostic strict to NestJS, Next.js and Expo, with a plugin that holds a project to its architecture, naming, tests and documentation.",
   "keywords": [
     "eslint",
