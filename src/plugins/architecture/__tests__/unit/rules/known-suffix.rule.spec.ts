@@ -161,3 +161,28 @@ ruleTester.run('known-suffix, in a driver inside its capability', knownSuffix, {
     },
   ],
 })
+
+ruleTester.run('known-suffix, in the mock folder', knownSuffix, {
+  valid: [
+    // A stand-in carries the name of the package it imitates, as the test runner reads it.
+    {
+      code: 'export const create = () => null',
+      filename: sourceFile('__tests__', '__mocks__', 'zustand.ts'),
+      options: optionsWith(options, { mockFolder: '__mocks__' }),
+    },
+    {
+      code: 'export const BottomSheet = () => null',
+      filename: sourceFile('__tests__', '__mocks__', '@gorhom', 'bottom-sheet.tsx'),
+      options: optionsWith(options, { mockFolder: '__mocks__' }),
+    },
+  ],
+  invalid: [
+    // With no mock folder named, the stand-in is a file like any other.
+    {
+      code: 'export const create = () => null',
+      filename: sourceFile('__tests__', '__mocks__', 'zustand.ts'),
+      options,
+      errors: [{ messageId: 'noSuffix' }],
+    },
+  ],
+})

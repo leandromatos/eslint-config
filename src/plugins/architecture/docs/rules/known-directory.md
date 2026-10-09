@@ -10,6 +10,9 @@ A directory at the root of a module that holds layers of its own is a context ra
 responsibility: a driver inside the capability it implements, such as `cache/keyv/` with its
 `services/` and `types/`. The list judges the directories inside it the way it judges a module's.
 
+Below the mock folder, a directory is part of the path of what a stand-in imitates, as the scope
+of `__mocks__/@gorhom/bottom-sheet.tsx` is, so the list does not judge it.
+
 ## Rule details
 
 👎 Incorrect: a module with a directory the options do not name.

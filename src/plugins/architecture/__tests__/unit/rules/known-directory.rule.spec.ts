@@ -163,3 +163,15 @@ ruleTester.run('known-directory, with a driver inside its capability', knownDire
     },
   ],
 })
+
+ruleTester.run('known-directory, in the mock folder', knownDirectory, {
+  valid: [
+    // Below the mock folder, a directory is part of the path of the package a stand-in imitates.
+    {
+      code: 'export const BottomSheet = () => null',
+      filename: sourceFile('users', '__mocks__', '@gorhom', 'bottom-sheet.ts'),
+      options: optionsWith(options, { mockFolder: '__mocks__' }),
+    },
+  ],
+  invalid: [],
+})

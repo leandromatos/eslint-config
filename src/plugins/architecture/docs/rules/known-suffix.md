@@ -6,6 +6,10 @@ The suffix is what says which layer a file belongs to, and the folder is what sa
 for it. When the two can disagree, a reader has to open the file to know what it is, and every rule
 that reads the suffix is judging something the path denies.
 
+A stand-in in the mock folder carries the name of what it imitates, as the test runner reads it:
+`__mocks__/zustand.ts`, `__mocks__/@gorhom/bottom-sheet.tsx`. Only its name is spared; every other
+rule reads it.
+
 ## Rule details
 
 👎 Examples of **incorrect** paths:

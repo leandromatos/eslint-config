@@ -1,7 +1,10 @@
 import { fileRule, isContextRoot, moduleDepthOf } from '../../shared/utils/index.js'
 import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
 
-/** Every file carries a known suffix, and sits under the folder that suffix names. */
+/**
+ * Every file carries a known suffix, and sits under the folder that suffix names. A stand-in in the mock folder
+ * carries the name of what it imitates, as the test runner reads it: `zustand.ts`, `@gorhom/bottom-sheet.tsx`.
+ */
 export const knownSuffix = fileRule(
   'A file is named by a known suffix and lives in the folder of that suffix.',
   'https://github.com/leandromatos/eslint-config/blob/main/src/plugins/architecture/docs/rules/known-suffix.md',
@@ -12,9 +15,13 @@ export const knownSuffix = fileRule(
   },
   (
     { sourceRoot, file, stem, suffix, segments },
-    { suffixToFolder, folderlessSuffixes, suffixFreeFolders, mirrorFolders, baseFolders, moduleContainers },
+    { suffixToFolder, folderlessSuffixes, suffixFreeFolders, mirrorFolders, baseFolders, moduleContainers, mockFolder },
   ) => {
     if (file === 'index.ts' || file.endsWith('.d.ts') || segments.length === 0) return []
+    /*
+     * The test runner reads a stand-in by the name of what it imitates, a package's or a module's, so that name stays.
+     */
+    if (mockFolder && segments.includes(mockFolder)) return []
     /* A folder can say what its files are, which is how a React tree names a component after the function in it. */
     if (segments.some(segment => suffixFreeFolders.includes(segment))) return []
     /* A base folder at the root of a module holds base classes, which are named for what they are. */
