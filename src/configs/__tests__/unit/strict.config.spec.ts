@@ -41,7 +41,7 @@ describe('strict', () => {
   it('admits no cast in the sources, specs included, and leaves as const alone', () => {
     const entry = strict().find(configEntry => configEntry.name === 'leandromatos/casts')
 
-    expect(entry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts'])
+    expect(entry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts', 'scripts/**/*.{ts,mts}'])
     expect(entry?.ignores).toBeUndefined()
     expect(entry?.rules).toEqual({
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
@@ -80,10 +80,10 @@ describe('strict', () => {
     expect(options['suffixToFolder']).toMatchObject({ widget: 'widgets', service: 'services' })
   })
 
-  it('judges the sources of the repository and of each package of a workspace folder, by default', () => {
+  it('judges the sources of the repository, of each package of a workspace folder, and the root scripts, by default', () => {
     const [ownEntry] = strict().filter(entry => entry.name === 'leandromatos/recommended')
 
-    expect(ownEntry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts'])
+    expect(ownEntry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts', 'scripts/**/*.{ts,mts}'])
   })
 
   it('judges the files the project names', () => {

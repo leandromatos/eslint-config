@@ -56,6 +56,7 @@ describe('expo', () => {
     expect(ownEntry?.files).toEqual([
       'src/**/*.{ts,tsx}',
       '{apps,libs,packages}/*/src/**/*.{ts,tsx}',
+      'scripts/**/*.{ts,mts,tsx}',
       'modules/**/*.{ts,tsx}',
       '.rnstorybook/**/*.{ts,tsx}',
     ])

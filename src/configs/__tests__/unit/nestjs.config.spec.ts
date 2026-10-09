@@ -18,10 +18,10 @@ describe('nestjs', () => {
     expect(suffixToFolder).toHaveProperty('interceptor', 'interceptors')
   })
 
-  it('judges the sources of the repository and of each package of a workspace folder, by default', () => {
+  it('judges the sources of the repository, of each package of a workspace folder, and the root scripts, by default', () => {
     const [ownEntry] = nestjs().filter(entry => entry.name === 'leandromatos/recommended')
 
-    expect(ownEntry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts'])
+    expect(ownEntry?.files).toEqual(['src/**/*.ts', '{apps,libs,packages}/*/src/**/*.ts', 'scripts/**/*.{ts,mts}'])
   })
 
   it('carries all of strict, which is what the tier is built on', () => {

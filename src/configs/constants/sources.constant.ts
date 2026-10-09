@@ -4,11 +4,21 @@
  */
 export const SOURCE_ROOTS = ['src', '{apps,libs,packages}/*/src']
 
-/** The TypeScript files under every source root. */
-export const TS_SOURCES = SOURCE_ROOTS.map(root => `${root}/**/*.ts`)
+/**
+ * The scripts a repository keeps at its root, which are code the project writes as much as its sources, written as a
+ * module of either kind, `.ts` or `.mts`. The configuration files at the root stay out: each tool names its own and
+ * reads it.
+ */
+const SCRIPTS_FOLDER = 'scripts'
 
-/** The TypeScript files under every source root, components included. */
-export const TSX_SOURCES = SOURCE_ROOTS.map(root => `${root}/**/*.{ts,tsx}`)
+/** The TypeScript files under every source root, and the scripts of the repository. */
+export const TS_SOURCES = [...SOURCE_ROOTS.map(root => `${root}/**/*.ts`), `${SCRIPTS_FOLDER}/**/*.{ts,mts}`]
 
-/** The files `strict` and the plugin judge when a project names none: the TypeScript of every source root. */
+/** The TypeScript files under every source root, components included, and the scripts of the repository. */
+export const TSX_SOURCES = [...SOURCE_ROOTS.map(root => `${root}/**/*.{ts,tsx}`), `${SCRIPTS_FOLDER}/**/*.{ts,mts,tsx}`]
+
+/**
+ * The files `strict` and the plugin judge when a project names none: the TypeScript of every source root, and the
+ * scripts of the repository.
+ */
 export const DEFAULT_FILES = TS_SOURCES

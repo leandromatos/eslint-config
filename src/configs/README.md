@@ -70,8 +70,10 @@ In this order. The last entry to match a file wins, which is what lets a project
 Each one calls `strict` with a vocabulary of its own, so a project on a framework restates none of
 its layout.
 
-The sources are `src/` and the `src/` of each package one level under `apps/`, `libs/` or
-`packages/`, so a monorepo names nothing.
+The files a tier judges are `src/`, the `src/` of each package one level under `apps/`, `libs/` or
+`packages/`, so a monorepo names nothing, and the `scripts/` at the root of the repository, in `.ts`
+or `.mts`. The
+configuration files at the root stay out.
 
 | Tier     | Judges                                                                     | Ignores on top of the defaults                                                                                   |
 | -------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |

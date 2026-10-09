@@ -45,7 +45,11 @@ describe('nextjs', () => {
   it('judges the components as well as the modules, which is what a React project holds', () => {
     const [ownEntry] = nextjs().filter(entry => entry.name === 'leandromatos/recommended')
 
-    expect(ownEntry?.files).toEqual(['src/**/*.{ts,tsx}', '{apps,libs,packages}/*/src/**/*.{ts,tsx}'])
+    expect(ownEntry?.files).toEqual([
+      'src/**/*.{ts,tsx}',
+      '{apps,libs,packages}/*/src/**/*.{ts,tsx}',
+      'scripts/**/*.{ts,mts,tsx}',
+    ])
   })
 
   it('lets a project differ from the tier, group by group', () => {
