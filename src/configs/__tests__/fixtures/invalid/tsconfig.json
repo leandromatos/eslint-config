@@ -16,6 +16,7 @@
     "bare-builtin.ts",
     "swallowed-catch.ts",
     "closed-set.ts",
-    "conditional-hook.tsx"
+    "conditional-hook.tsx",
+    "multiline-prop-out-of-order.tsx"
   ]
 }

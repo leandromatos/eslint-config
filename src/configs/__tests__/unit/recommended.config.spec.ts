@@ -123,6 +123,12 @@ describe('recommended', () => {
       expect(result.messages.map(lintMessage => lintMessage.ruleId)).toContain('jsx-a11y/alt-text')
     })
 
+    it('sorts a prop that spans lines by its name, as Prettier may join it onto one line', async () => {
+      const result = await lintFixture('multiline-prop-out-of-order.tsx')
+
+      expect(result.messages.map(lintMessage => lintMessage.ruleId)).toContain('react/jsx-sort-props')
+    })
+
     it('refuses an enum, which no transpiler can inline', async () => {
       const result = await lintFixture('closed-set.ts')
 

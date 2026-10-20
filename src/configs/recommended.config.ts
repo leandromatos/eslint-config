@@ -182,7 +182,11 @@ export const recommended = (recommendedOptions: RecommendedOptions = {}): Config
             callbacksLast: true,
             shorthandFirst: false,
             shorthandLast: true,
-            multiline: 'last',
+            /*
+             * A prop takes its place by its name alone, whatever the number of lines it spans. Prettier decides those
+             * lines and runs after ESLint, so a place that depended on them would turn a sorted file unsorted.
+             */
+            multiline: 'ignore',
             ignoreCase: true,
             noSortAlphabetically: false,
             reservedFirst: true,
