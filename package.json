@@ -61,7 +61,7 @@
     "@eslint/js": "^10.0.1",
     "@eslint/markdown": "^8.0.3",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/utils": "^8.71.0",
+    "@typescript-eslint/utils": "^8.72.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.17.1",
@@ -72,7 +72,7 @@
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-tsdoc": "^0.5.4",
     "globals": "^17.13.0",
-    "typescript-eslint": "^8.71.0"
+    "typescript-eslint": "^8.72.0"
   },
   "peerDependencies": {
     "eslint": ">=10",
@@ -81,29 +81,29 @@
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@12.9.1",
+  "packageManager": "pnpm@12.14.0",
   "devDependencies": {
-    "@commitlint/cli": "^21.2.3",
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/types": "^21.2.3",
     "@leandromatos/commitlint-config": "^1.1.3",
     "@leandromatos/prettier-config": "^2.2.0",
     "@microsoft/tsdoc": "^0.17.1",
     "@types/eslint-plugin-jsx-a11y": "^6.10.1",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
-    "@typescript-eslint/rule-tester": "^8.71.0",
-    "@typescript-eslint/typescript-estree": "^8.71.0",
-    "@vitest/coverage-v8": "^5.0.3",
-    "@vitest/ui": "^5.0.3",
+    "@typescript-eslint/rule-tester": "^8.72.0",
+    "@typescript-eslint/typescript-estree": "^8.72.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/ui": "^5.0.5",
     "bats": "^1.13.0",
-    "eslint": "^10.11.0",
+    "eslint": "^10.13.0",
     "eslint-plugin-eslint-plugin": "^7.6.2",
     "husky": "^9.1.7",
-    "knip": "^6.39.0",
+    "knip": "^6.42.1",
     "lint-staged": "^17.6.0",
     "markdownlint-cli2": "^0.23.3",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   }
 }

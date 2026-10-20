@@ -241,11 +241,10 @@ const buildResolver = (
     candidateScope => candidateScope.type !== TSESLint.Scope.ScopeType.global,
   )
   /*
-   * A scope comes after the scopes around it, so the last one that encloses the comment is the innermost. A comment
-   * above the first statement sits before the program itself, which opens at its first token, so no scope encloses
-   * it. What it names is what the file holds, which is the outermost scope.
+   * A scope comes after the scopes around it, so the last one that encloses the comment is the innermost. The program
+   * opens at the start of the file, so a comment above the first statement sits in the scope of the module.
    */
-  const scope = scopes.filter(candidateScope => isEnclosing(candidateScope.block, at)).at(-1) ?? scopes[0]
+  const scope = scopes.filter(candidateScope => isEnclosing(candidateScope.block, at)).at(-1)
   const members = listClassMemberNames(classBody, isDocumentedOnly)
 
   return name => members.has(name) || isBound(scope, name, isDocumentedOnly)
