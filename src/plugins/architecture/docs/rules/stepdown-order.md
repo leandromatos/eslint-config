@@ -2,8 +2,8 @@
 
 A module reads top down, the way a caller walks it: a function comes after every function that calls it.
 
-Two functions called by the same one come in the order it calls them, unless one of them reaches the other, in which
-case the first rule decides. Two functions that call each other are left where they are: no order satisfies both. A
+Two functions called by the same one come in the order it calls them, unless one of them reaches the other, or a
+function declared further down also calls the one that would move up; in both cases the first rule decides. Two functions that call each other are left where they are: no order satisfies both. A
 function an initializer calls runs while the module loads, so it stays above the initializer, whose call would
 otherwise land in its temporal dead zone.
 

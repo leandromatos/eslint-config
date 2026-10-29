@@ -50,6 +50,12 @@ ruleTester.run('stepdown-order', stepdownOrder, {
       filename: util,
       options,
     },
+    // A helper several functions call sits below the last of them, even where one caller would want it earlier.
+    {
+      code: 'export const run = () => {\n  required(1)\n  verify()\n  context()\n}\n\nconst verify = () => 1\n\nconst context = () => required(2)\n\nconst required = (value) => value',
+      filename: util,
+      options,
+    },
     // An export that declares nothing, and a declaration that is no function, are not part of the walk.
     { code: 'export * from "./other.util.js"\n\nexport const readUser = () => 1', filename: util, options },
     { code: 'export class Reader {}\n\nexport const readUser = () => 1', filename: util, options },

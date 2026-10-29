@@ -51,6 +51,7 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
             if (!later || earlier.position < later.position) continue
             if (isReachable(later.name, earlier.name, byName) || isReachable(earlier.name, later.name, byName)) continue
             if (isCalledInReverse(later.name, earlier.name, moduleFunctions, moduleFunction.name)) continue
+            if (isCalledBelow(earlier.name, later.position, moduleFunctions)) continue
             const messageValues = { later: later.name, earlier: earlier.name, caller: moduleFunction.name }
             context.report({ node: later.node, messageId: 'siblingsOutOfOrder', data: messageValues })
           }
@@ -103,6 +104,20 @@ const isCalledInReverse = (
 
     return at >= 0 && after >= 0 && at < after
   })
+
+/**
+ * Whether a function declared below a position calls the function, which then has to stay below that caller.
+ *
+ * Moving the function above its sibling would put it above that caller, so the rule that a function comes after its
+ * callers decides, as it does for siblings that reach each other.
+ *
+ * @param name - The function the caller's order would move up.
+ * @param position - The position it would move above.
+ * @param moduleFunctions - Every function the module declares.
+ * @returns Whether a caller below that position holds it down.
+ */
+const isCalledBelow = (name: string, position: number, moduleFunctions: ModuleFunction[]): boolean =>
+  moduleFunctions.some(moduleFunction => moduleFunction.position > position && moduleFunction.calls.includes(name))
 
 /**
  * Whether `from` calls `to`, directly or through other functions of the module.
