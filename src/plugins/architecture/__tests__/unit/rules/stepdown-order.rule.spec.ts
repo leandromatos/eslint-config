@@ -80,6 +80,20 @@ ruleTester.run('stepdown-order', stepdownOrder, {
     },
   ],
   invalid: [
+    // A constant that calls nothing exempts nothing: the functions below it are still read in order.
+    {
+      code: 'const LIMIT = 3\n\nconst nameOf = (id) => id\n\nexport const readUser = () => nameOf(LIMIT)',
+      filename: util,
+      options,
+      errors: [{ messageId: 'calleeBeforeCaller' }],
+    },
+    // Only what an initializer itself reaches runs on import; a function elsewhere in the file does not.
+    {
+      code: 'const dp = (value) => Number(value)\n\nconst SIZES = { small: dp("4") }\n\nconst nameOf = (id) => id\n\nexport const readUser = () => nameOf(SIZES.small)',
+      filename: util,
+      options,
+      errors: [{ messageId: 'calleeBeforeCaller' }],
+    },
     // A walk through two helpers that call each other ends where it started, and reaches neither sibling.
     {
       code: 'export const readUser = () => {\n  formatUser()\n  loadUser()\n}\n\nconst loadUser = () => cacheUser()\n\nconst formatUser = () => 1\n\nconst cacheUser = () => loadUser()',

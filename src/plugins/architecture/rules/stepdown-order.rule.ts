@@ -182,7 +182,7 @@ const readImportTimeNames = (program: TSESTree.Program, sourceCode: TSESLint.Sou
     if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) continue
     for (const declarator of declaration.declarations) {
       if (!declarator.init || isFunctionExpression(declarator.init)) continue
-      for (const name of listReferencedNames(declarator.init, sourceCode)) names.add(name)
+      for (const name of listNamesWithin(declarator.init, sourceCode)) names.add(name)
     }
   }
 
@@ -298,3 +298,29 @@ const isFunctionExpression = (
   node: TSESTree.Expression | null,
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
   node?.type === AST_NODE_TYPES.ArrowFunctionExpression || node?.type === AST_NODE_TYPES.FunctionExpression
+
+/**
+ * The identifiers written inside a node that is not a function, nested functions included.
+ *
+ * The scope of such a node is the scope around it, the module's for a top-level initializer, so walking that scope
+ * would collect every name the whole file reads. Only the references inside the node's own range are its own.
+ *
+ * @param node - The initializer the walk reads.
+ * @param sourceCode - The source the initializer is written in.
+ * @returns The names, once each.
+ */
+const listNamesWithin = (node: TSESTree.Node, sourceCode: TSESLint.SourceCode): string[] => {
+  const [start, end] = node.range
+  const references: TSESLint.Scope.Reference[] = []
+  const visit = (scope: TSESLint.Scope.Scope): void => {
+    references.push(
+      ...scope.references.filter(
+        reference => reference.identifier.range[0] >= start && reference.identifier.range[1] <= end,
+      ),
+    )
+    scope.childScopes.forEach(visit)
+  }
+  visit(sourceCode.getScope(node))
+
+  return [...new Set(references.map(reference => reference.identifier.name))]
+}
