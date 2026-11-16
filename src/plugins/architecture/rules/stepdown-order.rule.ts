@@ -9,8 +9,8 @@ import type { ArchitectureRule, ModuleFunction, StepdownOrderMessageId } from '.
 /**
  * A module reads top down, the way a caller would walk it: a function comes after every
  * function that calls it, and two functions called by the same one come in the order it calls
- * them, unless one of them reaches the other, in which case the first rule decides. Two
- * functions that call each other are left where they are.
+ * them, unless one of them reaches the other, in which case the first rule decides. Functions
+ * that call each other, directly or through a ring of others, are left where they are.
  */
 export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
   meta: {
@@ -64,8 +64,8 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
 }
 
 /**
- * Lists the functions of the module a function calls, in the order it calls them, leaving out the ones that call it
- * back: two functions that call each other have no order to be in.
+ * Lists the functions of the module a function calls, in the order it calls them, leaving out the ones that reach it
+ * back: functions that call each other, directly or through a ring of others, have no order to be in.
  *
  * @param moduleFunction - The caller.
  * @param byName - Every function the module declares, by name.
@@ -74,7 +74,7 @@ export const stepdownOrder: ArchitectureRule<StepdownOrderMessageId> = {
 const listOneWayCallees = (moduleFunction: ModuleFunction, byName: Map<string, ModuleFunction>): ModuleFunction[] =>
   moduleFunction.calls.flatMap(name => {
     const callee = byName.get(name)
-    if (!callee || callee.calls.includes(moduleFunction.name)) return []
+    if (!callee || isReachable(callee.name, moduleFunction.name, byName)) return []
 
     return [callee]
   })

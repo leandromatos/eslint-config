@@ -8,6 +8,19 @@ const ruleTester = createSyntaxRuleTester()
 const options: [ArchitectureOptions] = [EMPTY_OPTIONS]
 const workletOptions: [ArchitectureOptions] = [{ ...EMPTY_OPTIONS, definitionTimeDirectives: ['worklet'] }]
 const util = buildSourcePath('users', 'utils', 'read-user.util.ts')
+const cycleOfThree = [
+  'const resolveVariant = () => buildVariant()',
+  'const buildVariant = () => rewriteReferences()',
+  'const rewriteReferences = () => resolveVariant()',
+]
+const cycleOrders = [
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0],
+]
 
 ruleTester.run('stepdown-order', stepdownOrder, {
   valid: [
@@ -73,6 +86,18 @@ ruleTester.run('stepdown-order', stepdownOrder, {
       filename: util,
       options,
     },
+    // Three functions that call each other in a ring have no order either, whichever comes first.
+    ...cycleOrders.map(order => ({
+      code: order.map(index => cycleOfThree[index]).join('\n\n'),
+      filename: util,
+      options,
+    })),
+    // A longer ring is left where it is the same way, with its caller above it.
+    {
+      code: 'export const readUser = () => nameOf(1)\n\nconst sizeOf = (id) => nameOf(id)\n\nconst nameOf = (id) => ageOf(id)\n\nconst ageOf = (id) => deepOf(id)\n\nconst deepOf = (id) => sizeOf(id)',
+      filename: util,
+      options,
+    },
     // A callee below its caller, and two callees in the order they are called.
     {
       code: 'export const readUser = () => nameOf(1)\n\nconst nameOf = (id) => id',
@@ -128,9 +153,15 @@ ruleTester.run('stepdown-order', stepdownOrder, {
       options,
       errors: [{ messageId: 'calleeBeforeCaller' }],
     },
-    // A cycle of three is walked once: the second visit of a name ends the walk.
+    // A function outside a ring still comes after its caller: the ring exempts only its own members.
     {
-      code: 'export const readUser = () => nameOf(1)\n\nconst nameOf = (id) => ageOf(id)\n\nconst ageOf = (id) => sizeOf(id)\n\nconst sizeOf = (id) => nameOf(id)',
+      code: 'const nameOf = (id) => ageOf(id)\n\nconst ageOf = (id) => sizeOf(id)\n\nconst sizeOf = (id) => nameOf(id)\n\nexport const readUser = () => nameOf(1)',
+      filename: util,
+      options,
+      errors: [{ messageId: 'calleeBeforeCaller' }],
+    },
+    {
+      code: 'export const readUser = () => nameOf(1)\n\nconst formatUser = (id) => id\n\nconst nameOf = (id) => ageOf(id)\n\nconst ageOf = (id) => sizeOf(id)\n\nconst sizeOf = (id) => formatUser(nameOf(id))',
       filename: util,
       options,
       errors: [{ messageId: 'calleeBeforeCaller' }],
