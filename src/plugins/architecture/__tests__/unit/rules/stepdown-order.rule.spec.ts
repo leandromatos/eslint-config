@@ -153,6 +153,13 @@ ruleTester.run('stepdown-order', stepdownOrder, {
       options,
       errors: [{ messageId: 'calleeBeforeCaller' }],
     },
+    // A ring member among the calls leaves the siblings around it held to the order they are called in.
+    {
+      code: 'export const readUser = () => {\n  nameOf(1)\n  loadUser()\n  ageOf(1)\n}\n\nconst ageOf = (id) => id\n\nconst nameOf = (id) => id\n\nconst loadUser = () => cacheUser()\n\nconst cacheUser = () => readUser()',
+      filename: util,
+      options,
+      errors: [{ messageId: 'siblingsOutOfOrder' }],
+    },
     // A function outside a ring still comes after its caller: the ring exempts only its own members.
     {
       code: 'const nameOf = (id) => ageOf(id)\n\nconst ageOf = (id) => sizeOf(id)\n\nconst sizeOf = (id) => nameOf(id)\n\nexport const readUser = () => nameOf(1)',
