@@ -3,9 +3,10 @@
 A module reads top down, the way a caller walks it: a function comes after every function that calls it.
 
 Two functions called by the same one come in the order it calls them, unless one of them reaches the other, or a
-function declared further down also calls the one that would move up; in both cases the first rule decides. Functions that call each other, directly or through a ring of others, are left where they are: no order satisfies them all; a function outside the ring still comes after its callers. A
-function an initializer calls runs while the module loads, so it stays above the initializer, whose call would
-otherwise land in its temporal dead zone.
+function declared further down also calls the one that would move up; in both cases the first rule decides. Functions
+that call each other, directly or through a ring of others, are left where they are: no order satisfies them all; a
+function outside the ring still comes after its callers. A function an initializer calls runs while the module loads, so
+it stays above the initializer, whose call would otherwise land in its temporal dead zone.
 
 ## Rule details
 
