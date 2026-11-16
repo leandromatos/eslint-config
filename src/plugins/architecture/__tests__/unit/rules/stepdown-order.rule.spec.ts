@@ -8,12 +8,12 @@ const ruleTester = createSyntaxRuleTester()
 const options: [ArchitectureOptions] = [EMPTY_OPTIONS]
 const workletOptions: [ArchitectureOptions] = [{ ...EMPTY_OPTIONS, definitionTimeDirectives: ['worklet'] }]
 const util = buildSourcePath('users', 'utils', 'read-user.util.ts')
-const cycleOfThree = [
+const ringOfThree = [
   'const resolveVariant = () => buildVariant()',
   'const buildVariant = () => rewriteReferences()',
   'const rewriteReferences = () => resolveVariant()',
 ]
-const cycleOrders = [
+const ringOrders = [
   [0, 1, 2],
   [0, 2, 1],
   [1, 0, 2],
@@ -87,8 +87,8 @@ ruleTester.run('stepdown-order', stepdownOrder, {
       options,
     },
     // Three functions that call each other in a ring have no order either, whichever comes first.
-    ...cycleOrders.map(order => ({
-      code: order.map(index => cycleOfThree[index]).join('\n\n'),
+    ...ringOrders.map(order => ({
+      code: order.map(index => ringOfThree[index]).join('\n\n'),
       filename: util,
       options,
     })),
