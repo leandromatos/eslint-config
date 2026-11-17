@@ -1,4 +1,4 @@
-/** The names a barrel takes: the index of a directory, written as a module or as a component file. */
+/** The names the index file of a directory takes, as a module or as a component file, barrel or not. */
 export const INDEX_FILES = ['index.ts', 'index.tsx']
 
 /** What a source file the rules read is written in: TypeScript, as a module or as a component, never a declaration. */

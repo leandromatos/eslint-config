@@ -1,7 +1,7 @@
 import type { Linter } from 'eslint'
 import type { ConfigArray } from 'typescript-eslint'
 
-import type { ListExtension } from './utils/index.js'
+import type { ListExtension } from './utils/option-extension.util.type.js'
 
 /**
  * One entry of a flat configuration assembled from this package.

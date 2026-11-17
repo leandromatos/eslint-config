@@ -1,4 +1,4 @@
-import type { AGNOSTIC_SUFFIX_DICTIONARY, SUFFIX_DICTIONARY } from '../../constants/index.js'
+import type { AGNOSTIC_SUFFIX_DICTIONARY, SUFFIX_DICTIONARY } from '../../constants/suffix-dictionary.constant.js'
 
 /**
  * A suffix the dictionary carries: a key of {@link SUFFIX_DICTIONARY}.

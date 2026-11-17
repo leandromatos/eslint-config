@@ -1,8 +1,8 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import type { Parameter } from '../types/index.js'
-import { ParameterKind } from '../types/index.js'
+import type { Parameter } from '../types/utils/read-parameters.util.type.js'
+import { ParameterKind } from '../types/utils/read-parameters.util.type.js'
 
 /**
  * Reads the parameters a comment documents, in the order the signature declares them.

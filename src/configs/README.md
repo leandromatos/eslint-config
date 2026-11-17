@@ -56,7 +56,7 @@ In this order. The last entry to match a file wins, which is what lets a project
 | `leandromatos/rules`          | every rule of the plugin, each reading the group of its own subject                                 |
 | `tsdoc/syntax`                | every documentation comment parses as TSDoc, with its standard tags only                            |
 | the comment rule              | `leandromatos/tsdoc-comment-form` on the configuration files at the root                            |
-| `import-x/no-cycle`           | no cycle, everywhere but in a barrel, and inside the project only                                   |
+| `import-x/no-cycle`           | no cycle, in any file, and inside the project only                                                  |
 | `leandromatos/casts`          | `consistent-type-assertions` on `never`, `no-non-null-assertion`, `no-explicit-any`, specs included |
 | `leandromatos/unsafe-values`  | the five `no-unsafe-*` rules, outside a spec                                                        |
 | `leandromatos/directives`     | a directive that turns a rule off says why, after `--`                                              |
@@ -77,30 +77,35 @@ Each one is `strict` over a vocabulary of its own, so a project on a framework r
 
 A source root is `src/`, or the `src/` of a package one level under `apps/`, `libs/` or `packages/`.
 
-`nextjs` adds two entries: `leandromatos/image-alt-text`, which asks the `Image` component for its alternative text
+`nextjs` adds these entries: `leandromatos/image-alt-text`, which asks the `Image` component for its alternative text
 as an `<img>` is, and `leandromatos/nextjs-catalog`, which keeps the catalog and its stories out of the application
 (`catalog: false` drops it). `expo` adds the image entry, `leandromatos/expo-runner` with the globals of Jest and the
 ones only Vitest declares turned off (`runner: 'vitest'` drops it), and `leandromatos/expo-catalog`, which spares
 `.rnstorybook/` the rules of the layout, since Storybook names its entry files (`catalog: false` drops it).
 
+Both tiers also add `leandromatos/react-routes`, which turns `architecture-re-export-only-at-entrypoint` off for the
+router directory, `app/` under each source root. A route passes on what the router asks for, such as
+`export { ErrorBoundary } from 'expo-router'` in `src/app/_layout.tsx` or `export { default } from` a screen in
+`src/app/index.tsx`, so it re-exports by design.
+
 ## ⚙️ Options
 
 `recommended` takes `ignores` alone. Every other tier takes `StrictOptions`, and `nextjs` and `expo` add their own.
 
-| Option         | Default                        | Description                                                  |
-| -------------- | ------------------------------ | ------------------------------------------------------------ |
-| `files`        | the tier's `*_FILES`           | the files the rules judge                                    |
-| `ignores`      | the tier's `*_IGNORES`         | what the linter never reads                                  |
-| `basePath`     | the repository                 | the package a tier reads, in a monorepo                      |
-| `architecture` | the tier's `*_ARCHITECTURE`    | where a file lives, what it is called, what a layer exposes  |
-| `naming`       | the tier's `*_NAMING`          | what a value, a method and a spec fixture are called         |
-| `testing`      | the tier's `*_TESTING`         | how an end-to-end spec reaches the application               |
-| `text`         | `DEFAULT_TEXT`                 | the strings the product ships                                |
-| `tsdoc`        | `DEFAULT_TSDOC`                | the comments of a file                                       |
-| `typescript`   | `DEFAULT_TYPESCRIPT`           | where a vocabulary is declared                               |
-| `presets`      | none                           | the presets applied over the tier, before every other option |
-| `catalog`      | `true`, in `nextjs` and `expo` | whether the project keeps a Storybook catalog                |
-| `runner`       | `'jest'`, in `expo`            | the runner the unit tests run under                          |
+| Option         | Default                        | Description                                                       |
+| -------------- | ------------------------------ | ----------------------------------------------------------------- |
+| `files`        | the tier's `*_FILES`           | the files the rules judge                                         |
+| `ignores`      | the tier's `*_IGNORES`         | what the linter never reads                                       |
+| `basePath`     | the repository                 | the package a tier reads, in a monorepo                           |
+| `architecture` | the tier's `*_ARCHITECTURE`    | where a file lives, what it is called, which file an import names |
+| `naming`       | the tier's `*_NAMING`          | what a value, a method and a spec fixture are called              |
+| `testing`      | the tier's `*_TESTING`         | how an end-to-end spec reaches the application                    |
+| `text`         | `DEFAULT_TEXT`                 | the strings the product ships                                     |
+| `tsdoc`        | `DEFAULT_TSDOC`                | the comments of a file                                            |
+| `typescript`   | `DEFAULT_TYPESCRIPT`           | where a vocabulary is declared                                    |
+| `presets`      | none                           | the presets applied over the tier, before every other option      |
+| `catalog`      | `true`, in `nextjs` and `expo` | whether the project keeps a Storybook catalog                     |
+| `runner`       | `'jest'`, in `expo`            | the runner the unit tests run under                               |
 
 A tier without its own value for a group reads the one of `strict`: `nestjs` reads `DEFAULT_TEXT`. A preset is applied
 over the vocabulary of the tier before the options of the project, so a list the project passes joins both:

@@ -1,5 +1,6 @@
-import { STRING_SCHEMA } from '../../shared/constants/index.js'
-import { buildListSchema, buildObjectSchema } from '../../shared/utils/index.js'
+import { STRING_SCHEMA } from '../../shared/constants/json-schema.constant.js'
+import { buildListSchema } from '../../shared/utils/build-list-schema.util.js'
+import { buildObjectSchema } from '../../shared/utils/build-object-schema.util.js'
 
 /**
  * What a configuration of the `text` rules has to hand them.

@@ -1,11 +1,12 @@
+import type { TSESTree } from '@typescript-eslint/utils'
+
 /** The messages `import-boundaries` reports. */
 export type ImportBoundariesMessageId =
-  | 'crossLayerNeedsBarrel'
-  | 'layerNeedsBarrel'
-  | 'relativeImport'
-  | 'sameLayerNeedsDirect'
-  | 'testFromProduction'
-  | 'testingFromProduction'
+  'barrelImport' | 'relativeImport' | 'testFromProduction' | 'testingFromProduction'
+
+/** A declaration that names another module: an import, or a re-export from one. */
+export type ModuleReference =
+  TSESTree.ExportAllDeclaration | TSESTree.ExportNamedDeclaration | TSESTree.ImportDeclaration
 
 /** What the rule needs to judge one specifier. */
 export interface Judgment {
@@ -13,12 +14,8 @@ export interface Judgment {
   specifier: string
   /** The path alias that reaches the source root. */
   alias: string
-  /** Every layer suffix the project declares. */
-  suffixes: string[]
-  /** The suffix of the file doing the importing. */
-  suffix: string | null
-  /** The directory of that file's own layer, and null when it belongs to none. */
-  layer: string | null
+  /** The source root the alias reaches, where a barrel is looked for. */
+  sourceRoot: string
   /** Whether the file doing the importing sits in the test tree, the mock folder included. */
   isTestTree: boolean
   /** Whether the file doing the importing is test code: in the test tree, a spec, a story, or in a testing folder. */

@@ -1,17 +1,16 @@
 import path from 'node:path'
 
-import {
-  buildFinding,
-  buildRuleDocsUrl,
-  carriesResponsibilities,
-  countModuleDepth,
-  createFileRule,
-  findFirstSource,
-} from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { buildFinding } from '../../shared/utils/build-finding.util.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { carriesResponsibilities } from '../../shared/utils/carries-responsibilities.util.js'
+import { countModuleDepth } from '../../shared/utils/count-module-depth.util.js'
+import { createFileRule } from '../../shared/utils/create-file-rule.util.js'
+import { findFirstSource } from '../../shared/utils/find-first-source.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
 
 /**
- * Every directory under a module is on the closed list. A directory is reported once, on its barrel or on its first
+ * Every directory under a module is on the closed list. A directory is reported once, on its index file or on its first
  * file, rather than on every file inside it. The mock folder is on the list wherever it sits: the test runner and the
  * catalog name it, beside the module it stands in for. So is the testing folder, which holds what a package publishes
  * for tests under a subpath of its own. Below the mock folder, a directory is part of the path of what a stand-in

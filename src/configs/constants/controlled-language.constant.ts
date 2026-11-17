@@ -1,7 +1,7 @@
-import type { ForbiddenWord } from '../../plugins/naming/types/index.js'
-import type { StringPattern } from '../../plugins/text/types/index.js'
-import type { ThrowsCondition } from '../../plugins/tsdoc/types/index.js'
-import type { Preset } from '../types/index.js'
+import type { ForbiddenWord } from '../../plugins/naming/types/rules/forbidden-name.rule.type.js'
+import type { StringPattern } from '../../plugins/text/types/rules/string-pattern.rule.type.js'
+import type { ThrowsCondition } from '../../plugins/tsdoc/types/rules/throws-tag.rule.type.js'
+import type { Preset } from '../types/strict.config.type.js'
 import { NO_PERIOD, PERIOD } from './text.constant.js'
 
 /** The properties of an exception and of a Swagger decorator that carry the text a pattern judges. */

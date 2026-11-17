@@ -1,10 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import type { FunctionNode } from '../../shared/types/index.js'
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, ModuleFunction, StepdownOrderMessageId } from '../types/index.js'
+import type { FunctionNode } from '../../shared/types/shared.type.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { ModuleFunction, StepdownOrderMessageId } from '../types/rules/stepdown-order.rule.type.js'
 
 /**
  * A module reads top down, the way a caller would walk it: a function comes after every

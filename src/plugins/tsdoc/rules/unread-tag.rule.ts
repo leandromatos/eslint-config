@@ -1,9 +1,13 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { TsdocRule, UnreadTagMessageId } from '../types/index.js'
-import { buildLineLocation, isDocComment, parseDocBlock } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/tsdoc.constant.js'
+import type { UnreadTagMessageId } from '../types/rules/unread-tag.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import { buildLineLocation } from '../utils/build-line-location.util.js'
+import { isDocComment } from '../utils/is-doc-comment.util.js'
+import { parseDocBlock } from '../utils/parse-doc-block.util.js'
 
 /** The release tags of TSDoc, which a tool reads to trim the declarations a package publishes. */
 const RELEASE_TAGS = new Set(['public', 'internal', 'alpha', 'beta'])

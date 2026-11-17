@@ -1,9 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, locateFile } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ConstAssertionPairMessageId, TypescriptRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/typescript.constant.js'
+import type { ConstAssertionPairMessageId } from '../types/rules/const-assertion-pair.rule.type.js'
+import type { TypescriptRule } from '../types/typescript.type.js'
 
 /**
  * What a name written as a vocabulary looks like: `OAuthScope`, never `OAUTH_SCOPE` and never `oauthScope`.

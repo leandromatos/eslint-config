@@ -1,9 +1,10 @@
 import { TSESLint } from '@typescript-eslint/utils'
 import { describe, expect, it } from 'vitest'
 
-import { readArchitectureOptions, readRuleOptions } from '../../../__tests__/utils/index.js'
-import { countModuleDepth } from '../../../plugins/shared/utils/index.js'
-import { NEXTJS_ARCHITECTURE, NEXTJS_FILES } from '../../constants/index.js'
+import { readArchitectureOptions } from '../../../__tests__/utils/read-architecture-options.util.js'
+import { readRuleOptions } from '../../../__tests__/utils/read-rule-options.util.js'
+import { countModuleDepth } from '../../../plugins/shared/utils/count-module-depth.util.js'
+import { NEXTJS_ARCHITECTURE, NEXTJS_FILES } from '../../constants/nextjs.constant.js'
 import { nextjs } from '../../nextjs.config.js'
 import { strict } from '../../strict.config.js'
 
@@ -142,5 +143,21 @@ describe('nextjs', () => {
 
     expect(entry?.basePath).toBe('packages/web')
     expect(entry?.files).toEqual(['src/**/*.tsx'])
+  })
+
+  it('lets a route file re-export what the router asks for, and keeps the rule everywhere else', async () => {
+    const eslint = new TSESLint.ESLint({ cwd: '/repository', overrideConfigFile: true, baseConfig: nextjs() })
+    const rule = 'leandromatos/architecture-re-export-only-at-entrypoint'
+
+    const [layout, index, packageIndex, feature]: unknown[] = await Promise.all(
+      ['src/app/_layout.tsx', 'src/app/index.tsx', 'apps/web/src/app/index.tsx', 'src/features/home/index.ts'].map(
+        async file => eslint.calculateConfigForFile(`/repository/${file}`),
+      ),
+    )
+
+    expect(layout).toHaveProperty(['rules', rule, 0], 0)
+    expect(index).toHaveProperty(['rules', rule, 0], 0)
+    expect(packageIndex).toHaveProperty(['rules', rule, 0], 0)
+    expect(feature).toHaveProperty(['rules', rule, 0], 2)
   })
 })

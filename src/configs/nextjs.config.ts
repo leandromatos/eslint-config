@@ -1,13 +1,12 @@
-import {
-  NEXTJS_VOCABULARY,
-  REACT_FOLDER,
-  REACT_IMAGE_COMPONENTS,
-  SOURCE_ROOTS,
-  STORY_SUFFIX,
-} from './constants/index.js'
+import { NEXTJS_VOCABULARY, REACT_FOLDER, REACT_IMAGE_COMPONENTS, STORY_SUFFIX } from './constants/nextjs.constant.js'
+import { SOURCE_ROOTS } from './constants/sources.constant.js'
 import { buildStrictConfig } from './strict.config.js'
-import type { Config, NextjsOptions } from './types/index.js'
-import { buildImageEntry, extendList, placeInPackage } from './utils/index.js'
+import type { NextjsOptions } from './types/nextjs.config.type.js'
+import type { Config } from './types/recommended.config.type.js'
+import { buildImageEntry } from './utils/build-image-entry.util.js'
+import { buildRouteEntry } from './utils/build-route-entry.util.js'
+import { extendList } from './utils/option-extension.util.js'
+import { placeInPackage } from './utils/place-in-package.util.js'
 
 /**
  * All of `strict`, with the tree a React project writes.
@@ -24,7 +23,11 @@ export const nextjs = (nextjsOptions: NextjsOptions = {}): Config[] => {
   const { catalog = true, ...strictOptions } = nextjsOptions
   const files = extendList(NEXTJS_VOCABULARY.files, strictOptions.files)
   const layers = buildStrictConfig(NEXTJS_VOCABULARY, strictOptions)
-  const ownLayers = [buildImageEntry(files, REACT_IMAGE_COMPONENTS), ...selectCatalogEntries(catalog, files)]
+  const ownLayers = [
+    buildImageEntry(files, REACT_IMAGE_COMPONENTS),
+    buildRouteEntry(),
+    ...selectCatalogEntries(catalog, files),
+  ]
 
   return [...layers, ...placeInPackage(ownLayers, strictOptions.basePath)]
 }

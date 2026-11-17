@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import type { TSESLint } from '@typescript-eslint/utils'
 
-import type { Location } from '../types/index.js'
+import type { Location } from '../types/shared.type.js'
 
 /** The directory a package keeps its sources in. */
 const SOURCE_DIRECTORY = 'src'

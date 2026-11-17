@@ -1,5 +1,7 @@
-import { STRING_LIST_SCHEMA, STRING_MAP_SCHEMA, STRING_SCHEMA } from '../../shared/constants/index.js'
-import { buildListSchema, buildMapSchema, buildObjectSchema } from '../../shared/utils/index.js'
+import { STRING_LIST_SCHEMA, STRING_MAP_SCHEMA, STRING_SCHEMA } from '../../shared/constants/json-schema.constant.js'
+import { buildListSchema } from '../../shared/utils/build-list-schema.util.js'
+import { buildMapSchema } from '../../shared/utils/build-map-schema.util.js'
+import { buildObjectSchema } from '../../shared/utils/build-object-schema.util.js'
 
 /**
  * What a configuration of the `architecture` rules has to hand them.
@@ -16,10 +18,8 @@ export const OPTIONS_SCHEMA = buildObjectSchema({
   definitionTimeDirectives: STRING_LIST_SCHEMA,
   baseFolders: STRING_LIST_SCHEMA,
   moduleContainers: STRING_LIST_SCHEMA,
-  barrelledContainers: STRING_LIST_SCHEMA,
   mirrorFolders: STRING_LIST_SCHEMA,
   rootContexts: STRING_LIST_SCHEMA,
-  executedFolders: STRING_LIST_SCHEMA,
   typeSuffixes: buildMapSchema(STRING_LIST_SCHEMA),
   orderedSuffixes: STRING_LIST_SCHEMA,
   wholeArguments: buildListSchema(buildObjectSchema({ suffix: STRING_SCHEMA, objects: STRING_LIST_SCHEMA })),

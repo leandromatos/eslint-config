@@ -1,10 +1,10 @@
-import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
-import type { NamingOptions } from '../../plugins/naming/types/index.js'
-import type { HttpTest } from '../../plugins/testing/types/index.js'
-import type { TextOptions } from '../../plugins/text/types/index.js'
-import type { TsdocOptions } from '../../plugins/tsdoc/types/index.js'
-import type { TypescriptOptions } from '../../plugins/typescript/types/index.js'
-import type { GroupExtension, ListExtension } from './utils/index.js'
+import type { ArchitectureOptions } from '../../plugins/architecture/types/architecture.type.js'
+import type { NamingOptions } from '../../plugins/naming/types/naming.type.js'
+import type { HttpTest } from '../../plugins/testing/types/rules/e2e-over-http.rule.type.js'
+import type { TextOptions } from '../../plugins/text/types/text.type.js'
+import type { TsdocOptions } from '../../plugins/tsdoc/types/tsdoc.type.js'
+import type { TypescriptOptions } from '../../plugins/typescript/types/typescript.type.js'
+import type { GroupExtension, ListExtension } from './utils/option-extension.util.type.js'
 
 /**
  * The shape of a project as `architecture` takes it, plus the suffixes the project writes that no dictionary carries.

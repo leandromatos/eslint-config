@@ -1,10 +1,13 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { DOCUMENTED_MESSAGES, EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { DocumentedTypeMessageId, TsdocRule, TypeDeclaration } from '../types/index.js'
-import { findDocBlock, restatesName } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { DOCUMENTED_MESSAGES, EMPTY_OPTIONS } from '../constants/tsdoc.constant.js'
+import type { DocumentedTypeMessageId, TypeDeclaration } from '../types/rules/documented-type.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import { findDocBlock } from '../utils/find-doc-block.util.js'
+import { restatesName } from '../utils/restates-name.util.js'
 
 /**
  * Every class, interface and type alias a module declares carries a documentation comment, and the comment says what

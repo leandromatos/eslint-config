@@ -1,9 +1,14 @@
 import globals from 'globals'
 
-import { EXPO_CATALOG_FILES, EXPO_VOCABULARY, LAYOUT_RULES, REACT_IMAGE_COMPONENTS } from './constants/index.js'
+import { EXPO_CATALOG_FILES, EXPO_VOCABULARY, LAYOUT_RULES } from './constants/expo.constant.js'
+import { REACT_IMAGE_COMPONENTS } from './constants/nextjs.constant.js'
 import { buildStrictConfig } from './strict.config.js'
-import type { Config, ExpoOptions } from './types/index.js'
-import { buildImageEntry, extendList, placeInPackage } from './utils/index.js'
+import type { ExpoOptions } from './types/expo.config.type.js'
+import type { Config } from './types/recommended.config.type.js'
+import { buildImageEntry } from './utils/build-image-entry.util.js'
+import { buildRouteEntry } from './utils/build-route-entry.util.js'
+import { extendList } from './utils/option-extension.util.js'
+import { placeInPackage } from './utils/place-in-package.util.js'
 
 /** The globals Vitest declares and Jest does not, which a spec run under Jest never sees. */
 const VITEST_ONLY_GLOBALS = Object.fromEntries(
@@ -29,6 +34,7 @@ export const expo = (expoOptions: ExpoOptions = {}): Config[] => {
   const layers = buildStrictConfig(EXPO_VOCABULARY, { ...strictOptions, files: () => files })
   const ownLayers = [
     buildImageEntry(files, REACT_IMAGE_COMPONENTS),
+    buildRouteEntry(),
     ...selectRunnerEntries(runner, files),
     ...selectCatalogEntries(catalogFiles),
   ]

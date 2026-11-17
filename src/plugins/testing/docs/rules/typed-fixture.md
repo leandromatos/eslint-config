@@ -8,36 +8,52 @@ instead.
 
 ## Rule details
 
-👎 Examples of **incorrect** code:
+The examples call this subject:
 
 ```typescript
-const body = { name: 'Ada', email: 'ada@example.com' }
-
-await usersService.createUser(body)
+interface CreateUserInput {
+  name: string
+}
+declare function createUser(input: CreateUserInput): void
 ```
 
-👍 Examples of **correct** code:
+👎 Examples of **incorrect** code, from `src/users/__tests__/unit/user.service.spec.ts`:
 
 ```typescript
-const createUserBody: CreateUserBody = { name: 'Ada', email: 'ada@example.com' }
-
-await usersService.createUser(createUserBody)
+const input = { name: 'a' }
+createUser(input)
 ```
+
+```plaintext
+"input" is an anonymous literal handed to "createUser", which declares it as CreateUserInput. Annotate it.
+```
+
+The report writes the type as the type-checker does, a generic with its argument included.
+
+👍 Examples of **correct** code, from the same file:
+
+```typescript
+const input: CreateUserInput = { name: 'a' }
+createUser(input)
+
+createUser({ name: 'a' }) // a literal written in the call is checked against the parameter already
+```
+
+A rest parameter takes a list of the fixtures, so a fixture handed to one is not judged. Neither is a fixture handed
+to a callee whose parameter is typed as a literal, which declares no name to annotate with.
 
 ## Options
 
 Read from the `testing` group of the options, which the tiers fill from `architecture`.
 
-| Option       | Type     | What it decides                                             |
-| ------------ | -------- | ----------------------------------------------------------- |
-| `testFolder` | `string` | the tree the rule judges                                    |
-| `alias`      | `string` | the prefix the import the fix writes names the sources with |
+| Option       | Type     | What it decides          |
+| ------------ | -------- | ------------------------ |
+| `testFolder` | `string` | the tree the rule judges |
 
 ## Fixable
 
-Yes. The fix annotates the declaration with the type the callee declares, and imports that type from the barrel of the
-directory that declares it: `@/users/dtos` for a type under `src/users/dtos/`. A type at the root of the sources, or
-outside them, has no barrel the alias reaches, so the fix stops at the report.
+No. The rule reports the fixture and the type the callee declares for it, and writes no fix. Annotate the fixture with
+that type, and import it from the file that declares it.
 
 ## When not to use it
 

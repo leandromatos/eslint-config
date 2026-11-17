@@ -19,12 +19,13 @@ export default defineConfig({
     slowTestThreshold: 5000,
     coverage: {
       /*
-       * What carries logic. A barrel re-exports, a type declares, and a fixture exists to be linted: none of them can
-       * be covered, and counting them turns the number into noise. A constant is counted, since a value computed when
-       * the module loads runs like any other line.
+       * What carries logic. A type declares, and a fixture exists to be linted: neither can be covered, and counting
+       * them turns the number into noise. Every index file is counted, the package entrypoint included, since each
+       * declares code. A constant is counted too, since a value computed when the module loads runs like any other
+       * line.
        */
       include: ['src/**/*.ts'],
-      exclude: ['src/**/index.ts', 'src/**/*.type.ts', 'src/**/__tests__/**', 'src/plugins/*/docs/**'],
+      exclude: ['src/**/*.type.ts', 'src/**/__tests__/**', 'src/plugins/*/docs/**'],
       /*
        * The table, not the summary: what a coverage run is read for is which lines are missing, and `text` is where
        * that column is. The excludes above are what keeps it short enough to read.

@@ -1,6 +1,6 @@
-import { CONSTANT_RULES } from '../../plugins/constants/index.js'
-import { NAMESPACE, plugin } from '../../plugins/index.js'
-import type { Config } from '../types/index.js'
+import { CONSTANT_RULES } from '../../plugins/constants/rules.constant.js'
+import { NAMESPACE, plugin } from '../../plugins/leandromatos.plugin.js'
+import type { Config } from '../types/recommended.config.type.js'
 
 /**
  * Builds the entry that judges the files of constants alone: every value written once, and an object built from

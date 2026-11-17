@@ -1,10 +1,11 @@
-import type { ArchitectureOptions, WholeArgument } from '../../plugins/architecture/types/index.js'
-import type { NamingOptions, ValueCase, ValueCasing } from '../../plugins/naming/types/index.js'
-import type { HttpTest } from '../../plugins/testing/types/index.js'
-import type { TestingExtension, TierVocabulary } from '../types/index.js'
+import type { ArchitectureOptions } from '../../plugins/architecture/types/architecture.type.js'
+import type { WholeArgument } from '../../plugins/architecture/types/rules/argument-passed-whole.rule.type.js'
+import type { NamingOptions } from '../../plugins/naming/types/naming.type.js'
+import type { ValueCase, ValueCasing } from '../../plugins/naming/types/rules/value-case.rule.type.js'
+import type { HttpTest } from '../../plugins/testing/types/rules/e2e-over-http.rule.type.js'
+import type { TestingExtension, TierVocabulary } from '../types/strict.config.type.js'
 import {
   DEFAULT_ARCHITECTURE,
-  DEFAULT_EXECUTED_FOLDERS,
   DEFAULT_FOLDERLESS_SUFFIXES,
   DEFAULT_NAMING,
   DEFAULT_SUFFIX_TO_FOLDER,
@@ -64,9 +65,6 @@ export const NESTJS_FOLDERLESS_SUFFIXES = [...DEFAULT_FOLDERLESS_SUFFIXES, MODUL
 
 /** A package's capability holds the base classes every driver shares in `core/`, beside the layers. */
 export const NESTJS_BASE_FOLDERS = ['core']
-
-/** `migrations` and `seeds` hold no layer: a runtime executes them rather than a caller importing one. */
-export const NESTJS_EXECUTED_FOLDERS = [...DEFAULT_EXECUTED_FOLDERS, 'migrations', 'seeds']
 
 /** The layers a class walks down, outermost first: what `method-order` reads. */
 export const NESTJS_ORDERED_SUFFIXES = [
@@ -145,7 +143,6 @@ export const NESTJS_ARCHITECTURE: ArchitectureOptions = {
   rootContexts: NESTJS_ROOT_CONTEXTS,
   folderlessSuffixes: NESTJS_FOLDERLESS_SUFFIXES,
   baseFolders: NESTJS_BASE_FOLDERS,
-  executedFolders: NESTJS_EXECUTED_FOLDERS,
   orderedSuffixes: NESTJS_ORDERED_SUFFIXES,
   typeSuffixes: NESTJS_TYPE_SUFFIXES,
   wholeArguments: NESTJS_WHOLE_ARGUMENTS,

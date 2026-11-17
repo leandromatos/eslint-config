@@ -1,8 +1,9 @@
 import { TSESLint } from '@typescript-eslint/utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { readFirstLintResult } from '../../../__tests__/utils/index.js'
-import { MissingPluginConfigError, recommended } from '../../index.js'
+import { readFirstLintResult } from '../../../__tests__/utils/read-first-lint-result.util.js'
+import { MissingPluginConfigError } from '../../errors/missing-plugin-config.error.js'
+import { recommended } from '../../recommended.config.js'
 
 /*
  * The package's own entries come from `typescript-eslint`, which declares them through `@typescript-eslint/utils`, so

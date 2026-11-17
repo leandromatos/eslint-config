@@ -1,9 +1,15 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { CompiledStringPattern, StringPattern, StringPatternMessageId, TextRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/text.constant.js'
+import type {
+  CompiledStringPattern,
+  StringPattern,
+  StringPatternMessageId,
+} from '../types/rules/string-pattern.rule.type.js'
+import type { TextRule } from '../types/text.type.js'
 
 /** What stands in for an expression inside a template literal, so a pattern can name it. */
 const PLACEHOLDER = '{{value}}'

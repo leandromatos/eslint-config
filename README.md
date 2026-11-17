@@ -51,7 +51,7 @@ pnpm add --save-dev eslint typescript @leandromatos/eslint-config
 ```
 
 `eslint >= 10` and `typescript >= 5 < 7` are peer dependencies. The upper bound on TypeScript follows what
-typescript-eslint supports. Node `>= 22.12.0` is required.
+typescript-eslint supports. Node `>= 22.13.0` is required.
 
 ## 🚀 Quick Start
 
@@ -131,7 +131,7 @@ What `configs.strict` adds to `recommended`:
 | `leandromatos/rules`          | every rule of the plugin, each reading the group of its own subject                                     |
 | `tsdoc/syntax`                | every documentation comment parses as TSDoc, with its standard tags only                                |
 | the comment rule              | `leandromatos/tsdoc-comment-form` on the configuration files at the root, which no tier otherwise reads |
-| `import-x/no-cycle`           | no cycle, everywhere but in a barrel, and inside the project only                                       |
+| `import-x/no-cycle`           | no cycle, in any file, and inside the project only                                                      |
 | `leandromatos/casts`          | no cast, no non-null assertion, no `any` written by hand, specs included                                |
 | `leandromatos/unsafe-values`  | no value typed `any` travels, outside a spec                                                            |
 | `leandromatos/directives`     | a directive that turns a rule off says why, after `--`                                                  |
@@ -175,14 +175,14 @@ braces, and one of several takes them.
 One plugin, documented in [`src/plugins`](src/plugins/README.md). The subject of a rule opens its name, so a
 configuration writes `leandromatos/architecture-known-suffix` and a report shows the same.
 
-| Subject        | Rules | Judges                                                           |
-| -------------- | ----- | ---------------------------------------------------------------- |
-| `architecture` | 12    | where a file lives, what it is called, what a layer exposes      |
-| `naming`       | 5     | what a value, a method and a fixture are called                  |
-| `testing`      | 4     | how a spec is written and where it sits                          |
-| `text`         | 1     | the strings a product ships                                      |
-| `tsdoc`        | 10    | the comments of a file: form, presence, tags                     |
-| `typescript`   | 3     | how a vocabulary is declared, and how a constant file is written |
+| Subject        | Rules | Judges                                                            |
+| -------------- | ----- | ----------------------------------------------------------------- |
+| `architecture` | 12    | where a file lives, what it is called, which file an import names |
+| `naming`       | 5     | what a value, a method and a fixture are called                   |
+| `testing`      | 4     | how a spec is written and where it sits                           |
+| `text`         | 1     | the strings a product ships                                       |
+| `tsdoc`        | 10    | the comments of a file: form, presence, tags                      |
+| `typescript`   | 3     | how a vocabulary is declared, and how a constant file is written  |
 
 Each rule has a page under `src/plugins/<subject>/docs/rules/<rule>.md`, which `meta.docs.url` points at, so the
 editor links it beside the report.
@@ -333,7 +333,7 @@ shareable configuration: "You can override settings from the shareable config by
 ```ts
 const eslintConfig: Config[] = [
   ...configs.strict(),
-  { files: ['scripts/**/*.ts'], rules: { 'leandromatos/architecture-barrel-per-directory': 'off' } },
+  { files: ['src/legacy/**/*.ts'], rules: { 'leandromatos/architecture-re-export-only-at-entrypoint': 'off' } },
 ]
 ```
 
@@ -356,22 +356,23 @@ const eslintConfig: Config[] = [...configs.nextjs(), ...defineConfig([{ files: [
 
 ### Import boundaries
 
-A project organized by layer keeps a `services` folder of `*.service.ts`, an `entities` folder of `*.entity.ts`, and
-an `index.ts` barrel in each. `architecture-import-boundaries` reads the path of a file and answers what it may import:
+A project organized by layer keeps a `services` folder of `*.service.ts` and an `entities` folder of `*.entity.ts`, and
+the `services` folder holds an `index.ts` that re-exports its services. `architecture-import-boundaries` reads each
+import and answers whether it may stand:
 
-| From                                              | Import                                      | Verdict                             |
-| ------------------------------------------------- | ------------------------------------------- | ----------------------------------- |
-| `tokens.module.ts`, which carries no layer suffix | `@/accounts/tokens/services`                | allowed                             |
-| `tokens.module.ts`                                | `@/accounts/tokens/services/tokens.service` | names a file of a layer             |
-| `entities/token.entity.ts`                        | `@/accounts/users/services`                 | allowed                             |
-| `entities/token.entity.ts`                        | `@/accounts/users/services/users.service`   | names a file of another layer       |
-| `entities/token.entity.ts`                        | `@/accounts/tokens/entities/session.entity` | allowed                             |
-| `entities/token.entity.ts`                        | `@/accounts/tokens/entities`                | its own barrel, which re-exports it |
+| From                       | Import                                    | Verdict                             |
+| -------------------------- | ----------------------------------------- | ----------------------------------- |
+| `tokens.module.ts`         | `@/accounts/users/services/users.service` | allowed                             |
+| `entities/token.entity.ts` | `@/accounts/users/services/users.service` | allowed                             |
+| `entities/token.entity.ts` | `@/accounts/users/services`               | names a barrel                      |
+| `entities/token.entity.ts` | `./session.entity`                        | relative                            |
+| `entities/token.entity.ts` | `@/accounts/tokens/__tests__/factories`   | the test tree, from production code |
 
-A file cannot reach the barrel of its own layer, which re-exports the file itself, so siblings are imported directly.
-Production code never imports the test folder, the testing folder of a package or a story, since a production install
-leaves them out. The rule reads `suffixToFolder`, `alias`, `testFolder`, `testingFolder`, `mockFolder` and
-`developmentSuffixes` from `architecture`; its page is
+A barrel loads every file it re-exports, so a test file or a process boot that imports one name through it loads the
+whole directory. The rule reports the barrel import and writes no fix. `architecture-re-export-only-at-entrypoint`
+allows a re-export only in a published entrypoint. Production code never imports the test folder, the testing folder of
+a package or a story, since a production install leaves them out. The rule reads `alias`, `suffixToFolder`,
+`testFolder`, `testingFolder`, `mockFolder` and `developmentSuffixes` from `architecture`; its page is
 [`architecture-import-boundaries`](src/plugins/architecture/docs/rules/import-boundaries.md).
 
 ## 🏷️ Versioning
@@ -379,6 +380,42 @@ leaves them out. The rule reads `suffixToFolder`, `alias`, `testFolder`, `testin
 Semver, published to npm. A rule that starts reporting what it used to pass is a breaking change, and so is a renamed
 option or export. Snapshots publish to the `snapshot` dist-tag as `X.Y.Z-snapshot.YYYYMMDD.N`; stable releases go to
 `latest`.
+
+### Upgrading to 9.0.0
+
+9.0.0 removes `architecture-barrel-per-directory` and stops asking for an `index.ts` in every directory. A file imports
+the file that declares what it needs, and only a published entrypoint re-exports. The peer ranges stay `eslint >= 10`
+and `typescript >= 5 < 7`. The majors of `@eslint/markdown` (9) and `@stylistic/eslint-plugin` (6) change no tier
+setting, and linting six real projects with this build reported nothing new from them. Upgrade in this order:
+
+1. Run Node `>= 22.13.0`.
+2. Remove `barrelledContainers` and `executedFolders` from the `architecture` options. A tier ignores both, and
+   TypeScript reports them in a typed configuration file. Handed to the plugin without a tier, either one stops ESLint,
+   since the schema of every `architecture` rule refuses a field it does not know.
+3. If you hand the plugin its options without a tier, remove `alias` and `testKinds` from the `testing` group. A tier
+   fills that group from `architecture`, so a project on a tier has nothing to remove.
+4. Remove every import of `DEFAULT_BARRELLED_CONTAINERS`, `DEFAULT_EXECUTED_FOLDERS` and `NESTJS_EXECUTED_FOLDERS`. No
+   rule reads the fields they filled, so nothing replaces them.
+5. Delete `leandromatos/architecture-barrel-per-directory` from the configuration and from every `eslint-disable`
+   comment. Set to anything but `off`, it stops ESLint; named in a comment, it is reported. Turn
+   `architecture-re-export-only-at-entrypoint` off only where a re-export stays on purpose.
+6. Import each name from the file that declares it: `@/users/services` becomes `@/users/services/users.service`.
+   `architecture-import-boundaries` reports every import of a directory whose index file re-exports, and writes no fix.
+7. Delete every index file that re-exports, except a published entrypoint: `src/index.ts`, and every source file a
+   target of `exports` in `package.json` is built from. An import of a published entrypoint is not a barrel import. An
+   index file that also declares code keeps that code and drops its re-exports. An `export type` passes on no value,
+   so an index file of types written with `export type` and the alias may stay, such as
+   `export type { UsersServiceOptions } from '@/users/services/users.service'`.
+   `architecture-re-export-only-at-entrypoint` reports every re-export that is left.
+8. Break the cycles `import-x/no-cycle` reports through an index file. Deleting the barrels in step 7 breaks most of
+   them.
+9. Annotate each fixture `testing-typed-fixture` reports with the type the report names, imported from the file that
+   declares it. The rule writes no fix.
+
+On `nextjs` and `expo`, a route keeps its re-exports: both tiers turn `architecture-re-export-only-at-entrypoint` off
+under `app/` of each source root, since a route passes on what the router asks for, such as
+`export { ErrorBoundary } from 'expo-router'`. On another tier, turn the rule off for the router directory with an
+entry after the tier, as [Overriding the result](#overriding-the-result) shows.
 
 ## 🤝 Contributing
 

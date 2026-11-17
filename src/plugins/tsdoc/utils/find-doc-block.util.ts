@@ -1,7 +1,7 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, ASTUtils } from '@typescript-eslint/utils'
 
-import type { DocumentedNode } from '../types/index.js'
+import type { DocumentedNode } from '../types/utils/find-doc-block.util.type.js'
 import { isDocComment } from './is-doc-comment.util.js'
 
 /**

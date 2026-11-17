@@ -1,7 +1,7 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { readMemberName } from '../../shared/utils/index.js'
+import { readMemberName } from '../../shared/utils/class-members.util.js'
 
 /**
  * Whether a function is the implementation of an overloaded one: the body below the signatures a caller sees.

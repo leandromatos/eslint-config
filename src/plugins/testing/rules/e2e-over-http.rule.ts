@@ -1,8 +1,12 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, findTestSuffix, locateFile } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { E2eOverHttpMessageId, TestingRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { findTestSuffix } from '../../shared/utils/find-test-suffix.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/testing.constant.js'
+import type { E2eOverHttpMessageId } from '../types/rules/e2e-over-http.rule.type.js'
+import type { TestingRule } from '../types/testing.type.js'
 
 /**
  * A spec of the end-to-end kind sends requests: it imports the HTTP client the options name. A

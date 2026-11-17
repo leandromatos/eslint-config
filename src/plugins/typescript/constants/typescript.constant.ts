@@ -1,4 +1,5 @@
-import type { RepeatedLiteralOptions, TypescriptOptions } from '../types/index.js'
+import type { RepeatedLiteralOptions } from '../types/rules/repeated-literal.rule.type.js'
+import type { TypescriptOptions } from '../types/typescript.type.js'
 
 /** Nothing: no suffix names the file a vocabulary lives in, so the rules judge no file. */
 export const EMPTY_OPTIONS: TypescriptOptions = {

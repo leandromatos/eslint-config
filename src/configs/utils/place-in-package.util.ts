@@ -1,4 +1,4 @@
-import type { Config } from '../types/index.js'
+import type { Config } from '../types/recommended.config.type.js'
 
 /**
  * Reads the entries under the directory of one package of a monorepo, so their globs name that package's files.

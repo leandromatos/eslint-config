@@ -1,9 +1,14 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TYPED_TAGS } from '../constants/index.js'
-import type { DocBlockTag, TsdocRule, TypelessTagMessageId } from '../types/index.js'
-import { buildLineLocation, isDocComment, parseDocBlock } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS, TYPED_TAGS } from '../constants/tsdoc.constant.js'
+import type { TypelessTagMessageId } from '../types/rules/typeless-tag.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import type { DocBlockTag } from '../types/utils/parse-doc-block.util.type.js'
+import { buildLineLocation } from '../utils/build-line-location.util.js'
+import { isDocComment } from '../utils/is-doc-comment.util.js'
+import { parseDocBlock } from '../utils/parse-doc-block.util.js'
 
 /**
  * A `@param` or a `@returns` carries no type in braces.

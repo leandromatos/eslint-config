@@ -1,12 +1,11 @@
-import { INDEX_FILES } from '../../shared/constants/index.js'
-import {
-  buildFinding,
-  buildRuleDocsUrl,
-  countModuleDepth,
-  createFileRule,
-  isContextRoot,
-} from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
+import { INDEX_FILES } from '../../shared/constants/source.constant.js'
+import { buildFinding } from '../../shared/utils/build-finding.util.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isContextRoot } from '../../shared/utils/context-root.util.js'
+import { countModuleDepth } from '../../shared/utils/count-module-depth.util.js'
+import { createFileRule } from '../../shared/utils/create-file-rule.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
 
 /**
  * Every file carries a known suffix, and sits under the folder that suffix names. A stand-in in the mock folder

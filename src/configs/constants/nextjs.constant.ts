@@ -1,6 +1,7 @@
-import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
-import type { HttpTest } from '../../plugins/testing/types/index.js'
-import type { DictionarySuffix, TestingExtension, TierVocabulary } from '../types/index.js'
+import type { ArchitectureOptions } from '../../plugins/architecture/types/architecture.type.js'
+import type { HttpTest } from '../../plugins/testing/types/rules/e2e-over-http.rule.type.js'
+import type { DictionarySuffix } from '../types/constants/suffix-dictionary.constant.type.js'
+import type { TestingExtension, TierVocabulary } from '../types/strict.config.type.js'
 import {
   DEFAULT_ARCHITECTURE,
   DEFAULT_FOLDERLESS_SUFFIXES,
@@ -114,7 +115,9 @@ export const REACT_LAYER = {
 /** What a component, a hook or a store takes is read beside it. */
 export const NEXTJS_CO_LOCATED_TYPE_SUFFIXES = Object.values(REACT_LAYER)
 
-/** The catalog loads a story and the application never does, so a story may build its props from a testing entry. */
+/**
+ * The catalog loads a story and the application never does, so a story may build its props from a testing entrypoint.
+ */
 export const NEXTJS_DEVELOPMENT_SUFFIXES = [STORY_SUFFIX]
 
 /**

@@ -25,7 +25,7 @@ src/users/services/users.repository.ts ← a repository under services/
 src/users/services/users.service.ts
 src/users/repositories/users.repository.ts
 src/users/users.module.ts              ← a folderless suffix
-src/users/services/index.ts            ← a barrel carries no suffix
+src/users/index.ts                     ← an index file carries no suffix, whatever it holds
 src/components/user-card.tsx           ← a folder whose files are named by what they hold
 ```
 
@@ -49,4 +49,4 @@ No. Renaming a file or moving it changes what imports it, which is a decision ra
 
 ## When not to use it
 
-A codebase whose file names carry no layer, or one that groups by feature folder with an `index.ts` per concept.
+A codebase whose file names carry no layer, or one that names each file after the concept it holds.

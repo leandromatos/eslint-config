@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import type { TypescriptOptions } from '../../../../plugins/typescript/types/index.js'
-import { DEFAULT_ARCHITECTURE, DEFAULT_NAMING, DEFAULT_TSDOC, DEFAULT_VOCABULARY } from '../../../constants/index.js'
+import type { TypescriptOptions } from '../../../../plugins/typescript/types/typescript.type.js'
+import {
+  DEFAULT_ARCHITECTURE,
+  DEFAULT_NAMING,
+  DEFAULT_TSDOC,
+  DEFAULT_VOCABULARY,
+} from '../../../constants/defaults.constant.js'
 import {
   applyPreset,
   extendArchitecture,
@@ -11,7 +16,7 @@ import {
   extendText,
   extendTsdoc,
   extendTypescript,
-} from '../../../utils/index.js'
+} from '../../../utils/option-extension.util.js'
 
 describe('extendList', () => {
   it('answers the default when the project passes nothing', () => {

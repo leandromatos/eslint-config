@@ -5,7 +5,7 @@ import {
   NESTJS_SUFFIX_DICTIONARY,
   REACT_SUFFIX_DICTIONARY,
   SUFFIX_DICTIONARY,
-} from '../../../constants/index.js'
+} from '../../../constants/suffix-dictionary.constant.js'
 
 const LAYERS = [AGNOSTIC_SUFFIX_DICTIONARY, NESTJS_SUFFIX_DICTIONARY, REACT_SUFFIX_DICTIONARY]
 

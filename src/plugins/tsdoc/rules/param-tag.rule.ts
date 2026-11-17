@@ -1,25 +1,20 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TSDOC_TAG } from '../constants/index.js'
-import type {
-  CommentReporter,
-  DocBlockTag,
-  Parameter,
-  ParameterizedNode,
-  ParamTagMessageId,
-  TsdocRule,
-} from '../types/index.js'
-import { ParameterKind } from '../types/index.js'
-import {
-  buildLineLocation,
-  findDocBlock,
-  inheritsDoc,
-  isOverloadImplementation,
-  parseDocBlock,
-  readParameters,
-} from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS, TSDOC_TAG } from '../constants/tsdoc.constant.js'
+import type { CommentReporter, ParameterizedNode, ParamTagMessageId } from '../types/rules/param-tag.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import type { DocBlockTag } from '../types/utils/parse-doc-block.util.type.js'
+import type { Parameter } from '../types/utils/read-parameters.util.type.js'
+import { ParameterKind } from '../types/utils/read-parameters.util.type.js'
+import { buildLineLocation } from '../utils/build-line-location.util.js'
+import { findDocBlock } from '../utils/find-doc-block.util.js'
+import { inheritsDoc } from '../utils/inherits-doc.util.js'
+import { isOverloadImplementation } from '../utils/is-overload-implementation.util.js'
+import { parseDocBlock } from '../utils/parse-doc-block.util.js'
+import { readParameters } from '../utils/read-parameters.util.js'
 
 /** What the order message lists for a destructured parameter no tag names: an object, with no name of its own. */
 const DESTRUCTURED_PLACEHOLDER = '{…}'

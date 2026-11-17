@@ -1,9 +1,14 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, escapeRegExp, locateFile } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TYPE_SUFFIX } from '../constants/index.js'
-import type { ArchitectureRule, GovernedSuffix, TypeSuffixMessageId } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { escapeRegExp } from '../../shared/utils/escape-reg-exp.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { TYPE_SUFFIX } from '../constants/suffix.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { GovernedSuffix, TypeSuffixMessageId } from '../types/rules/type-suffix.rule.type.js'
 
 /**
  * An exported type that uses one of the governed suffixes uses it at the end of its name, and

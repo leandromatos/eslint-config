@@ -1,8 +1,14 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, listExportedNames, locateFile, toKebabCase } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, UTIL_SUFFIX } from '../constants/index.js'
-import type { ArchitectureRule, OneExportPerUtilMessageId } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { toKebabCase } from '../../shared/utils/letter-case.util.js'
+import { listExportedNames } from '../../shared/utils/list-exported-names.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { UTIL_SUFFIX } from '../constants/suffix.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { OneExportPerUtilMessageId } from '../types/rules/one-export-per-util.rule.type.js'
 
 /**
  * A utility file inside a module is named after the one function it exports, or after the

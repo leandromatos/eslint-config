@@ -1,4 +1,4 @@
-import { MissingFieldError } from '../errors/index.js'
+import { MissingFieldError } from '../errors/missing-field.error.js'
 
 /**
  * Reads the text a value parsed from JSON carries under a key, such as the name a manifest declares.

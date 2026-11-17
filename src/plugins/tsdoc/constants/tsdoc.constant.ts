@@ -1,4 +1,4 @@
-import type { TsdocOptions } from '../types/index.js'
+import type { TsdocOptions } from '../types/tsdoc.type.js'
 
 /**
  * What a rule runs with when a configuration hands it nothing: the column Prettier wraps at by default, no tool that

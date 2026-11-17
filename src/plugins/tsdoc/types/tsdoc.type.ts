@@ -1,5 +1,5 @@
-import type { PluginRule } from '../../shared/types/index.js'
-import type { ThrowsCondition } from './rules/index.js'
+import type { PluginRule } from '../../shared/types/shared.type.js'
+import type { ThrowsCondition } from './rules/throws-tag.rule.type.js'
 
 /** What the `tsdoc` rules judge against. The comments of a file: their form, their presence and their tags. */
 export interface TsdocOptions {

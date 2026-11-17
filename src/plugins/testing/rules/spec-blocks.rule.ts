@@ -1,16 +1,16 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import {
-  buildRuleDocsUrl,
-  isFunctionNode,
-  locateFile,
-  readChildNodes,
-  readReceiver,
-  unwrapAwait,
-} from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { SpecBlocksMessageId, TestingRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isFunctionNode } from '../../shared/utils/function-node.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { readChildNodes } from '../../shared/utils/read-child-nodes.util.js'
+import { readReceiver } from '../../shared/utils/read-receiver.util.js'
+import { unwrapAwait } from '../../shared/utils/unwrap-await.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/testing.constant.js'
+import type { SpecBlocksMessageId } from '../types/rules/spec-blocks.rule.type.js'
+import type { TestingRule } from '../types/testing.type.js'
 
 /** The calls a test is written with, bare or through a modifier: `it`, `test`, `it.only`, `it.each([...])`. */
 const TEST_CALLS = new Set(['it', 'test'])

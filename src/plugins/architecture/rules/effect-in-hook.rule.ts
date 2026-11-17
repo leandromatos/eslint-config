@@ -1,8 +1,13 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, locateFile, readCalleeName } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, HOOK_SUFFIX, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, EffectInHookMessageId } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { readCalleeName } from '../../shared/utils/read-callee-name.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { HOOK_SUFFIX } from '../constants/suffix.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { EffectInHookMessageId } from '../types/rules/effect-in-hook.rule.type.js'
 
 /**
  * An effect is written in a hook of its own, never in the component that renders.

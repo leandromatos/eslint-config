@@ -1,10 +1,18 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, isFunctionNode, isMethod, readDeclarationName } from '../../shared/utils/index.js'
-import { DOCUMENTED_MESSAGES, EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { DocumentedFunctionMessageId, DocumentedNode, TsdocRule } from '../types/index.js'
-import { findDocBlock, isOverloadImplementation, restatesName } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isMethod } from '../../shared/utils/class-members.util.js'
+import { isFunctionNode } from '../../shared/utils/function-node.util.js'
+import { readDeclarationName } from '../../shared/utils/read-declaration-name.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { DOCUMENTED_MESSAGES, EMPTY_OPTIONS } from '../constants/tsdoc.constant.js'
+import type { DocumentedFunctionMessageId } from '../types/rules/documented-function.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import type { DocumentedNode } from '../types/utils/find-doc-block.util.type.js'
+import { findDocBlock } from '../utils/find-doc-block.util.js'
+import { isOverloadImplementation } from '../utils/is-overload-implementation.util.js'
+import { restatesName } from '../utils/restates-name.util.js'
 
 /**
  * Every method and every function a module declares carries a documentation comment, and the comment says what the name

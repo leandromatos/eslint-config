@@ -1,26 +1,28 @@
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments'
 import tsdoc from 'eslint-plugin-tsdoc'
 
-import type { ArchitectureOptions } from '../plugins/architecture/types/index.js'
-import { buildPluginConfig, plugin as ownPlugin } from '../plugins/index.js'
-import type { TestingOptions } from '../plugins/testing/types/index.js'
-import type { TsdocOptions } from '../plugins/tsdoc/types/index.js'
-import { DEFAULT_VOCABULARY, STRICT_RESTRICTED_SYNTAX } from './constants/index.js'
+import type { ArchitectureOptions } from '../plugins/architecture/types/architecture.type.js'
+import { buildPluginConfig, plugin as ownPlugin } from '../plugins/leandromatos.plugin.js'
+import type { TestingOptions } from '../plugins/testing/types/testing.type.js'
+import type { TsdocOptions } from '../plugins/tsdoc/types/tsdoc.type.js'
+import { DEFAULT_VOCABULARY } from './constants/defaults.constant.js'
+import { STRICT_RESTRICTED_SYNTAX } from './constants/recommended.constant.js'
 import { recommended } from './recommended.config.js'
-import type { Config, StrictOptions, TierVocabulary } from './types/index.js'
+import type { Config } from './types/recommended.config.type.js'
+import type { StrictOptions, TierVocabulary } from './types/strict.config.type.js'
+import { assertKnownFolders } from './utils/assert-known-folders.util.js'
+import { buildConstantEntry } from './utils/build-constant-entry.util.js'
+import { buildValueSuffixEntries } from './utils/build-value-suffix-entries.util.js'
 import {
   applyPreset,
-  assertKnownFolders,
-  buildConstantEntry,
-  buildValueSuffixEntries,
   extendArchitecture,
   extendList,
   extendNaming,
   extendText,
   extendTsdoc,
   extendTypescript,
-  placeInPackage,
-} from './utils/index.js'
+} from './utils/option-extension.util.js'
+import { placeInPackage } from './utils/place-in-package.util.js'
 
 /** The files a spec is written in, where a matcher of the test runner is typed `any` by design. */
 const SPEC_FILES = ['**/*.{spec,test}.{ts,tsx}']
@@ -101,7 +103,7 @@ export const buildStrictConfig = (tierVocabulary: TierVocabulary, strictOptions:
 }
 
 /**
- * Builds what the testing rules read: the test folder, the kinds, the map and the alias the architecture names, and the
+ * Builds what the testing rules read: the test folder, the mirroring kinds and the map the architecture names, and the
  * HTTP kind the project or the tier names, when one does.
  *
  * @param vocabulary - What the tier judges with when the project says nothing.
@@ -114,14 +116,12 @@ const buildTestingOptions = (
   strictOptions: StrictOptions,
   architectureOptions: ArchitectureOptions,
 ): TestingOptions => {
-  const { testFolder, testKinds, mirroringTestKinds, suffixToFolder, alias } = architectureOptions
+  const { testFolder, mirroringTestKinds, suffixToFolder } = architectureOptions
   const httpTest = strictOptions.testing?.httpTest ?? vocabulary.testing.httpTest
   const testingOptions: TestingOptions = {
     testFolder,
-    testKinds,
     mirroringTestKinds,
     suffixToFolder,
-    alias,
   }
   if (!httpTest) return testingOptions
 
@@ -185,9 +185,10 @@ const buildNotesEntry = (tsdocOptions: TsdocOptions): Config => {
 /**
  * Builds the entry for the one import question a path cannot answer: whether two files reach each other.
  *
- * A barrel re-exports its siblings, so it sits in a cycle by design and is left out. `ignoreExternal` keeps the walk
- * inside the project: a cycle between two files of a dependency is not the project's to break, and reaching one means
- * parsing what the dependency ships, such as the Flow of React Native's entry point.
+ * Every file is judged, an index file included: a barrel is allowed only at a published entrypoint, and a cycle through
+ * one is a cycle like any other. `ignoreExternal` keeps the walk inside the project: a cycle between two files of a
+ * dependency is not the project's to break, and reaching one means parsing what the dependency ships, such as the Flow
+ * of React Native's entrypoint.
  *
  * @param files - The files the rule judges.
  * @returns The configuration entry.
@@ -195,7 +196,6 @@ const buildNotesEntry = (tsdocOptions: TsdocOptions): Config => {
 const buildCycleEntry = (files: string[]): Config => {
   const cycleEntry: Config = {
     files,
-    ignores: ['**/index.{ts,tsx}'],
     rules: { 'import-x/no-cycle': ['error', { maxDepth: 2, ignoreExternal: true }] },
   }
 

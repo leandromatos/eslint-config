@@ -1,18 +1,20 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TSDOC_TAG } from '../constants/index.js'
-import type { DocumentedNode, ReturningNode, ReturnsTagMessageId, TsdocRule } from '../types/index.js'
-import {
-  buildLineLocation,
-  findDocBlock,
-  handsValueBack,
-  inheritsDoc,
-  isConstructor,
-  isOverloadImplementation,
-  parseDocBlock,
-} from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS, TSDOC_TAG } from '../constants/tsdoc.constant.js'
+import type { ReturnsTagMessageId } from '../types/rules/returns-tag.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import type { DocumentedNode } from '../types/utils/find-doc-block.util.type.js'
+import type { ReturningNode } from '../types/utils/return-value.util.type.js'
+import { buildLineLocation } from '../utils/build-line-location.util.js'
+import { findDocBlock } from '../utils/find-doc-block.util.js'
+import { inheritsDoc } from '../utils/inherits-doc.util.js'
+import { isConstructor } from '../utils/is-constructor.util.js'
+import { isOverloadImplementation } from '../utils/is-overload-implementation.util.js'
+import { parseDocBlock } from '../utils/parse-doc-block.util.js'
+import { handsValueBack } from '../utils/return-value.util.js'
 
 /**
  * A documented function carries one `@returns` with a description when it hands a value back, and none when it does

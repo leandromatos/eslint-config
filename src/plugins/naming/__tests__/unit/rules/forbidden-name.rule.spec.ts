@@ -1,7 +1,8 @@
-import { buildSourcePath, createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/naming.constant.js'
 import { forbiddenName } from '../../../rules/forbidden-name.rule.js'
-import type { NamingOptions } from '../../../types/index.js'
+import type { NamingOptions } from '../../../types/naming.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 const because = 'it names no content'

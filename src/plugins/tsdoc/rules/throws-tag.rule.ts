@@ -1,10 +1,14 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, TSESLint } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, isFunctionNode, readChildNodes } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ThrownException, ThrowsCondition, ThrowsTagMessageId, TsdocRule } from '../types/index.js'
-import { isDocComment } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isFunctionNode } from '../../shared/utils/function-node.util.js'
+import { readChildNodes } from '../../shared/utils/read-child-nodes.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/tsdoc.constant.js'
+import type { ThrownException, ThrowsCondition, ThrowsTagMessageId } from '../types/rules/throws-tag.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import { isDocComment } from '../utils/is-doc-comment.util.js'
 
 /** A `@throws` tag and the type it opens with: in braces or as a link, as the first group, or bare, as the second. */
 const THROWS_TAG_REG_EXP = /@throws\s+(?:\{(?:@link\s+)?(\w+)\}|(\w+))/g

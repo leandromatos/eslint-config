@@ -1,7 +1,7 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { ASTUtils } from '@typescript-eslint/utils'
 
-import type { FunctionNode } from '../types/index.js'
+import type { FunctionNode } from '../types/shared.type.js'
 
 /**
  * Whether a node is a function the code writes, which is where a `return`, a `throw` or a `yield` stops belonging to

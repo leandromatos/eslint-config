@@ -1,8 +1,10 @@
-import { buildFixturePath, buildSourcePath, createTypedRuleTester } from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createTypedRuleTester } from '../../../../../__tests__/utils/create-typed-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/tsdoc.constant.js'
 import { returnsTag } from '../../../rules/returns-tag.rule.js'
-import type { TsdocOptions } from '../../../types/index.js'
-import type { PlacedCase } from '../types/rules/index.js'
+import type { TsdocOptions } from '../../../types/tsdoc.type.js'
+import type { PlacedCase } from '../types/rules/returns-tag.rule.spec.type.js'
 
 const root = buildFixturePath(import.meta.url, 'returns-tag')
 const ruleTester = createTypedRuleTester(root)

@@ -1,4 +1,4 @@
-import type { DocBlock } from '../types/index.js'
+import type { DocBlock } from '../types/utils/parse-doc-block.util.type.js'
 
 /** The inline tag TSDoc copies a declaration's documentation with, with or without the reference it copies from. */
 const INHERIT_DOC_REG_EXP = /\{@inheritDoc(?:\s[^}]*)?\}/i

@@ -1,9 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, locateFile } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, ArgumentPassedWholeMessageId } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { ArgumentPassedWholeMessageId } from '../types/rules/argument-passed-whole.rule.type.js'
 
 /**
  * A layer that receives an object the options name passes it on whole, never a field of it.

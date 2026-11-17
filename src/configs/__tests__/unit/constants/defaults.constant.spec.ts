@@ -1,15 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { toScreamingCase } from '../../../../plugins/shared/utils/index.js'
-import * as constants from '../../../constants/index.js'
-import {
-  DEFAULT_ARCHITECTURE,
-  DEFAULT_NAMING,
-  DEFAULT_VOCABULARY,
-  EXPO_VOCABULARY,
-  NESTJS_VOCABULARY,
-  NEXTJS_VOCABULARY,
-} from '../../../constants/index.js'
+import * as constants from '../../../../index.js'
+import { toScreamingCase } from '../../../../plugins/shared/utils/letter-case.util.js'
+import { DEFAULT_ARCHITECTURE, DEFAULT_NAMING, DEFAULT_VOCABULARY } from '../../../constants/defaults.constant.js'
+import { EXPO_VOCABULARY } from '../../../constants/expo.constant.js'
+import { NESTJS_VOCABULARY } from '../../../constants/nestjs.constant.js'
+import { NEXTJS_VOCABULARY } from '../../../constants/nextjs.constant.js'
 
 const TIERS = [
   ['strict', DEFAULT_VOCABULARY],

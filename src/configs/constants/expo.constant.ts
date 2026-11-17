@@ -1,5 +1,5 @@
-import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
-import type { TestingExtension, TierVocabulary } from '../types/index.js'
+import type { ArchitectureOptions } from '../../plugins/architecture/types/architecture.type.js'
+import type { TestingExtension, TierVocabulary } from '../types/strict.config.type.js'
 import {
   DEFAULT_FOLDERLESS_SUFFIXES,
   DEFAULT_TEST_KIND,
@@ -32,9 +32,9 @@ export const EXPO_IGNORES = [
   '**/.rnstorybook/storybook.requires.ts',
 ]
 
-/** The rules that judge where a file sits, what it is called, and which layer it reaches through a barrel. */
+/** The rules that judge where a file sits, what it is called, and which file it imports. */
 export const LAYOUT_RULES = [
-  'architecture-barrel-per-directory',
+  'architecture-re-export-only-at-entrypoint',
   'architecture-import-boundaries',
   'architecture-known-directory',
   'architecture-known-suffix',

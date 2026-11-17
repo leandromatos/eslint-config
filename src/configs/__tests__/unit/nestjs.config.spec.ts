@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { readArchitectureOptions } from '../../../__tests__/utils/index.js'
-import { NESTJS_ARCHITECTURE } from '../../constants/index.js'
+import { readArchitectureOptions } from '../../../__tests__/utils/read-architecture-options.util.js'
+import { NESTJS_ARCHITECTURE } from '../../constants/nestjs.constant.js'
 import { nestjs } from '../../nestjs.config.js'
 import { strict } from '../../strict.config.js'
 

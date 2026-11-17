@@ -1,9 +1,13 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, locateFile } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, TYPE_SUFFIX } from '../constants/index.js'
-import type { ArchitectureRule, TypesFolderMessageId } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { TYPE_SUFFIX } from '../constants/suffix.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { TypesFolderMessageId } from '../types/rules/types-folder.rule.type.js'
 
 /**
  * A type lives in the types folder, in a file that mirrors the source it describes, and nowhere

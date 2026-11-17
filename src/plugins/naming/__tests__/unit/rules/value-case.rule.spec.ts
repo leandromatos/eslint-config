@@ -1,7 +1,7 @@
-import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/naming.constant.js'
 import { valueCase } from '../../../rules/value-case.rule.js'
-import type { NamingOptions } from '../../../types/index.js'
+import type { NamingOptions } from '../../../types/naming.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 

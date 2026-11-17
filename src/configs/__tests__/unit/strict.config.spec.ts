@@ -1,13 +1,13 @@
 import { TSESLint } from '@typescript-eslint/utils'
 import { describe, expect, it } from 'vitest'
 
-import { readRuleOptions } from '../../../__tests__/utils/index.js'
+import { readRuleOptions } from '../../../__tests__/utils/read-rule-options.util.js'
 import { DEFAULT_FILES, EXPO_CATALOG_FILES, EXPO_FILES, NESTJS_FILES, NEXTJS_FILES } from '../../../index.js'
 import {
   CONTROLLED_LANGUAGE,
   CONTROLLED_LANGUAGE_FORBIDDEN_WORDS,
-  DEFAULT_ARCHITECTURE,
-} from '../../constants/index.js'
+} from '../../constants/controlled-language.constant.js'
+import { DEFAULT_ARCHITECTURE } from '../../constants/defaults.constant.js'
 import { expo } from '../../expo.config.js'
 import { nestjs } from '../../nestjs.config.js'
 import { nextjs } from '../../nextjs.config.js'
@@ -52,17 +52,17 @@ describe('strict', () => {
     expect(strict().map(entry => entry.name)).not.toContain('leandromatos/value-suffixes')
   })
 
-  it('turns the import boundaries on, which is where a layer says what it exposes', () => {
+  it('turns the import boundaries on, which judge the file an import names', () => {
     const entries = strict({ architecture: { suffixToFolder: { service: 'services' } } })
     const [ownEntry] = entries.filter(entry => entry.name === 'leandromatos/rules')
 
     expect(ownEntry?.rules?.['leandromatos/architecture-import-boundaries']).toBeDefined()
   })
 
-  it('refuses a cycle everywhere but in a barrel, which re-exports its siblings by design', () => {
+  it('refuses a cycle everywhere, an index file included', () => {
     const [cycles] = strict().filter(entry => entry.rules?.['import-x/no-cycle'])
 
-    expect(cycles?.ignores).toEqual(['**/index.{ts,tsx}'])
+    expect(cycles?.ignores).toBeUndefined()
   })
 
   it('admits no cast and no any in the sources, specs included, and leaves as const alone', () => {

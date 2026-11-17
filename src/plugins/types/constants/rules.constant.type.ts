@@ -1,16 +1,16 @@
-import type { ArchitectureOptions } from '../../architecture/types/index.js'
-import type { NamingOptions } from '../../naming/types/index.js'
-import type { TestingOptions } from '../../testing/types/index.js'
-import type { TextOptions } from '../../text/types/index.js'
-import type { TsdocOptions } from '../../tsdoc/types/index.js'
-import type { TypescriptOptions } from '../../typescript/types/index.js'
+import type { ArchitectureOptions } from '../../architecture/types/architecture.type.js'
+import type { NamingOptions } from '../../naming/types/naming.type.js'
+import type { TestingOptions } from '../../testing/types/testing.type.js'
+import type { TextOptions } from '../../text/types/text.type.js'
+import type { TsdocOptions } from '../../tsdoc/types/tsdoc.type.js'
+import type { TypescriptOptions } from '../../typescript/types/typescript.type.js'
 
 /** The subject a rule is about, which is the group of the options it reads. */
 export type OptionsGroup = 'architecture' | 'naming' | 'testing' | 'text' | 'tsdoc' | 'typescript'
 
 /** What every rule of this plugin judges against, one vocabulary per subject. */
 export interface PluginOptions {
-  /** Where a file lives, what it is called, and what a layer exposes. */
+  /** Where a file lives, what it is called, and which file an import names. */
   architecture: ArchitectureOptions
   /** What a value, a method and a spec fixture are called. */
   naming: NamingOptions

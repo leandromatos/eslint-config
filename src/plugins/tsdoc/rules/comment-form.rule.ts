@@ -1,9 +1,11 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_TOKEN_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { CommentFormMessageId, CommentParagraph, CommentRun, TsdocRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/tsdoc.constant.js'
+import type { CommentFormMessageId, CommentParagraph, CommentRun } from '../types/rules/comment-form.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
 
 /**
  * A comment the tooling reads rather than a person: it is a line by contract.

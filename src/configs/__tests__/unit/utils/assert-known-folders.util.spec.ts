@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { SUFFIX_DICTIONARY } from '../../../constants/index.js'
-import { assertKnownFolders } from '../../../utils/index.js'
+import { SUFFIX_DICTIONARY } from '../../../constants/suffix-dictionary.constant.js'
+import { assertKnownFolders } from '../../../utils/assert-known-folders.util.js'
 
 describe('assertKnownFolders', () => {
   it('accepts a vocabulary the dictionary spells the same way', () => {

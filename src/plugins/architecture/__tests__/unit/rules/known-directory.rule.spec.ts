@@ -1,15 +1,13 @@
 import path from 'node:path'
 
-import {
-  buildFixturePath,
-  buildPackageSourcePath,
-  buildSourcePath,
-  createFileRuleTester,
-  extendRuleOptions,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createFileRuleTester } from '../../../../../__tests__/utils/create-file-rule-tester.util.js'
+import { extendRuleOptions } from '../../../../../__tests__/utils/extend-rule-options.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/architecture.constant.js'
 import { knownDirectory } from '../../../rules/known-directory.rule.js'
-import type { ArchitectureOptions } from '../../../types/index.js'
+import type { ArchitectureOptions } from '../../../types/architecture.type.js'
 
 const root = buildFixturePath(import.meta.url, 'known-directory')
 const ruleTester = createFileRuleTester(root)
@@ -31,6 +29,7 @@ ruleTester.run('known-directory', knownDirectory, {
   valid: [
     // A directory is reported once, on the file that stands for it, not on every file inside.
     { code: 'export class UserHelper {}', filename: buildSourcePath('users', 'helpers', 'user.helper.ts'), options },
+    { code: 'export const aWidget = 1', filename: buildSourcePath('users', 'widgets', 'a-widget.ts'), options },
 
     { code: 'export class UserService {}', filename: buildSourcePath('users', 'services', 'user.service.ts'), options },
     { code: 'export class UserHelper {}', filename: buildSourcePath('config', 'helpers', 'user.helper.ts'), options },
@@ -68,6 +67,13 @@ ruleTester.run('known-directory', knownDirectory, {
       filename: buildSourcePath('users', 'helpers', 'other.helper.ts'),
       options,
       errors: [{ messageId: 'unknownDirectory' }],
+    },
+    // A directory with an index file is reported on it, before any file that sorts first.
+    {
+      code: 'export const widgets = 1',
+      filename: buildSourcePath('users', 'widgets', 'index.ts'),
+      options,
+      errors: [{ messageId: 'unknownDirectory', data: { directory: 'widgets' } }],
     },
   ],
 })

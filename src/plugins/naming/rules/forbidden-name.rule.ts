@@ -1,9 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, splitIntoWords } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ForbiddenNameMessageId, ForbiddenWord, NamingRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { splitIntoWords } from '../../shared/utils/letter-case.util.js'
+import { EMPTY_OPTIONS } from '../constants/naming.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { NamingRule } from '../types/naming.type.js'
+import type { ForbiddenNameMessageId, ForbiddenWord } from '../types/rules/forbidden-name.rule.type.js'
 
 /**
  * A name the options forbid whole, or a word they forbid in any position of a name, wherever the author chose it.

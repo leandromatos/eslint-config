@@ -24,7 +24,7 @@ export class UsersService {}
 export interface CreateUserInput {}
 
 // src/users/services/users.service.ts
-import type { CreateUserInput } from '@/users/types'
+import type { CreateUserInput } from '@/users/types/services/users.service.type'
 
 export class UsersService {}
 ```

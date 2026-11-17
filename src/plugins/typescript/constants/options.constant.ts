@@ -1,5 +1,5 @@
-import { INTEGER_SCHEMA, STRING_SCHEMA } from '../../shared/constants/index.js'
-import { buildObjectSchema } from '../../shared/utils/index.js'
+import { INTEGER_SCHEMA, STRING_SCHEMA } from '../../shared/constants/json-schema.constant.js'
+import { buildObjectSchema } from '../../shared/utils/build-object-schema.util.js'
 
 /**
  * What a configuration of the `typescript` rules has to hand them.

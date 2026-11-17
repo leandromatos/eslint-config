@@ -1,6 +1,6 @@
-import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
 import { stringPattern } from '../../../rules/string-pattern.rule.js'
-import type { TextOptions } from '../../../types/index.js'
+import type { TextOptions } from '../../../types/text.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 

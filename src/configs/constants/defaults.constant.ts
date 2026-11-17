@@ -1,11 +1,17 @@
-import { TYPE_SUFFIX } from '../../plugins/architecture/constants/index.js'
-import type { ArchitectureOptions, WholeArgument } from '../../plugins/architecture/types/index.js'
-import type { ForbiddenName, ForbiddenWord, NamingOptions, ValueCase } from '../../plugins/naming/types/index.js'
-import { DEFAULT_IMPORT_ALIAS } from '../../plugins/shared/constants/index.js'
-import type { StringPattern, TextOptions } from '../../plugins/text/types/index.js'
-import type { ThrowsCondition, TsdocOptions } from '../../plugins/tsdoc/types/index.js'
-import type { TypescriptOptions } from '../../plugins/typescript/types/index.js'
-import type { DictionarySuffix, TestingExtension, TierVocabulary } from '../types/index.js'
+import { TYPE_SUFFIX } from '../../plugins/architecture/constants/suffix.constant.js'
+import type { ArchitectureOptions } from '../../plugins/architecture/types/architecture.type.js'
+import type { WholeArgument } from '../../plugins/architecture/types/rules/argument-passed-whole.rule.type.js'
+import type { NamingOptions } from '../../plugins/naming/types/naming.type.js'
+import type { ForbiddenName, ForbiddenWord } from '../../plugins/naming/types/rules/forbidden-name.rule.type.js'
+import type { ValueCase } from '../../plugins/naming/types/rules/value-case.rule.type.js'
+import { DEFAULT_IMPORT_ALIAS } from '../../plugins/shared/constants/source.constant.js'
+import type { StringPattern } from '../../plugins/text/types/rules/string-pattern.rule.type.js'
+import type { TextOptions } from '../../plugins/text/types/text.type.js'
+import type { ThrowsCondition } from '../../plugins/tsdoc/types/rules/throws-tag.rule.type.js'
+import type { TsdocOptions } from '../../plugins/tsdoc/types/tsdoc.type.js'
+import type { TypescriptOptions } from '../../plugins/typescript/types/typescript.type.js'
+import type { DictionarySuffix } from '../types/constants/suffix-dictionary.constant.type.js'
+import type { TestingExtension, TierVocabulary } from '../types/strict.config.type.js'
 import { TS_SOURCES } from './sources.constant.js'
 import { AGNOSTIC_SUFFIX_DICTIONARY } from './suffix-dictionary.constant.js'
 
@@ -47,17 +53,11 @@ export const DEFAULT_BASE_FOLDERS: string[] = []
 /** The directories that hold modules rather than layers: none, in a tree that puts its modules at the root. */
 export const DEFAULT_MODULE_CONTAINERS: string[] = []
 
-/** The containers whose modules are imported whole, through the barrel at their root: none. */
-export const DEFAULT_BARRELLED_CONTAINERS: string[] = []
-
 /** The folders that mirror the sources: the types beside the files they describe, and the specs. */
 export const DEFAULT_MIRROR_FOLDERS = [AGNOSTIC_SUFFIX_DICTIONARY.type, AGNOSTIC_SUFFIX_DICTIONARY.spec]
 
 /** What sits at the root of the sources as a context of its own rather than a module: what a project names. */
 export const DEFAULT_ROOT_CONTEXTS: string[] = []
-
-/** The folders a runtime executes rather than a caller imports, so nothing in them is reached through a barrel. */
-export const DEFAULT_EXECUTED_FOLDERS = [AGNOSTIC_SUFFIX_DICTIONARY.script]
 
 /** The types a layer declares in its mirror folder, by the suffix their name ends in: none, outside a framework. */
 export const DEFAULT_TYPE_SUFFIXES: Record<string, string[]> = {}
@@ -126,10 +126,8 @@ export const DEFAULT_ARCHITECTURE: ArchitectureOptions = {
   definitionTimeDirectives: DEFAULT_DEFINITION_TIME_DIRECTIVES,
   baseFolders: DEFAULT_BASE_FOLDERS,
   moduleContainers: DEFAULT_MODULE_CONTAINERS,
-  barrelledContainers: DEFAULT_BARRELLED_CONTAINERS,
   mirrorFolders: DEFAULT_MIRROR_FOLDERS,
   rootContexts: DEFAULT_ROOT_CONTEXTS,
-  executedFolders: DEFAULT_EXECUTED_FOLDERS,
   typeSuffixes: DEFAULT_TYPE_SUFFIXES,
   orderedSuffixes: DEFAULT_ORDERED_SUFFIXES,
   wholeArguments: DEFAULT_WHOLE_ARGUMENTS,

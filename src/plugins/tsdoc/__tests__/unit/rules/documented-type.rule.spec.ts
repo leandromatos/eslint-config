@@ -1,11 +1,9 @@
-import {
-  buildPackageSourcePath,
-  buildSourcePath,
-  createSyntaxRuleTester,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/tsdoc.constant.js'
 import { documentedType } from '../../../rules/documented-type.rule.js'
-import type { TsdocOptions } from '../../../types/index.js'
+import type { TsdocOptions } from '../../../types/tsdoc.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 const options: [TsdocOptions] = [{ ...EMPTY_OPTIONS, commentWidth: 120 }]

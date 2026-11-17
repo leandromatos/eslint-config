@@ -1,8 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, isMethod, isPublic, locateFile, readMemberName } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, MethodOrderMessageId, NamedMethod } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isMethod, isPublic, readMemberName } from '../../shared/utils/class-members.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type { MethodOrderMessageId, NamedMethod } from '../types/rules/method-order.rule.type.js'
 
 /**
  * The methods of a class in an ordered layer come in two blocks, public then private, each in

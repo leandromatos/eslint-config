@@ -1,6 +1,0 @@
-{
-  "name": "core",
-  "exports": {
-    "./users": {}
-  }
-}

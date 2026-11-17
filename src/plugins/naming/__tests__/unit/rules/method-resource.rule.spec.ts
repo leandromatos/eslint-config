@@ -1,11 +1,9 @@
-import {
-  buildPackageSourcePath,
-  buildSourcePath,
-  createSyntaxRuleTester,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/naming.constant.js'
 import { methodResource } from '../../../rules/method-resource.rule.js'
-import type { NamingOptions } from '../../../types/index.js'
+import type { NamingOptions } from '../../../types/naming.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 

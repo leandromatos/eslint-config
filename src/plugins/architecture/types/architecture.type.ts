@@ -1,9 +1,9 @@
-import type { PluginRule } from '../../shared/types/index.js'
-import type { WholeArgument } from './rules/index.js'
+import type { PluginRule } from '../../shared/types/shared.type.js'
+import type { WholeArgument } from './rules/argument-passed-whole.rule.type.js'
 
 /**
  * What the `architecture` rules judge against. The shape of the project: where a file lives, what it is called, and
- * what a layer exposes.
+ * which file an import names.
  */
 export interface ArchitectureOptions {
   /** Folders whose files carry no suffix, because the folder already says what they are, such as `components`. */
@@ -30,14 +30,10 @@ export interface ArchitectureOptions {
   baseFolders: string[]
   /** Directories that hold modules rather than layers, such as `features`: the layer starts one segment later. */
   moduleContainers: string[]
-  /** Containers whose modules are reached whole rather than by layer, so each carries a barrel of its own. */
-  barrelledContainers: string[]
   /** Folders that mirror the layer tree instead of being a layer, such as `types`. */
   mirrorFolders: string[]
   /** Directories directly under the source root that are contexts of their own, not modules. */
   rootContexts: string[]
-  /** Folders whose files a runtime executes directly, so nothing imports them by name. */
-  executedFolders: string[]
   /** Folder to the suffixes an exported type declared under its mirror may end in. */
   typeSuffixes: Record<string, string[]>
   /** The file suffixes whose classes list their methods alphabetically, public then private. */

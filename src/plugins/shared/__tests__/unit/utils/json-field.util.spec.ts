@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { MissingFieldError } from '../../../errors/index.js'
-import { readField, readTextField } from '../../../utils/index.js'
+import { MissingFieldError } from '../../../errors/missing-field.error.js'
+import { readField, readTextField } from '../../../utils/json-field.util.js'
 
 describe('readField', () => {
   it('reads an own field of an object', () => {

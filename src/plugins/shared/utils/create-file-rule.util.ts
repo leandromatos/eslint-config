@@ -1,7 +1,7 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import type { JSONSchema4 } from '@typescript-eslint/utils/json-schema'
 
-import type { Judge, PluginRule } from '../types/index.js'
+import type { Judge, PluginRule } from '../types/shared.type.js'
 import { locateFile } from './locate-file.util.js'
 
 /**

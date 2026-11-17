@@ -1,12 +1,9 @@
-import {
-  buildFixturePath,
-  buildPackageSourcePath,
-  buildSourcePath,
-  createTypedRuleTester,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createTypedRuleTester } from '../../../../../__tests__/utils/create-typed-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/testing.constant.js'
 import { typedFixture } from '../../../rules/typed-fixture.rule.js'
-import type { TestingOptions } from '../../../types/index.js'
+import type { TestingOptions } from '../../../types/testing.type.js'
 
 const root = buildFixturePath(import.meta.url, 'typed-fixture')
 const ruleTester = createTypedRuleTester(root)
@@ -34,6 +31,12 @@ ruleTester.run('typed-fixture', typedFixture, {
       options,
       filename: buildSourcePath('users', 'services', 'user.service.ts'),
     },
+    // A rest parameter takes a list of the fixtures, so its type names no single fixture.
+    {
+      code: `${declaration}declare function log(...inputs: CreateUserInput[]): void\nconst input = { name: 'a' }\nlog(input)`,
+      options,
+      filename: spec,
+    },
     {
       code: "declare function log(value: { name: string }): void\nconst untyped = { name: 'a' }\nlog(untyped)",
       options,
@@ -41,77 +44,29 @@ ruleTester.run('typed-fixture', typedFixture, {
     },
   ],
   invalid: [
-    // A type declared at the root of the source tree is reached through no barrel, so the fix writes nothing.
-    {
-      code: "import { createFromRoot } from '../../services/create-from-root.service.js'\n\nconst input = { name: 'a' }\ncreateFromRoot(input)",
-      options,
-      filename: buildSourcePath('users', '__tests__', 'unit', 'root.service.spec.ts'),
-      errors: [{ messageId: 'anonymousFixture' }],
-      output: null,
-    },
-
-    // The type another file declares is imported through the barrel of its folder.
-    {
-      code: "import { createUserFromDto } from '../../services/create-user.service.js'\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
-      options,
-      filename: buildSourcePath('users', '__tests__', 'unit', 'user.service.spec.ts'),
-      errors: [{ messageId: 'anonymousFixture' }],
-      output:
-        "import { createUserFromDto } from '../../services/create-user.service.js'\nimport type { CreateUserDto } from '@/users/dtos'\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
-    },
-    // A type is reached through the barrel of the directory that declares it, named with the alias the project uses.
-    {
-      code: "import { pairDeviceFromDto } from '../../services/pair-device.service.js'\n\nconst input = { name: 'a' }\npairDeviceFromDto(input)",
-      options: [{ ...EMPTY_OPTIONS, testFolder: '__tests__', alias: '~' }],
-      filename: buildSourcePath('features', 'devices', '__tests__', 'unit', 'pair-device.service.spec.ts'),
-      errors: [{ messageId: 'anonymousFixture' }],
-      output:
-        "import { pairDeviceFromDto } from '../../services/pair-device.service.js'\nimport type { PairDeviceDto } from '~/features/devices/dtos'\n\nconst input: PairDeviceDto = { name: 'a' }\npairDeviceFromDto(input)",
-    },
-    // A spec that imports nothing takes the import as its first line.
-    {
-      code: "declare const createUserFromDto: typeof import('../../services/create-user.service.js').createUserFromDto\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
-      options,
-      filename: buildSourcePath('users', '__tests__', 'unit', 'user.service.spec.ts'),
-      errors: [{ messageId: 'anonymousFixture' }],
-      output:
-        "import type { CreateUserDto } from '@/users/dtos'\ndeclare const createUserFromDto: typeof import('../../services/create-user.service.js').createUserFromDto\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
-    },
-
+    // A type the spec declares, and one another file declares, are both named in the report.
     {
       code: `${declaration}const input = { name: 'a' }\ncreateUser(input)`,
       options,
       filename: spec,
-      errors: [{ messageId: 'anonymousFixture' }],
-      output: `${declaration}const input: CreateUserInput = { name: 'a' }\ncreateUser(input)`,
+      errors: [
+        { messageId: 'anonymousFixture', data: { name: 'input', callee: 'createUser', type: 'CreateUserInput' } },
+      ],
     },
-  ],
-})
-
-const monorepoRoot = buildFixturePath(import.meta.url, 'typed-fixture-monorepo')
-const monorepoRuleTester = createTypedRuleTester(monorepoRoot)
-const monorepoSpec = buildPackageSourcePath('apps/api', 'users', '__tests__', 'unit', 'user.service.spec.ts')
-
-monorepoRuleTester.run('typed-fixture, in a repository of several packages', typedFixture, {
-  valid: [],
-  invalid: [
-    // The alias reaches the sources of the spec's own package, so the barrel is named from there.
     {
       code: "import { createUserFromDto } from '../../services/create-user.service.js'\n\nconst input = { name: 'a' }\ncreateUserFromDto(input)",
       options,
-      filename: monorepoSpec,
-      errors: [{ messageId: 'anonymousFixture' }],
-      output:
-        "import { createUserFromDto } from '../../services/create-user.service.js'\nimport type { CreateUserDto } from '@/users/dtos'\n\nconst input: CreateUserDto = { name: 'a' }\ncreateUserFromDto(input)",
+      filename: spec,
+      errors: [
+        { messageId: 'anonymousFixture', data: { name: 'input', callee: 'createUserFromDto', type: 'CreateUserDto' } },
+      ],
     },
-
-    // A type another package declares is out of the alias's reach, so the fix writes nothing.
+    // The report writes the type as the type-checker does, such as a generic with its argument.
     {
-      code: "import { createAccountFromDto } from '../../../../../../libs/core/src/accounts/services/create-account.service.js'\n\nconst input = { name: 'a' }\ncreateAccountFromDto(input)",
+      code: "import { takeBox } from '../../services/take-shape.service.js'\n\nconst input = { value: 1 }\ntakeBox(input)",
       options,
-      filename: monorepoSpec,
-      errors: [{ messageId: 'anonymousFixture' }],
-      output: null,
+      filename: spec,
+      errors: [{ messageId: 'anonymousFixture', data: { name: 'input', callee: 'takeBox', type: 'Box<number>' } }],
     },
   ],
 })

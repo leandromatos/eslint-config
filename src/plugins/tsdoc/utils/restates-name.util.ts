@@ -1,4 +1,4 @@
-import { splitIntoWords } from '../../shared/utils/index.js'
+import { splitIntoWords } from '../../shared/utils/letter-case.util.js'
 
 /** Words a summary may spend without saying anything the name did not. */
 const FILLER = new Set([

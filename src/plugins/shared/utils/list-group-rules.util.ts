@@ -1,4 +1,4 @@
-import type { GroupRule } from '../types/index.js'
+import type { GroupRule } from '../types/utils/list-group-rules.util.type.js'
 
 /**
  * Lists the rules of one group, each carrying the group its options come from, so a group is named once for all of

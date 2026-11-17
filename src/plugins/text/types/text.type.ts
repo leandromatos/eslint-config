@@ -1,5 +1,5 @@
-import type { PluginRule } from '../../shared/types/index.js'
-import type { StringPattern } from './rules/index.js'
+import type { PluginRule } from '../../shared/types/shared.type.js'
+import type { StringPattern } from './rules/string-pattern.rule.type.js'
 
 /** What the `text` rules judge against. The strings the product ships. */
 export interface TextOptions {

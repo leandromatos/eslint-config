@@ -2,8 +2,9 @@ import type { ParserServicesWithTypeInformation, TSESTree } from '@typescript-es
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 import ts from 'typescript'
 
-import { isFunctionNode, readChildNodes } from '../../shared/utils/index.js'
-import type { ReturningNode } from '../types/index.js'
+import { isFunctionNode } from '../../shared/utils/function-node.util.js'
+import { readChildNodes } from '../../shared/utils/read-child-nodes.util.js'
+import type { ReturningNode } from '../types/utils/return-value.util.type.js'
 
 /** The flags of the types that carry no value. */
 const NOTHING_FLAGS = ts.TypeFlags.Void | ts.TypeFlags.Undefined | ts.TypeFlags.Never

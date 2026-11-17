@@ -1,6 +1,7 @@
-import { NESTJS_VOCABULARY } from './constants/index.js'
+import { NESTJS_VOCABULARY } from './constants/nestjs.constant.js'
 import { buildStrictConfig } from './strict.config.js'
-import type { Config, NestjsOptions } from './types/index.js'
+import type { NestjsOptions } from './types/nestjs.config.type.js'
+import type { Config } from './types/recommended.config.type.js'
 
 /**
  * All of `strict`, with the tree a NestJS project writes.

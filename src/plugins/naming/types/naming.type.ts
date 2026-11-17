@@ -1,5 +1,6 @@
-import type { PluginRule } from '../../shared/types/index.js'
-import type { ForbiddenName, ForbiddenWord, ValueCase } from './rules/index.js'
+import type { PluginRule } from '../../shared/types/shared.type.js'
+import type { ForbiddenName, ForbiddenWord } from './rules/forbidden-name.rule.type.js'
+import type { ValueCase } from './rules/value-case.rule.type.js'
 
 /** What the `naming` rules judge against. What a value, a method and a spec fixture are called. */
 export interface NamingOptions {

@@ -1,14 +1,12 @@
 import path from 'node:path'
 
-import {
-  buildFixturePath,
-  buildPackageSourcePath,
-  buildSourcePath,
-  createFileRuleTester,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createFileRuleTester } from '../../../../../__tests__/utils/create-file-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/testing.constant.js'
 import { describesSource } from '../../../rules/describes-source.rule.js'
-import type { TestingOptions } from '../../../types/index.js'
+import type { TestingOptions } from '../../../types/testing.type.js'
 
 const root = buildFixturePath(import.meta.url, 'describes-source')
 const ruleTester = createFileRuleTester(root)
@@ -16,7 +14,6 @@ const options: [TestingOptions] = [
   {
     ...EMPTY_OPTIONS,
     testFolder: '__tests__',
-    testKinds: ['unit', 'e2e'],
     mirroringTestKinds: ['unit'],
     suffixToFolder: { service: 'services', spec: '__tests__' },
   },

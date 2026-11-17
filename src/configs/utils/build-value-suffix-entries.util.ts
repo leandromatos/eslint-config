@@ -1,6 +1,6 @@
-import { NAMESPACE } from '../../plugins/index.js'
-import { toUpperFirst } from '../../plugins/shared/utils/index.js'
-import type { Config } from '../types/index.js'
+import { NAMESPACE } from '../../plugins/leandromatos.plugin.js'
+import { toUpperFirst } from '../../plugins/shared/utils/letter-case.util.js'
+import type { Config } from '../types/recommended.config.type.js'
 
 /** The rule of typescript-eslint that holds the name of a value to a suffix and a pattern. */
 const NAMING_CONVENTION = '@typescript-eslint/naming-convention'

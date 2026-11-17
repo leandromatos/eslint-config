@@ -1,10 +1,17 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, locateFile, readCalleeName, toUpperFirst, unwrapAwait } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { NamingRule, ResultByVerbMessageId } from '../types/index.js'
-import { removeParticiple, writeRename } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { toUpperFirst } from '../../shared/utils/letter-case.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { readCalleeName } from '../../shared/utils/read-callee-name.util.js'
+import { unwrapAwait } from '../../shared/utils/unwrap-await.util.js'
+import { EMPTY_OPTIONS } from '../constants/naming.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { NamingRule } from '../types/naming.type.js'
+import type { ResultByVerbMessageId } from '../types/rules/result-by-verb.rule.type.js'
+import { removeParticiple } from '../utils/remove-participle.util.js'
+import { writeRename } from '../utils/write-rename.util.js'
 
 /**
  * A variable holding what a call produced opens with the participle of the verb that produced it:

@@ -1,4 +1,5 @@
-import { buildSourcePath, createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
 import { composedConstant } from '../../../rules/composed-constant.rule.js'
 
 const ruleTester = createSyntaxRuleTester()

@@ -1,5 +1,5 @@
-import { STRING_LIST_SCHEMA, STRING_MAP_SCHEMA, STRING_SCHEMA } from '../../shared/constants/index.js'
-import { buildObjectSchema } from '../../shared/utils/index.js'
+import { STRING_LIST_SCHEMA, STRING_MAP_SCHEMA, STRING_SCHEMA } from '../../shared/constants/json-schema.constant.js'
+import { buildObjectSchema } from '../../shared/utils/build-object-schema.util.js'
 
 /**
  * What a configuration of the `testing` rules has to hand them.
@@ -9,10 +9,8 @@ import { buildObjectSchema } from '../../shared/utils/index.js'
 export const OPTIONS_SCHEMA = buildObjectSchema(
   {
     testFolder: STRING_SCHEMA,
-    testKinds: STRING_LIST_SCHEMA,
     mirroringTestKinds: STRING_LIST_SCHEMA,
     suffixToFolder: STRING_MAP_SCHEMA,
-    alias: STRING_SCHEMA,
     httpTest: buildObjectSchema({ kind: STRING_SCHEMA, client: STRING_SCHEMA }),
   },
   ['httpTest'],

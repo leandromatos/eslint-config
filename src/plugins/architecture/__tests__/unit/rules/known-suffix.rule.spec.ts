@@ -1,15 +1,13 @@
 import path from 'node:path'
 
-import {
-  buildFixturePath,
-  buildPackageSourcePath,
-  buildSourcePath,
-  createFileRuleTester,
-  extendRuleOptions,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createFileRuleTester } from '../../../../../__tests__/utils/create-file-rule-tester.util.js'
+import { extendRuleOptions } from '../../../../../__tests__/utils/extend-rule-options.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/architecture.constant.js'
 import { knownSuffix } from '../../../rules/known-suffix.rule.js'
-import type { ArchitectureOptions } from '../../../types/index.js'
+import type { ArchitectureOptions } from '../../../types/architecture.type.js'
 
 const root = buildFixturePath(import.meta.url, 'known-suffix')
 const ruleTester = createFileRuleTester(root)
@@ -30,7 +28,9 @@ ruleTester.run('known-suffix', knownSuffix, {
 
     { code: 'export class UserService {}', filename: buildSourcePath('users', 'services', 'user.service.ts'), options },
     { code: 'export class UserModule {}', filename: buildSourcePath('users', 'user.module.ts'), options },
-    { code: 'export * from "./services/index.js"', filename: buildSourcePath('users', 'index.ts'), options },
+    // An index file carries no suffix, whatever it holds.
+    { code: 'export * from "./services/user.service.js"', filename: buildSourcePath('users', 'index.ts'), options },
+    { code: 'export class UserService {}', filename: buildSourcePath('users', 'services', 'index.ts'), options },
     { code: 'export const main = () => 1', filename: buildSourcePath('main.ts'), options },
 
     // The root file of a context: named after the directory, which carries responsibilities of its own.

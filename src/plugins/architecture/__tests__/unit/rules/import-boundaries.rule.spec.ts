@@ -1,14 +1,13 @@
-import {
-  buildPackageSourcePath,
-  buildSourcePath,
-  createSyntaxRuleTester,
-  extendRuleOptions,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createFileRuleTester } from '../../../../../__tests__/utils/create-file-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/architecture.constant.js'
 import { importBoundaries } from '../../../rules/import-boundaries.rule.js'
-import type { ArchitectureOptions } from '../../../types/index.js'
+import type { ArchitectureOptions } from '../../../types/architecture.type.js'
 
-const ruleTester = createSyntaxRuleTester()
+const root = buildFixturePath(import.meta.url, 'import-boundaries')
+const ruleTester = createFileRuleTester(root)
 
 const options: [ArchitectureOptions] = [
   {
@@ -26,11 +25,22 @@ ruleTester.run('import-boundaries', importBoundaries, {
   valid: [
     // An export that declares its value reaches no other file.
     { code: 'export const TOKEN_TTL = 60', filename: entity, options },
-    // Another layer, through its barrel.
-    { code: "import { UsersService } from '@/accounts/users/services'", filename: entity, options },
 
-    // A sibling of the same layer, by name.
-    { code: "import { SessionEntity } from '@/accounts/tokens/entities/session.entity'", filename: entity, options },
+    // The file that declares a name, from any layer and from a file of none.
+    { code: "import { UsersService } from '@/accounts/users/services/users.service'", filename: entity, options },
+    { code: "import { UsersService } from '@/accounts/users/services/users.service'", filename: moduleFile, options },
+    { code: "export * from '@/accounts/users/services/users.service'", filename: entity, options },
+
+    // A specifier that names a file whose stem is index, under another extension, names that file.
+    { code: "import { page } from '@/accounts/users/services/index.page'", filename: entity, options },
+
+    // A file beside the directory takes the path, so the import loads that file and never the barrel.
+    { code: "import { PLAN_LIMIT } from '@/accounts/plans'", filename: entity, options },
+
+    // A directory with no index file is no barrel.
+    { code: "import { SessionEntity } from '@/accounts/tokens/entities'", filename: entity, options },
+    // A directory whose index file declares code is a module, so importing it loads that file alone.
+    { code: "import { SESSION_TTL } from '@/accounts/sessions'", filename: entity, options },
 
     // A barrel re-exports its siblings, so it answers to none of this.
     {
@@ -38,14 +48,14 @@ ruleTester.run('import-boundaries', importBoundaries, {
       filename: buildSourcePath('accounts', 'tokens', 'entities', 'index.ts'),
       options,
     },
-
-    // A file carrying no layer suffix reaches every layer through a barrel.
-    { code: "import { TokensService } from '@/accounts/tokens/services'", filename: moduleFile, options },
-
-    // A file with no suffix at all reaches a layer through its barrel, like any unsuffixed file.
     {
-      code: "import { TokensService } from '@/accounts/tokens/services'",
-      filename: buildSourcePath('main.ts'),
+      code: "import TokenEntity from './token.entity.js'\n\nexport default TokenEntity;;",
+      filename: buildSourcePath('accounts', 'tokens', 'entities', 'index.ts'),
+      options,
+    },
+    {
+      code: "'use client'\n\nimport { TokenEntity } from './token.entity.js'\n\nexport { TokenEntity }",
+      filename: buildSourcePath('accounts', 'tokens', 'entities', 'index.ts'),
       options,
     },
 
@@ -53,39 +63,38 @@ ruleTester.run('import-boundaries', importBoundaries, {
     { code: "import { Injectable } from '@nestjs/common'", filename: entity, options },
 
     // A test reaches another test, which is what a suite is made of.
-    { code: "import { build } from '@/accounts/tokens/__tests__/factories'", filename: spec, options },
-
-    // With no vocabulary, the rule judges nothing.
     {
-      code: "import { x } from './y'",
-      filename: entity,
-      options: extendRuleOptions([EMPTY_OPTIONS], { alias: '@', suffixToFolder: {} }),
+      code: "import { buildToken } from '@/accounts/tokens/__tests__/factories/token.factory'",
+      filename: spec,
+      options,
     },
   ],
   invalid: [
+    // With no type information, the barrel is reported and the import is left as written.
     {
-      code: "import { UsersService } from '@/accounts/users/services/users.service'",
+      code: "import { UsersService } from '@/accounts/users/services'",
       filename: entity,
       options,
-      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
+      errors: [{ messageId: 'barrelImport', data: { specifier: '@/accounts/users/services' } }],
     },
     {
-      code: "import { OtherEntity } from '@/accounts/users/entities/user.entity'",
+      code: "export { UsersService } from '@/accounts/users/services'",
       filename: entity,
       options,
-      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
+      errors: [{ messageId: 'barrelImport' }],
     },
     {
-      code: "import { SessionEntity } from '@/accounts/tokens/entities'",
+      code: "export * from '@/accounts/users/services'",
       filename: entity,
       options,
-      errors: [{ messageId: 'sameLayerNeedsDirect' }],
+      errors: [{ messageId: 'barrelImport' }],
     },
+    // A barrel in the test tree loads every helper into every spec, the way a barrel of a layer does.
     {
-      code: "import { SessionEntity } from '@/accounts/tokens/entities/index'",
-      filename: entity,
+      code: "import { buildToken } from '@/accounts/tokens/__tests__/factories'",
+      filename: spec,
       options,
-      errors: [{ messageId: 'sameLayerNeedsDirect' }],
+      errors: [{ messageId: 'barrelImport' }],
     },
     {
       code: "import { x } from './session.entity'",
@@ -93,49 +102,56 @@ ruleTester.run('import-boundaries', importBoundaries, {
       options,
       errors: [{ messageId: 'relativeImport' }],
     },
+    // An index file that declares code is a module, so it is judged like any other file.
     {
-      code: "import { TokensService } from '@/accounts/tokens/services/tokens.service'",
-      filename: moduleFile,
+      code: "import { x } from './session.entity'\n\nexport const TOKEN_TTL = x",
+      filename: buildSourcePath('accounts', 'tokens', 'entities', 'index.ts'),
       options,
-      errors: [{ messageId: 'layerNeedsBarrel' }],
+      errors: [{ messageId: 'relativeImport' }],
+    },
+    // An index file named by name is the barrel its directory names.
+    {
+      code: "import { UsersService } from '@/accounts/users/services/index'",
+      filename: entity,
+      options,
+      errors: [{ messageId: 'barrelImport' }],
     },
     {
-      code: "import { build } from '@/accounts/tokens/__tests__/factories'",
+      code: "import { UsersService } from '@/accounts/users/services/index.js'",
+      filename: entity,
+      options,
+      errors: [{ messageId: 'barrelImport' }],
+    },
+    // A directive, an import passed on by name, and a namespace passed on whole still make a barrel.
+    {
+      code: "import { Client } from '@/accounts/clients'",
+      filename: entity,
+      options,
+      errors: [{ messageId: 'barrelImport' }],
+    },
+    {
+      code: "import { RoleEntity } from '@/accounts/roles'",
+      filename: entity,
+      options,
+      errors: [{ messageId: 'barrelImport' }],
+    },
+    {
+      code: "import { GroupEntity } from '@/accounts/groups'",
+      filename: entity,
+      options,
+      errors: [{ messageId: 'barrelImport' }],
+    },
+    {
+      code: "import { teams } from '@/accounts/teams'",
+      filename: entity,
+      options,
+      errors: [{ messageId: 'barrelImport' }],
+    },
+    {
+      code: "import { buildToken } from '@/accounts/tokens/__tests__/factories'",
       filename: entity,
       options,
       errors: [{ messageId: 'testFromProduction' }],
-    },
-    {
-      code: "export { UsersService } from '@/accounts/users/services/users.service'",
-      filename: entity,
-      options,
-      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
-    },
-    {
-      code: "export * from '@/accounts/users/services/users.service'",
-      filename: entity,
-      options,
-      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
-    },
-  ],
-})
-
-ruleTester.run('import-boundaries, on a file the map does not place', importBoundaries, {
-  valid: [
-    // A suffix the map names, in a folder it does not: the file belongs to no layer here.
-    {
-      code: "import { SessionEntity } from '@/accounts/tokens/entities'",
-      filename: buildSourcePath('accounts', 'tokens', 'token.entity.ts'),
-      options,
-    },
-  ],
-  invalid: [
-    // A suffix the map does not name belongs to no layer, so it reaches every layer through a barrel.
-    {
-      code: "import { UsersService } from '@/accounts/users/services/users.service'",
-      filename: buildSourcePath('accounts', 'tokens', 'widgets', 'token.widget.ts'),
-      options,
-      errors: [{ messageId: 'layerNeedsBarrel' }],
     },
   ],
 })
@@ -154,7 +170,7 @@ const doc = buildSourcePath('activities', 'docs', 'find-all-activities.doc.ts')
 
 ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
   valid: [
-    // A spec builds its fixtures out of a package's testing entry.
+    // A spec builds its fixtures out of a package's testing entrypoint.
     {
       code: "import { buildPaginatedEntity } from '@acme/nestjs/database/testing'",
       filename: spec,
@@ -182,10 +198,10 @@ ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
       options: testingOptions,
     },
 
-    // A package named after testing is a package, not a testing entry of one.
+    // A package named after testing is a package, not a testing entrypoint of one.
     { code: "import { Test } from '@nestjs/testing'", filename: doc, options: testingOptions },
 
-    // The runtime entry of the same package.
+    // The runtime entrypoint of the same package.
     {
       code: "import { buildPaginatedEntity } from '@acme/nestjs/database'",
       filename: doc,
@@ -230,24 +246,12 @@ ruleTester.run('import-boundaries, on a testing folder', importBoundaries, {
   ],
 })
 
-ruleTester.run('import-boundaries, from the test tree', importBoundaries, {
-  valid: [
-    // A spec names the file it covers: the barrel re-exports what the spec is isolating.
-    {
-      code: "import { TokensService } from '@/accounts/tokens/services/tokens.service'",
-      filename: buildSourcePath('accounts', 'tokens', '__tests__', 'unit', 'tokens.service.spec.ts'),
-      options,
-    },
-  ],
-  invalid: [],
-})
-
 const mockOptions: [ArchitectureOptions] = [{ ...testingOptions[0], mockFolder: '__mocks__' }]
 const mock = buildSourcePath('accounts', 'tokens', 'services', '__mocks__', 'tokens.service.ts')
 
 ruleTester.run('import-boundaries, on a mock folder', importBoundaries, {
   valid: [
-    // A stand-in takes its types from the module of another layer it replaces, by name, as a spec does.
+    // A stand-in takes its types from the module it replaces, by name, as a spec does.
     {
       code: "import type { UsersService } from '@/accounts/users/services/users.service'",
       filename: mock,
@@ -256,13 +260,24 @@ ruleTester.run('import-boundaries, on a mock folder', importBoundaries, {
 
     // A stand-in is built from what a test is built from.
     { code: "import { buildRecord } from '@acme/nestjs/database/testing'", filename: mock, options: mockOptions },
-    { code: "import { build } from '@/accounts/tokens/__tests__/factories'", filename: mock, options: mockOptions },
+    {
+      code: "import { buildToken } from '@/accounts/tokens/__tests__/factories/token.factory'",
+      filename: mock,
+      options: mockOptions,
+    },
 
     // A spec reaches a stand-in, which is what the test tree is made of.
     {
       code: "import { TokensService } from '@/accounts/tokens/services/__mocks__/tokens.service'",
       filename: spec,
       options: mockOptions,
+    },
+
+    // With no mock folder named, the stand-in is a file like any other.
+    {
+      code: "import { TokensService } from '@/accounts/tokens/services/__mocks__/tokens.service'",
+      filename: entity,
+      options: testingOptions,
     },
   ],
   invalid: [
@@ -273,13 +288,6 @@ ruleTester.run('import-boundaries, on a mock folder', importBoundaries, {
       options: mockOptions,
       errors: [{ messageId: 'testFromProduction' }],
     },
-    // With no mock folder named, the stand-in is production code.
-    {
-      code: "import { UsersService } from '@/accounts/users/services/users.service'",
-      filename: mock,
-      options: testingOptions,
-      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
-    },
   ],
 })
 
@@ -287,17 +295,54 @@ ruleTester.run('import-boundaries, in a repository of several packages', importB
   valid: [
     // A file with no `src` in its path belongs to no package's sources.
     {
-      code: "import { UsersService } from '@/accounts/users/services/users.service'",
+      code: "import { UsersService } from '@/accounts/users/services'",
       filename: 'packages/x/entities/token.entity.ts',
       options,
     },
   ],
   invalid: [
+    // The alias reaches the sources of the file's own package, where the barrel is looked for.
     {
-      code: "import { UsersService } from '@/accounts/users/services/users.service'",
+      code: "import { UsersService } from '@/accounts/users/services'",
       filename: buildPackageSourcePath('packages/x', 'accounts', 'tokens', 'entities', 'token.entity.ts'),
       options,
-      errors: [{ messageId: 'crossLayerNeedsBarrel' }],
+      errors: [{ messageId: 'barrelImport' }],
+    },
+  ],
+})
+
+const publishedRoot = buildFixturePath(import.meta.url, 're-export-only-at-entrypoint-published')
+const publishedRuleTester = createFileRuleTester(publishedRoot)
+
+publishedRuleTester.run('import-boundaries, on a published entrypoint', importBoundaries, {
+  valid: [
+    // A directory whose index file the package publishes is an entrypoint, not a barrel, so an import may name it.
+    { code: 'import * as users from "@/users"', filename: buildSourcePath('app', 'app.ts'), options },
+    { code: 'import * as users from "@/schemas/users"', filename: buildSourcePath('app', 'app.ts'), options },
+    // A published entrypoint re-exports what the package offers, whatever its name.
+    { code: 'export * from "./build-record.util.js"', filename: buildSourcePath('testing.ts'), options },
+  ],
+  invalid: [
+    // Its imports are judged like those of any other file.
+    {
+      code: 'export * from "./build-record.util.js"\nimport { read } from "./read.util.js"',
+      filename: buildSourcePath('testing.ts'),
+      options,
+      errors: [{ messageId: 'relativeImport', line: 2 }],
+    },
+    // The index file at the source root keeps its re-exports, and its imports are judged like any other file's.
+    {
+      code: 'export * from "./users/index.js"\nimport { buildRecord } from "@/cache/keyv/testing/build-record.util"',
+      filename: buildSourcePath('index.ts'),
+      options: testingOptions,
+      errors: [{ messageId: 'testingFromProduction', line: 2 }],
+    },
+    // A file the package does not publish is judged in full.
+    {
+      code: 'export * from "./build-record.util.js"',
+      filename: buildSourcePath('users', 'users.util.ts'),
+      options,
+      errors: [{ messageId: 'relativeImport' }],
     },
   ],
 })

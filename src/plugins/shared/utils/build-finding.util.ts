@@ -1,4 +1,4 @@
-import type { Finding } from '../types/index.js'
+import type { Finding } from '../types/shared.type.js'
 
 /**
  * Builds what a judge reports for one problem of a file.

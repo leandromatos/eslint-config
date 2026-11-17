@@ -1,7 +1,7 @@
-import { createSyntaxRuleTester } from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/tsdoc.constant.js'
 import { typelessTag } from '../../../rules/typeless-tag.rule.js'
-import type { TsdocOptions } from '../../../types/index.js'
+import type { TsdocOptions } from '../../../types/tsdoc.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 

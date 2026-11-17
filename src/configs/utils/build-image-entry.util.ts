@@ -1,6 +1,6 @@
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 
-import type { Config } from '../types/index.js'
+import type { Config } from '../types/recommended.config.type.js'
 
 /**
  * Builds the entry that asks the image component of a React framework for its alternative text, as an `<img>` is. It

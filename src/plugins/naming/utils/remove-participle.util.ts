@@ -1,4 +1,4 @@
-import { toLowerFirst } from '../../shared/utils/index.js'
+import { toLowerFirst } from '../../shared/utils/letter-case.util.js'
 
 /**
  * Removes the participle a name opens with: `activity` for `builtActivity`. A participle of another verb is replaced

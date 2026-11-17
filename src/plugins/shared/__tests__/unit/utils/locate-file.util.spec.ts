@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { locateFile } from '../../../utils/index.js'
+import { locateFile } from '../../../utils/locate-file.util.js'
 
 const cwd = path.resolve('/repository')
 

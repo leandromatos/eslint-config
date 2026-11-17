@@ -1,4 +1,4 @@
-import type { PluginRule } from '../../shared/types/index.js'
+import type { PluginRule } from '../../shared/types/shared.type.js'
 
 /** What the `typescript` rules judge against. How the language's own constructs are written. */
 export interface TypescriptOptions {

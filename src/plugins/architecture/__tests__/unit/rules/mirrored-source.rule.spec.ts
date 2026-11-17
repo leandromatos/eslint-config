@@ -1,15 +1,13 @@
 import path from 'node:path'
 
-import {
-  buildFixturePath,
-  buildPackageSourcePath,
-  buildSourcePath,
-  createFileRuleTester,
-  extendRuleOptions,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildFixturePath } from '../../../../../__tests__/utils/build-fixture-path.util.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createFileRuleTester } from '../../../../../__tests__/utils/create-file-rule-tester.util.js'
+import { extendRuleOptions } from '../../../../../__tests__/utils/extend-rule-options.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/architecture.constant.js'
 import { mirroredSource } from '../../../rules/mirrored-source.rule.js'
-import type { ArchitectureOptions } from '../../../types/index.js'
+import type { ArchitectureOptions } from '../../../types/architecture.type.js'
 
 const root = buildFixturePath(import.meta.url, 'mirrored-source')
 const ruleTester = createFileRuleTester(root)

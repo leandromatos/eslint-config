@@ -1,9 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { buildFinding, buildRuleDocsUrl, createFileRule, findTestSuffix } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureOptions, MirrorShape } from '../types/index.js'
+import { buildFinding } from '../../shared/utils/build-finding.util.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { createFileRule } from '../../shared/utils/create-file-rule.util.js'
+import { findTestSuffix } from '../../shared/utils/find-test-suffix.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { ArchitectureOptions } from '../types/architecture.type.js'
+import type { MirrorShape } from '../types/rules/mirrored-source.rule.type.js'
 
 /**
  * The platforms React Native resolves a module for, each a file of its own beside the shared one: `toggle.ios.tsx`,

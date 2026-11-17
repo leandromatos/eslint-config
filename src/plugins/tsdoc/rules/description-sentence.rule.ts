@@ -1,10 +1,17 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA, SENTENCE_TAGS, TSDOC_TAG } from '../constants/index.js'
-import type { DescriptionSentenceMessageId, DocBlockTag, DocumentedNode, TsdocRule } from '../types/index.js'
-import { buildLineLocation, findDocBlock, inheritsDoc, parseDocBlock } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS, SENTENCE_TAGS, TSDOC_TAG } from '../constants/tsdoc.constant.js'
+import type { DescriptionSentenceMessageId } from '../types/rules/description-sentence.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import type { DocumentedNode } from '../types/utils/find-doc-block.util.type.js'
+import type { DocBlockTag } from '../types/utils/parse-doc-block.util.type.js'
+import { buildLineLocation } from '../utils/build-line-location.util.js'
+import { findDocBlock } from '../utils/find-doc-block.util.js'
+import { inheritsDoc } from '../utils/inherits-doc.util.js'
+import { parseDocBlock } from '../utils/parse-doc-block.util.js'
 
 /**
  * What a description reads as: a capital of any script, a digit, an underscore or a backtick first, and a period, a

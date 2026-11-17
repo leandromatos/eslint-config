@@ -1,7 +1,12 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 
-import { TSDOC_TAG } from '../constants/index.js'
-import type { DocBlock, DocBlockTag, NamedTagContent, TypedTagContent } from '../types/index.js'
+import { TSDOC_TAG } from '../constants/tsdoc.constant.js'
+import type {
+  DocBlock,
+  DocBlockTag,
+  NamedTagContent,
+  TypedTagContent,
+} from '../types/utils/parse-doc-block.util.type.js'
 
 /** A line that opens a block tag: an at sign at the start of the text, and the name up to the next space. */
 const TAG_LINE_REG_EXP = /^\s*@(\S+)(.*)$/

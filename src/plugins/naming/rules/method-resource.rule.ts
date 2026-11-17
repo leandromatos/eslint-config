@@ -1,15 +1,13 @@
 import type { TSESLint } from '@typescript-eslint/utils'
 
-import {
-  buildRuleDocsUrl,
-  isMethod,
-  isPublic,
-  listResourceForms,
-  locateFile,
-  readMemberName,
-} from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { MethodResourceMessageId, NamingRule } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isMethod, isPublic, readMemberName } from '../../shared/utils/class-members.util.js'
+import { listResourceForms } from '../../shared/utils/list-resource-forms.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { EMPTY_OPTIONS } from '../constants/naming.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { NamingRule } from '../types/naming.type.js'
+import type { MethodResourceMessageId } from '../types/rules/method-resource.rule.type.js'
 
 /**
  * A public method of a layer class carries the resource in its name: `findOneUser`, not

@@ -1,11 +1,9 @@
-import {
-  buildPackageSourcePath,
-  buildSourcePath,
-  createSyntaxRuleTester,
-} from '../../../../../__tests__/utils/index.js'
-import { EMPTY_OPTIONS } from '../../../constants/index.js'
+import { buildPackageSourcePath } from '../../../../../__tests__/utils/build-package-source-path.util.js'
+import { buildSourcePath } from '../../../../../__tests__/utils/build-source-path.util.js'
+import { createSyntaxRuleTester } from '../../../../../__tests__/utils/create-syntax-rule-tester.util.js'
+import { EMPTY_OPTIONS } from '../../../constants/architecture.constant.js'
 import { argumentPassedWhole } from '../../../rules/argument-passed-whole.rule.js'
-import type { ArchitectureOptions } from '../../../types/index.js'
+import type { ArchitectureOptions } from '../../../types/architecture.type.js'
 
 const ruleTester = createSyntaxRuleTester()
 

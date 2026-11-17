@@ -1,9 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { NamingRule, ValueCase, ValueCaseMessageId, ValueCasing } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { unwrapAssertion } from '../../shared/utils/unwrap-assertion.util.js'
+import { EMPTY_OPTIONS } from '../constants/naming.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { NamingRule } from '../types/naming.type.js'
+import type { ValueCase, ValueCaseMessageId, ValueCasing } from '../types/rules/value-case.rule.type.js'
 
 /** What a value in each casing the options name looks like. */
 const CASINGS: Record<ValueCasing, RegExp> = {
@@ -74,19 +77,6 @@ const listStringLiterals = (value: TSESTree.Expression, valueCase: ValueCase): T
 
     return [inner]
   })
-}
-
-/**
- * Unwraps the literal under an assertion: `'x' as const` and `'x' satisfies QueueName` are the literal `'x'`.
- *
- * @param value - What the declaration holds.
- * @returns The expression the assertion wraps.
- */
-const unwrapAssertion = (value: TSESTree.Node): TSESTree.Node => {
-  if (value.type === AST_NODE_TYPES.TSAsExpression || value.type === AST_NODE_TYPES.TSSatisfiesExpression)
-    return unwrapAssertion(value.expression)
-
-  return value
 }
 
 /**

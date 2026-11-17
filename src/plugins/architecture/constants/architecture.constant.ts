@@ -1,5 +1,5 @@
-import { DEFAULT_IMPORT_ALIAS } from '../../shared/constants/index.js'
-import type { ArchitectureOptions } from '../types/index.js'
+import { DEFAULT_IMPORT_ALIAS } from '../../shared/constants/source.constant.js'
+import type { ArchitectureOptions } from '../types/architecture.type.js'
 
 /**
  * Nothing: every list empty, so a rule given no options judges nothing and reports nothing. The alias is the one an
@@ -15,10 +15,8 @@ export const EMPTY_OPTIONS: ArchitectureOptions = {
   definitionTimeDirectives: [],
   baseFolders: [],
   moduleContainers: [],
-  barrelledContainers: [],
   mirrorFolders: [],
   rootContexts: [],
-  executedFolders: [],
   typeSuffixes: {},
   orderedSuffixes: [],
   wholeArguments: [],

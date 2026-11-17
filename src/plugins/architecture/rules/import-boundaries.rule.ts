@@ -1,41 +1,59 @@
+import path from 'node:path'
+
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, findTestSuffix, locateFile } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { ArchitectureRule, ImportBoundariesMessageId, Judgment } from '../types/index.js'
+import { INDEX_FILES } from '../../shared/constants/source.constant.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { findTestSuffix } from '../../shared/utils/find-test-suffix.util.js'
+import { isBarrel } from '../../shared/utils/is-barrel.util.js'
+import { isPublishedEntrypoint } from '../../shared/utils/is-published-entrypoint.util.js'
+import { locateFile } from '../../shared/utils/locate-file.util.js'
+import { markReExports } from '../../shared/utils/mark-re-exports.util.js'
+import { EMPTY_OPTIONS } from '../constants/architecture.constant.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import type { ArchitectureRule } from '../types/architecture.type.js'
+import type {
+  ImportBoundariesMessageId,
+  Judgment,
+  ModuleReference,
+} from '../types/rules/import-boundaries.rule.type.js'
+
+/** The index file an import of a directory is checked against the manifest by: the extension names no build. */
+const ENTRYPOINT_INDEX_FILE = 'index.ts'
+
+/** The end of a specifier that names an index file rather than its directory: `/index`, or `/index.js`. */
+const INDEX_FILE_SPECIFIER_REG_EXP = /\/index(\.[cm]?[jt]sx?)?$/
 
 /**
- * A file reaches another layer through its barrel, and its own layer directly.
+ * A file imports the file that declares what it needs, and never a barrel: a directory whose index file holds at least
+ * one re-export.
  *
- * A layer is a folder of files that share a suffix, and its barrel is what the rest of the project
- * imports. Crossing a layer by naming a file skips the barrel, which is the one place a layer
- * decides what it exposes. Inside a layer the rule turns around: the barrel re-exports the file
- * asking for it, so going through it is a cycle, and a sibling is reached by name.
+ * A barrel loads every file it re-exports, so an import through it loads the whole directory. A test file and a
+ * process boot then pay for files they never read. An import of the declaring file loads that file alone.
  *
- * Production code reaches neither the test tree nor a testing folder, local or a package's entry: what
+ * Production code reaches neither the test tree nor a testing folder, local or a package's entrypoint: what
  * tests are built from depends on what a production install leaves out. A file only a development tool
  * loads, such as a story, is test code here, and the mock folder is part of the test tree.
  *
- * A barrel is exempt from all of it, because re-exporting its siblings is what it is for.
+ * The rule does not judge an index file that re-exports, since re-exporting its siblings is what it does. Whether it
+ * may is the call of `re-export-only-at-entrypoint`. The rule judges an index file that re-exports nothing like any
+ * other file. In a published entrypoint, the rule skips the re-export statements and judges the imports.
  */
 export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'A file reaches another layer through its barrel, and its own layer directly.',
+      description: 'A file imports the file that declares what it needs, and never a barrel.',
       url: buildRuleDocsUrl('architecture', 'import-boundaries'),
       dialects: ['TypeScript'],
     },
     messages: {
-      crossLayerNeedsBarrel:
-        '"{{specifier}}" names a file of another layer. Import {{barrel}}, which is what that layer exposes.',
-      layerNeedsBarrel: '"{{specifier}}" names a file of a layer. Import {{barrel}}, which is what that layer exposes.',
+      barrelImport:
+        '"{{specifier}}" names a barrel. Import the file that declares what you need, so the import loads that file alone.',
       relativeImport: '"{{specifier}}" is relative. Reach it by the alias, so the path reads the same from anywhere.',
-      sameLayerNeedsDirect:
-        '"{{specifier}}" is the barrel of this file\'s own layer, which re-exports this file. Name the sibling instead.',
       testFromProduction: '"{{specifier}}" is a test file, and production code is never part of a test import graph.',
       testingFromProduction:
-        '"{{specifier}}" is a testing entry, which depends on what a production install leaves out. Import a runtime entry.',
+        '"{{specifier}}" is a testing entrypoint, which depends on what a production install leaves out. Import a runtime entrypoint.',
     },
     schema: [OPTIONS_SCHEMA],
     defaultOptions: [EMPTY_OPTIONS],
@@ -43,10 +61,13 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
   create: context => {
     const where = locateFile(context)
     const [{ suffixToFolder, testFolder, testingFolder, mockFolder, developmentSuffixes, alias }] = context.options
-    if (!where || where.stem === 'index') return {}
-    const suffixes = Object.keys(suffixToFolder)
-    if (suffixes.length === 0) return {}
-    const layer = findOwnLayer(where.segments, where.suffix, suffixToFolder)
+    if (!where) return {}
+    const { sourceCode } = context
+    const reExports = new Set<TSESTree.Node>(markReExports(sourceCode.ast.body))
+    // A published entrypoint re-exports what the package offers, so its re-export statements are not judged.
+    const isEntrypoint = reExports.size > 0 && isPublishedEntrypoint(where)
+    // A barrel re-exports its siblings, which is what it is for, so its own specifiers are not judged.
+    if (INDEX_FILES.includes(where.file) && reExports.size > 0 && !isEntrypoint) return {}
     const isTestTree = where.segments.includes(testFolder) || where.segments.includes(mockFolder)
     const testSuffix = findTestSuffix(suffixToFolder, testFolder)
     const isDevelopmentFile = where.suffix !== null && developmentSuffixes.includes(where.suffix)
@@ -55,13 +76,12 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
       where.suffix === testSuffix ||
       isDevelopmentFile ||
       (testingFolder !== '' && where.segments.includes(testingFolder))
-    const report = (node: TSESTree.Node, specifier: string): void => {
+    const report = (node: ModuleReference, specifier: string): void => {
+      if (isEntrypoint && reExports.has(node)) return
       const messageId = judge({
         specifier,
         alias,
-        suffixes,
-        suffix: where.suffix,
-        layer,
+        sourceRoot: where.sourceRoot,
         isTestTree,
         isTestCode,
         testFolder,
@@ -69,7 +89,7 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
         mockFolder,
       })
       if (!messageId) return
-      context.report({ node, messageId, data: { specifier, barrel: readBarrelSpecifier(specifier) } })
+      context.report({ node, messageId, data: { specifier } })
     }
     const listener: TSESLint.RuleListener = {
       ExportAllDeclaration: exportAllDeclaration => report(exportAllDeclaration, exportAllDeclaration.source.value),
@@ -84,43 +104,6 @@ export const importBoundaries: ArchitectureRule<ImportBoundariesMessageId> = {
 }
 
 /**
- * Finds the directory of the importing file's own layer, when its suffix names a layer and the file sits in it.
- *
- * @param segments - The directories between the source root and the file.
- * @param suffix - The suffix the file carries.
- * @param suffixToFolder - The layers the project declares.
- * @returns The directory, and null for a file of no layer.
- */
-const findOwnLayer = (
-  segments: string[],
-  suffix: string | null,
-  suffixToFolder: Record<string, string>,
-): string | null => {
-  if (!suffix) return null
-  const folder = suffixToFolder[suffix]
-  if (!folder) return null
-
-  return findLayerDirectory(segments, folder)
-}
-
-/**
- * The directory the file's own layer sits in: `accounts/tokens/entities` for an entity of that module.
- *
- * The last segment carrying the folder name is the one, so a layer nested under a mirror folder anchors on the
- * mirror rather than on the tree it mirrors.
- *
- * @param segments - The directories between the source root and the file.
- * @param folder - The folder the file's own suffix maps to.
- * @returns The directory, and null for a file that carries a suffix but does not sit in its folder.
- */
-const findLayerDirectory = (segments: string[], folder: string): string | null => {
-  const last = segments.lastIndexOf(folder)
-  if (last === -1) return null
-
-  return segments.slice(0, last + 1).join('/')
-}
-
-/**
  * What is wrong with this specifier, and nothing when it is allowed.
  *
  * @param judgment - The specifier, and where the file asking for it sits.
@@ -129,9 +112,7 @@ const findLayerDirectory = (segments: string[], folder: string): string | null =
 const judge = ({
   specifier,
   alias,
-  suffixes,
-  suffix,
-  layer,
+  sourceRoot,
   isTestTree,
   isTestCode,
   testFolder,
@@ -147,23 +128,16 @@ const judge = ({
 
     return null
   }
-  const target = specifier.slice(prefix.length)
-  const segments = target.split('/')
+  const segments = readAliasSegments(specifier, alias)
   const reachesTestTree = segments.includes(testFolder) || segments.includes(mockFolder)
-  if (reachesTestTree) return judgeTestTreeReach(isTestTree)
+  if (reachesTestTree && !isTestTree) return 'testFromProduction'
   if (reachesTesting(segments)) return 'testingFromProduction'
-  /*
-   * A spec names the file it covers. The barrel of that layer re-exports what the spec is isolating, and a test is
-   * never part of a production import graph, so what the barrel protects is not at stake here.
-   */
-  if (isTestTree) return null
-  const targetSuffix = readSpecifierSuffix(target)
-  if (!targetSuffix || !suffixes.includes(targetSuffix)) return judgeUnlayeredTarget(target, layer)
-  if (!layer) return 'layerNeedsBarrel'
-  if (targetSuffix !== suffix) return 'crossLayerNeedsBarrel'
-  if (target.startsWith(`${layer}/`)) return null
+  if (!isBarrel(path.join(sourceRoot, ...segments))) return null
+  // A published entrypoint may re-export, so an import of one reaches what the package offers rather than a barrel.
+  const indexFile = { packageRoot: path.dirname(sourceRoot), sourceRoot, file: ENTRYPOINT_INDEX_FILE, segments }
+  if (!isPublishedEntrypoint(indexFile)) return 'barrelImport'
 
-  return 'crossLayerNeedsBarrel'
+  return null
 }
 
 /**
@@ -181,50 +155,16 @@ const readSubpath = (specifier: string): string[] => {
 }
 
 /**
- * Judges a specifier that names the test tree: a test reaches another test, which is what a suite is made of, and
- * production code never does.
+ * The segments of an alias specifier after the alias, the directory a specifier of its index file names included:
+ * `['users', 'services']` for `@/users/services` and for `@/users/services/index.js`.
  *
- * @param isTestTree - Whether the importing file sits in the test tree itself.
- * @returns Nothing for a test, and the refusal for production code.
+ * @param specifier - The specifier as the code writes it, which opens with the alias.
+ * @param alias - The prefix an import names the source root with.
+ * @returns The segments under the source root.
  */
-const judgeTestTreeReach = (isTestTree: boolean): ImportBoundariesMessageId | null => {
-  if (isTestTree) return null
-
-  return 'testFromProduction'
-}
-
-/**
- * Reads the suffix the last segment of a specifier carries: `service` for `users/services/users.service`.
- *
- * @param specifier - The specifier after the alias.
- * @returns The suffix, and null for a segment written without one.
- */
-const readSpecifierSuffix = (specifier: string): string | null => {
-  const lastSegment = specifier.slice(specifier.lastIndexOf('/') + 1)
-  const dot = lastSegment.lastIndexOf('.')
-  if (dot < 0) return null
-
-  return lastSegment.slice(dot + 1)
-}
-
-/**
- * Judges a specifier whose last segment names no layer: the barrel of the file's own layer, which re-exports the file
- * itself, is the one refused.
- *
- * @param target - The specifier after the alias.
- * @param layer - The directory of the importing file's own layer.
- * @returns The message to report, and null for an import this file may write.
- */
-const judgeUnlayeredTarget = (target: string, layer: string | null): ImportBoundariesMessageId | null => {
-  if (layer && (target === layer || target === `${layer}/index`)) return 'sameLayerNeedsDirect'
-
-  return null
-}
-
-/**
- * Reads the barrel that holds what a specifier names: `@/users/services` for `@/users/services/users.service`.
- *
- * @param specifier - The specifier as the code writes it.
- * @returns The barrel's specifier.
- */
-const readBarrelSpecifier = (specifier: string): string => specifier.slice(0, Math.max(specifier.lastIndexOf('/'), 0))
+const readAliasSegments = (specifier: string, alias: string): string[] =>
+  // A specifier that names an index file by name loads the same file as one that names its directory.
+  specifier
+    .slice(alias.length + 1)
+    .replace(INDEX_FILE_SPECIFIER_REG_EXP, '')
+    .split('/')

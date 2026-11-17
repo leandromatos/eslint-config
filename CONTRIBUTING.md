@@ -36,7 +36,7 @@ A rule lives in `src/plugins/<subject>/rules/<rule>.rule.ts`, is listed under it
 subject. A rule a configuration turns on for some files alone, as the two of a file of constants are, reads no group: it
 is listed in `CONSTANT_RULES` and takes options of its own, or none.
 
-A spec sits in the `__tests__` tree of its own subject: `src/plugins/<subject>/__tests__/unit/rules/<rule>.spec.ts`,
+A spec sits in the `__tests__` tree of its own subject: `src/plugins/<subject>/__tests__/unit/rules/<rule>.rule.spec.ts`,
 with the files it reads from disk under `src/plugins/<subject>/__tests__/fixtures/<rule>/`. It builds its tester with
 one of the factories in `src/__tests__/utils/`:
 

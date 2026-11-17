@@ -10,8 +10,8 @@ const TEST_KINDS = ['unit']
  * ESLint configuration for this repository, which is the package judging itself.
  *
  * It takes the `strict` tier it publishes, with the house voice the package applies to its own comments, so a rule
- * that cannot be lived with is a rule to fix. The one entry that turns rules off says why the package cannot take
- * them, and nothing else is turned off.
+ * that cannot be lived with is a rule to fix. Two entries turn rules off, each says why, and nothing else is turned
+ * off.
  *
  * The annotation is the package's own exported `Config`, so the type a consumer is told to use is the type this
  * repository lints itself with: one that stopped being exported, or stopped describing what the configuration contains,
@@ -31,10 +31,9 @@ const eslintConfig: Config[] = [
     architecture: {
       /*
        * This package holds one module, and what sits at the top of `src` are its layers rather than modules of their
-       * own: `configs` is reached through its barrel, and `plugins` groups the rules by subject.
+       * own: `configs` holds the tiers, and `plugins` groups the rules by subject.
        */
       rootContexts: ['configs', 'plugins'],
-      executedFolders: () => [],
       testKinds: () => TEST_KINDS,
       mirroringTestKinds: () => TEST_KINDS,
     },
@@ -63,9 +62,9 @@ const eslintConfig: Config[] = [
   },
   {
     /*
-     * The one rule this package cannot take from itself: its own sources reach each other by relative path, because
-     * ESLint loads this file through a loader that resolves no path alias, and an alias would leave the repository
-     * unlintable until `dist/` existed. This file imports the sources the same way.
+     * Turns off the import rules for the package's own sources, which reach each other by relative path. The config
+     * loader resolves no path alias, so an alias would leave the repository unlintable until `dist/` exists. This file
+     * imports the sources the same way.
      */
     files: ['eslint.config.mts', 'src/**/*.ts'],
     rules: {

@@ -1,10 +1,12 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import type { PluginRule } from '../../shared/types/index.js'
-import { buildRuleDocsUrl, isInsideTableRow } from '../../shared/utils/index.js'
-import { DEFAULT_REPEATED_LITERAL_OPTIONS, REPEATED_LITERAL_SCHEMA } from '../constants/index.js'
-import type { RepeatedLiteralMessageId, RepeatedLiteralOptions } from '../types/index.js'
+import type { PluginRule } from '../../shared/types/shared.type.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isInsideTableRow } from '../../shared/utils/table-row.util.js'
+import { REPEATED_LITERAL_SCHEMA } from '../constants/options.constant.js'
+import { DEFAULT_REPEATED_LITERAL_OPTIONS } from '../constants/typescript.constant.js'
+import type { RepeatedLiteralMessageId, RepeatedLiteralOptions } from '../types/rules/repeated-literal.rule.type.js'
 
 /** Where a string names something other than a value: a module it imports, a key, a type, a directive. */
 const NAMING_PARENTS = new Set<string>([

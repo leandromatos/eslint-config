@@ -1,0 +1,15 @@
+{
+  "name": "a-library",
+  "exports": {
+    "./users": "./dist/users/index.js",
+    "./observability/instrumentations": "./dist/observability/instrumentations/index.js",
+    "./cache/testing": {
+      "import": "./dist/cache/keyv/testing/index.js"
+    },
+    "./schemas/*": "./dist/schemas/*/index.js",
+    "./tokens": "./dist/tokens/tokens.css",
+    "./testing": "./dist/testing.js",
+    "./ui": "./src/ui/index.tsx",
+    "./legacy": "./dist/users/index.js"
+  }
+}

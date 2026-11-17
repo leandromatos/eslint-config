@@ -1,10 +1,12 @@
 import type { TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES, TSESLint } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl } from '../../shared/utils/index.js'
-import { EMPTY_OPTIONS, OPTIONS_SCHEMA } from '../constants/index.js'
-import type { LinkSymbolsMessageId, TsdocRule } from '../types/index.js'
-import { isDocComment } from '../utils/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { OPTIONS_SCHEMA } from '../constants/options.constant.js'
+import { EMPTY_OPTIONS } from '../constants/tsdoc.constant.js'
+import type { LinkSymbolsMessageId } from '../types/rules/link-symbols.rule.type.js'
+import type { TsdocRule } from '../types/tsdoc.type.js'
+import { isDocComment } from '../utils/is-doc-comment.util.js'
 
 /** A code span as Markdown reads one: a run of backticks, the text, and a run of the same length that closes it. */
 const CODE_SPAN_REG_EXP = /(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/g

@@ -1,8 +1,10 @@
 import type { TSESLint, TSESTree } from '@typescript-eslint/utils'
 import { AST_NODE_TYPES } from '@typescript-eslint/utils'
 
-import { buildRuleDocsUrl, isTableRow, unwrapAssertion } from '../../shared/utils/index.js'
-import type { ComposedConstantMessageId } from '../types/index.js'
+import { buildRuleDocsUrl } from '../../shared/utils/build-rule-docs-url.util.js'
+import { isTableRow } from '../../shared/utils/table-row.util.js'
+import { unwrapAssertion } from '../../shared/utils/unwrap-assertion.util.js'
+import type { ComposedConstantMessageId } from '../types/rules/composed-constant.rule.type.js'
 
 /** What a message names a field by when its key is computed, which the source does not spell. */
 const COMPUTED_KEY = '[computed]'
@@ -42,7 +44,6 @@ export const composedConstant: TSESLint.RuleModule<ComposedConstantMessageId> = 
     },
     schema: [],
   },
-  defaultOptions: [],
   create: context => {
     const report = (node: TSESTree.Node, field: string): void =>
       context.report({ node, messageId: 'valueInPlace', data: { field } })

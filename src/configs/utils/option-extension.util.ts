@@ -1,9 +1,10 @@
-import type { ArchitectureOptions } from '../../plugins/architecture/types/index.js'
-import type { NamingOptions } from '../../plugins/naming/types/index.js'
-import type { TextOptions } from '../../plugins/text/types/index.js'
-import type { TsdocOptions } from '../../plugins/tsdoc/types/index.js'
-import type { TypescriptOptions } from '../../plugins/typescript/types/index.js'
-import type { GroupExtension, ListExtension, MapExtension, Preset, TierVocabulary } from '../types/index.js'
+import type { ArchitectureOptions } from '../../plugins/architecture/types/architecture.type.js'
+import type { NamingOptions } from '../../plugins/naming/types/naming.type.js'
+import type { TextOptions } from '../../plugins/text/types/text.type.js'
+import type { TsdocOptions } from '../../plugins/tsdoc/types/tsdoc.type.js'
+import type { TypescriptOptions } from '../../plugins/typescript/types/typescript.type.js'
+import type { Preset, TierVocabulary } from '../types/strict.config.type.js'
+import type { GroupExtension, ListExtension, MapExtension } from '../types/utils/option-extension.util.type.js'
 
 /**
  * The vocabulary of a tier with a preset applied over it, each group the preset names extending the group of the tier.
@@ -44,10 +45,8 @@ export const extendArchitecture = (
     definitionTimeDirectives: extendList(defaults.definitionTimeDirectives, extension.definitionTimeDirectives),
     baseFolders: extendList(defaults.baseFolders, extension.baseFolders),
     moduleContainers: extendList(defaults.moduleContainers, extension.moduleContainers),
-    barrelledContainers: extendList(defaults.barrelledContainers, extension.barrelledContainers),
     mirrorFolders: extendList(defaults.mirrorFolders, extension.mirrorFolders),
     rootContexts: extendList(defaults.rootContexts, extension.rootContexts),
-    executedFolders: extendList(defaults.executedFolders, extension.executedFolders),
     typeSuffixes: extendMap(defaults.typeSuffixes, extension.typeSuffixes),
     orderedSuffixes: extendList(defaults.orderedSuffixes, extension.orderedSuffixes),
     wholeArguments: extendList(defaults.wholeArguments, extension.wholeArguments),

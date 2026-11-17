@@ -1,5 +1,5 @@
-import { SUFFIX_DICTIONARY } from '../constants/index.js'
-import { FolderVocabularyError } from '../errors/index.js'
+import { SUFFIX_DICTIONARY } from '../constants/suffix-dictionary.constant.js'
+import { FolderVocabularyError } from '../errors/folder-vocabulary.error.js'
 
 /**
  * Refuses a vocabulary that spells a folder the dictionary does not.

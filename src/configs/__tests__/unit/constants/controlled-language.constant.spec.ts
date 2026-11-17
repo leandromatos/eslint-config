@@ -7,7 +7,7 @@ import {
   CONTROLLED_LANGUAGE_STRING_PATTERNS,
   CONTROLLED_LANGUAGE_THROWS_CONDITIONS,
   CONTROLLED_LANGUAGE_THROWS_TITLE_PROPERTIES,
-} from '../../../constants/index.js'
+} from '../../../constants/controlled-language.constant.js'
 
 describe('CONTROLLED_LANGUAGE', () => {
   it('shapes the calls the framework and its Swagger package declare', () => {

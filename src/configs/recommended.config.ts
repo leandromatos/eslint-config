@@ -22,10 +22,10 @@ import {
   RECOMMENDED_RESTRICTED_SYNTAX,
   TS_FILES,
   TSX_FILES,
-} from './constants/index.js'
-import { MissingPluginConfigError } from './errors/index.js'
-import type { Config, RecommendedOptions } from './types/index.js'
-import { extendList } from './utils/index.js'
+} from './constants/recommended.constant.js'
+import { MissingPluginConfigError } from './errors/missing-plugin-config.error.js'
+import type { Config, RecommendedOptions } from './types/recommended.config.type.js'
+import { extendList } from './utils/option-extension.util.js'
 
 /**
  * Shared ESLint flat configuration: one object per file type, and Prettier last.

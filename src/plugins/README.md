@@ -18,22 +18,22 @@ constants alone, in the entry `leandromatos/constants`.
 
 ### architecture
 
-Where a file lives, what it is called, and what a layer exposes.
+Where a file lives, what it is called, and which file an import names.
 
-| Rule                                                                                     | Description                                                                                 | 🔧  | 💭  |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | --- | --- |
-| [`architecture-argument-passed-whole`](architecture/docs/rules/argument-passed-whole.md) | A named object is passed on whole, not a field of it.                                       |     |     |
-| [`architecture-barrel-per-directory`](architecture/docs/rules/barrel-per-directory.md)   | A directory of source files has an index.ts; a module root has none.                        |     |     |
-| [`architecture-effect-in-hook`](architecture/docs/rules/effect-in-hook.md)               | An effect is written in a hook of its own, never in the component that renders.             |     |     |
-| [`architecture-import-boundaries`](architecture/docs/rules/import-boundaries.md)         | A file reaches another layer through its barrel, and its own layer directly.                |     |     |
-| [`architecture-known-directory`](architecture/docs/rules/known-directory.md)             | A module holds only the directories the options name.                                       |     |     |
-| [`architecture-known-suffix`](architecture/docs/rules/known-suffix.md)                   | A file is named by a known suffix and lives in the folder of that suffix.                   |     |     |
-| [`architecture-method-order`](architecture/docs/rules/method-order.md)                   | A class in an ordered layer lists its public methods alphabetically, then its private ones. | 🔧  |     |
-| [`architecture-mirrored-source`](architecture/docs/rules/mirrored-source.md)             | A file under a mirror folder mirrors an existing file.                                      |     |     |
-| [`architecture-one-export-per-util`](architecture/docs/rules/one-export-per-util.md)     | A utility file named after a function exports that function alone.                          |     |     |
-| [`architecture-stepdown-order`](architecture/docs/rules/stepdown-order.md)               | A top-level function comes after its callers, in the order they call it.                    |     |     |
-| [`architecture-type-suffix`](architecture/docs/rules/type-suffix.md)                     | An exported type that uses a governed suffix uses it last, and in the folder it belongs to. |     |     |
-| [`architecture-types-folder`](architecture/docs/rules/types-folder.md)                   | An interface or a type alias is declared under the types folder.                            |     |     |
+| Rule                                                                                                   | Description                                                                                 | 🔧  | 💭  |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | --- | --- |
+| [`architecture-argument-passed-whole`](architecture/docs/rules/argument-passed-whole.md)               | A named object is passed on whole, not a field of it.                                       |     |     |
+| [`architecture-effect-in-hook`](architecture/docs/rules/effect-in-hook.md)                             | An effect is written in a hook of its own, never in the component that renders.             |     |     |
+| [`architecture-import-boundaries`](architecture/docs/rules/import-boundaries.md)                       | A file imports the file that declares what it needs, and never a barrel.                    |     |     |
+| [`architecture-known-directory`](architecture/docs/rules/known-directory.md)                           | A module holds only the directories the options name.                                       |     |     |
+| [`architecture-known-suffix`](architecture/docs/rules/known-suffix.md)                                 | A file is named by a known suffix and lives in the folder of that suffix.                   |     |     |
+| [`architecture-method-order`](architecture/docs/rules/method-order.md)                                 | A class in an ordered layer lists its public methods alphabetically, then its private ones. | 🔧  |     |
+| [`architecture-mirrored-source`](architecture/docs/rules/mirrored-source.md)                           | A file under a mirror folder mirrors an existing file.                                      |     |     |
+| [`architecture-one-export-per-util`](architecture/docs/rules/one-export-per-util.md)                   | A utility file named after a function exports that function alone.                          |     |     |
+| [`architecture-re-export-only-at-entrypoint`](architecture/docs/rules/re-export-only-at-entrypoint.md) | Only a published entrypoint re-exports.                                                     |     |     |
+| [`architecture-stepdown-order`](architecture/docs/rules/stepdown-order.md)                             | A top-level function comes after its callers, in the order they call it.                    |     |     |
+| [`architecture-type-suffix`](architecture/docs/rules/type-suffix.md)                                   | An exported type that uses a governed suffix uses it last, and in the folder it belongs to. |     |     |
+| [`architecture-types-folder`](architecture/docs/rules/types-folder.md)                                 | An interface or a type alias is declared under the types folder.                            |     |     |
 
 ### naming
 
@@ -56,7 +56,7 @@ How a spec is written and where it sits.
 | [`testing-describes-source`](testing/docs/rules/describes-source.md) | The outermost describe of a mirroring spec names the mirrored source.         |     |     |
 | [`testing-e2e-over-http`](testing/docs/rules/e2e-over-http.md)       | A spec of the end-to-end kind imports the HTTP client.                        |     |     |
 | [`testing-spec-blocks`](testing/docs/rules/spec-blocks.md)           | A test body has at most three blocks, separated by blank lines.               | 🔧  |     |
-| [`testing-typed-fixture`](testing/docs/rules/typed-fixture.md)       | A fixture handed to the subject carries the type the subject declares for it. | 🔧  | 💭  |
+| [`testing-typed-fixture`](testing/docs/rules/typed-fixture.md)       | A fixture handed to the subject carries the type the subject declares for it. |     | 💭  |
 
 ### text
 
@@ -100,14 +100,14 @@ required: a tier hands the rules its vocabulary whole, and `plugin.configs.recom
 each field means is on the rule that reads it. The two rules of a file of constants read no group: `composed-constant`
 takes nothing, and `repeated-literal` takes the options of `sonarjs/no-duplicate-string`.
 
-| Group          | Type                  | Judges                                                      |
-| -------------- | --------------------- | ----------------------------------------------------------- |
-| `architecture` | `ArchitectureOptions` | where a file lives, what it is called, what a layer exposes |
-| `naming`       | `NamingOptions`       | what a value, a method and a spec fixture are called        |
-| `testing`      | `TestingOptions`      | how a spec is written and where it sits                     |
-| `text`         | `TextOptions`         | the strings a product ships                                 |
-| `tsdoc`        | `TsdocOptions`        | the comments of a file: form, presence, tags                |
-| `typescript`   | `TypescriptOptions`   | where a vocabulary is declared                              |
+| Group          | Type                  | Judges                                                            |
+| -------------- | --------------------- | ----------------------------------------------------------------- |
+| `architecture` | `ArchitectureOptions` | where a file lives, what it is called, which file an import names |
+| `naming`       | `NamingOptions`       | what a value, a method and a spec fixture are called              |
+| `testing`      | `TestingOptions`      | how a spec is written and where it sits                           |
+| `text`         | `TextOptions`         | the strings a product ships                                       |
+| `tsdoc`        | `TsdocOptions`        | the comments of a file: form, presence, tags                      |
+| `typescript`   | `TypescriptOptions`   | where a vocabulary is declared                                    |
 
 ## 📂 Source root
 
@@ -120,7 +120,7 @@ The rules that ask for a comment read no location: a declaration is documented w
 `tsdoc-documented-function`, `tsdoc-documented-type` and `tsdoc-link-symbols` judge every file the configuration names.
 
 The directory that holds the source root is the package. A rule that reads a manifest, such as
-`architecture-barrel-per-directory`, reads the `package.json` of that package and not the one of the working
+`architecture-re-export-only-at-entrypoint`, reads the `package.json` of that package and not the one of the working
 directory.
 
 ## 🚀 Quick Start
