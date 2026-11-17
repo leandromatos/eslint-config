@@ -2,9 +2,14 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "lib": ["ESNext", "DOM"],
+    /*
+     * Only what the fixtures read. The DOM library and the Node types are most of what a cold program parses, and the
+     * first file the spec lints pays for that program inside its own timeout. The builtin fixture imports for its side
+     * effect alone, so it leaves no binding a type-aware rule reads.
+     */
+    "lib": ["ESNext"],
     "jsx": "react-jsx",
-    "types": ["node", "react"],
+    "types": ["react"],
     "moduleResolution": "NodeNext",
     "strict": true,
     "skipLibCheck": true,

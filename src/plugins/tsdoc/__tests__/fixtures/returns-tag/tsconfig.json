@@ -1,9 +1,15 @@
 {
+  // The default project of a typed rule tester: every case is a file it does not list. TypeScript refuses an empty
+  // `include` unless the config declares references, and the tester fails every case on a config TypeScript refuses,
+  // so the empty `references` is what lets it load.
   "compilerOptions": {
     "target": "ESNext",
+    // The cases read no browser type, and the DOM library is most of what a cold program parses.
+    "lib": ["ESNext"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true
   },
-  "include": []
+  "include": [],
+  "references": []
 }

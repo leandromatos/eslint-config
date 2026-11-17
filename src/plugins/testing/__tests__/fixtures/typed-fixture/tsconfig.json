@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    // The cases read no browser type, and the DOM library is most of what a cold program parses.
+    "lib": ["ESNext"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true

@@ -23,6 +23,12 @@ const FIXTURE_DEPTHS = [
 ]
 
 /**
+ * The config the default project takes its options from. It is the parser's own default, named anyway. A named config
+ * that TypeScript refuses fails the run; an unnamed one falls back to TypeScript's defaults in silence.
+ */
+const DEFAULT_PROJECT = 'tsconfig.json'
+
+/**
  * A tester for a rule that reads the type-checker. It runs in the fixtures directory, which carries the
  * `tsconfig.json` the parser reads, so a type resolves the way it does in a project and a file lands where the rules
  * that read a location expect it.
@@ -31,7 +37,7 @@ const FIXTURE_DEPTHS = [
  * @returns The tester.
  */
 export const createTypedRuleTester = (root: string): RuleTester => {
-  const projectService = { allowDefaultProject: FIXTURE_DEPTHS }
+  const projectService = { allowDefaultProject: FIXTURE_DEPTHS, defaultProject: DEFAULT_PROJECT }
 
   return new RuleTester({ languageOptions: { parserOptions: { projectService, tsconfigRootDir: root } } })
 }
