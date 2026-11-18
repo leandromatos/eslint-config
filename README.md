@@ -16,8 +16,8 @@ a plugin that holds a project to its architecture, its naming, its tests and its
   `text`, `tsdoc` and `typescript`. Each rule carries the mechanism and takes the vocabulary as options.
 - **Type-aware.** The TypeScript rules read the type-checker through `projectService`, which catches what syntax
   cannot: a floating promise, an unsafe return, a deprecated API.
-- **No cast, no `any`, no ternary outside JSX, no `else`.** `strict` holds the sources to the shape the type-checker
-  can check and a reader can follow.
+- **No cast, no `any`, no ternary outside JSX, no `else`, no logical assignment.** `strict` holds the sources to the
+  shape the type-checker can check and a reader can follow.
 - **Formatting is Prettier's job.** The configuration never formats; it switches off what would fight the formatter.
   It pairs with [@leandromatos/prettier-config](https://github.com/leandromatos/prettier-config).
 - **Native flat config, ESM, typed.** No `FlatCompat`. Every export ships declarations, so a TypeScript configuration
@@ -135,7 +135,7 @@ What `configs.strict` adds to `recommended`:
 | `leandromatos/casts`          | no cast, no non-null assertion, no `any` written by hand, specs included                                |
 | `leandromatos/unsafe-values`  | no value typed `any` travels, outside a spec                                                            |
 | `leandromatos/directives`     | a directive that turns a rule off says why, after `--`                                                  |
-| `leandromatos/control-flow`   | no `else`, no nested ternary, and no ternary but the direct child of a JSX expression                   |
+| `leandromatos/control-flow`   | no `else`, no logical assignment, no nested ternary, and no ternary but the direct child of JSX         |
 | `leandromatos/function-style` | every function an arrow, outside the `.tsx` files a component is declared in                            |
 | `leandromatos/constants`      | every value of a file of constants written once, and every field of a composed value read by name       |
 

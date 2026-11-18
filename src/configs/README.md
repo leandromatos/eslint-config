@@ -50,19 +50,19 @@ Three refusals are selectors, since ESLint already carries the mechanism:
 
 In this order. The last entry to match a file wins, which is what lets a project append its own.
 
-| Entry                         | What it holds                                                                                       |
-| ----------------------------- | --------------------------------------------------------------------------------------------------- |
-| `recommended`                 | every layer of it, with what the project adds to `ignores`                                          |
-| `leandromatos/rules`          | every rule of the plugin, each reading the group of its own subject                                 |
-| `tsdoc/syntax`                | every documentation comment parses as TSDoc, with its standard tags only                            |
-| the comment rule              | `leandromatos/tsdoc-comment-form` on the configuration files at the root                            |
-| `import-x/no-cycle`           | no cycle, in any file, and inside the project only                                                  |
-| `leandromatos/casts`          | `consistent-type-assertions` on `never`, `no-non-null-assertion`, `no-explicit-any`, specs included |
-| `leandromatos/unsafe-values`  | the five `no-unsafe-*` rules, outside a spec                                                        |
-| `leandromatos/directives`     | a directive that turns a rule off says why, after `--`                                              |
-| `leandromatos/control-flow`   | no `else`, no nested ternary, and no ternary but the direct child of a JSX expression               |
-| `leandromatos/function-style` | `func-style` on `expression`, outside the `.tsx` files a component is declared in                   |
-| `leandromatos/constants`      | `typescript-repeated-literal` and `typescript-composed-constant`, on `DEFAULT_CONSTANT_FILES` alone |
+| Entry                         | What it holds                                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `recommended`                 | every layer of it, with what the project adds to `ignores`                                                          |
+| `leandromatos/rules`          | every rule of the plugin, each reading the group of its own subject                                                 |
+| `tsdoc/syntax`                | every documentation comment parses as TSDoc, with its standard tags only                                            |
+| the comment rule              | `leandromatos/tsdoc-comment-form` on the configuration files at the root                                            |
+| `import-x/no-cycle`           | no cycle, in any file, and inside the project only                                                                  |
+| `leandromatos/casts`          | `consistent-type-assertions` on `never`, `no-non-null-assertion`, `no-explicit-any`, specs included                 |
+| `leandromatos/unsafe-values`  | the five `no-unsafe-*` rules, outside a spec                                                                        |
+| `leandromatos/directives`     | a directive that turns a rule off says why, after `--`                                                              |
+| `leandromatos/control-flow`   | no `else`, no nested ternary, no ternary but the direct child of JSX, and `logical-assignment-operators` on `never` |
+| `leandromatos/function-style` | `func-style` on `expression`, outside the `.tsx` files a component is declared in                                   |
+| `leandromatos/constants`      | `typescript-repeated-literal` and `typescript-composed-constant`, on `DEFAULT_CONSTANT_FILES` alone                 |
 
 ### The framework tiers
 

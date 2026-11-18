@@ -15,6 +15,24 @@ import { recommended } from '../../recommended.config.js'
 import { strict } from '../../strict.config.js'
 
 describe('strict', () => {
+  const controlFlow = strict().find(entry => entry.name === 'leandromatos/control-flow')
+  const controlFlowEslint = new TSESLint.ESLint({
+    overrideConfigFile: true,
+    baseConfig: [...recommended(), { files: ['**/*.{js,jsx}'], rules: controlFlow?.rules }],
+  })
+
+  /**
+   * Lints a source with the control-flow entry over `recommended`.
+   *
+   * @param code - The source to lint.
+   * @param filePath - The name the source is linted under, whose extension picks the parser options.
+   * @returns The rule of each message, in the order ESLint reports them.
+   */
+  const lintRules = async (code: string, filePath: string): Promise<(string | null)[]> =>
+    (await controlFlowEslint.lintText(code, { filePath })).flatMap(result =>
+      result.messages.map(message => message.ruleId),
+    )
+
   it('opens with the shared configuration and closes with the rules of this package', () => {
     const entries = strict()
     const names = entries.map(entry => entry.name).filter(Boolean)
@@ -99,14 +117,6 @@ describe('strict', () => {
   })
 
   it('refuses an else and a ternary, and leaves a ternary that chooses between two elements of JSX', async () => {
-    const controlFlow = strict().find(entry => entry.name === 'leandromatos/control-flow')
-    const eslint = new TSESLint.ESLint({
-      overrideConfigFile: true,
-      baseConfig: [...recommended(), { files: ['**/*.{js,jsx}'], rules: controlFlow?.rules }],
-    })
-    const lintRules = async (code: string, filePath: string): Promise<(string | null)[]> =>
-      (await eslint.lintText(code, { filePath })).flatMap(result => result.messages.map(message => message.ruleId))
-
     expect(await lintRules('export const read = (value) => (value ? 1 : 2)\n', 'sample.js')).toEqual([
       'no-restricted-syntax',
     ])
@@ -122,6 +132,18 @@ describe('strict', () => {
         'sample.jsx',
       ),
     ).toEqual(expect.arrayContaining(['no-nested-ternary']))
+  })
+
+  it.each(['??=', '||=', '&&='])('refuses the logical assignment %s, and leaves an if that assigns', async operator => {
+    expect(
+      await lintRules(`export const read = (value) => {\n  value ${operator} 1\n\n  return value\n}\n`, 'sample.js'),
+    ).toEqual(['logical-assignment-operators'])
+    expect(
+      await lintRules(
+        'export const read = (value) => {\n  if (value === undefined) value = 1\n\n  return value\n}\n',
+        'sample.js',
+      ),
+    ).toEqual([])
   })
 
   it('applies a preset over the tier before the options of the project, so a list joins both', () => {
