@@ -124,6 +124,25 @@ describe('strict', () => {
     ).toEqual(expect.arrayContaining(['no-nested-ternary']))
   })
 
+  it.each(['??=', '||=', '&&='])('refuses the logical assignment %s, and leaves an if that assigns', async operator => {
+    const controlFlow = strict().find(entry => entry.name === 'leandromatos/control-flow')
+    const eslint = new TSESLint.ESLint({
+      overrideConfigFile: true,
+      baseConfig: [...recommended(), { files: ['**/*.js'], rules: controlFlow?.rules }],
+    })
+    const lintRules = async (code: string): Promise<(string | null)[]> =>
+      (await eslint.lintText(code, { filePath: 'sample.js' })).flatMap(result =>
+        result.messages.map(message => message.ruleId),
+      )
+
+    expect(await lintRules(`export const read = (value) => {\n  value ${operator} 1\n\n  return value\n}\n`)).toEqual([
+      'logical-assignment-operators',
+    ])
+    expect(
+      await lintRules('export const read = (value) => {\n  if (value === undefined) value = 1\n\n  return value\n}\n'),
+    ).toEqual([])
+  })
+
   it('applies a preset over the tier before the options of the project, so a list joins both', () => {
     const entries = strict({
       presets: [CONTROLLED_LANGUAGE],

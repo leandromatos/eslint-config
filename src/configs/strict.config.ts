@@ -279,7 +279,9 @@ const buildDirectiveEntry = (files: string[]): Config => {
  * direct child of a JSX expression, where React documents it for a choice between two elements.
  *
  * `no-restricted-syntax` takes one list, so the entry carries the refusals of `recommended` too. A ternary inside
- * another is refused in JSX as well, where the React documentation says to extract a component instead.
+ * another is refused in JSX as well, where the React documentation says to extract a component instead. A logical
+ * assignment, `??=`, `||=` or `&&=`, hides a condition and an assignment in one operator, so an `if` that assigns says
+ * both instead.
  *
  * @param files - The files the rules judge.
  * @returns The configuration entry.
@@ -291,6 +293,7 @@ const buildControlFlowEntry = (files: string[]): Config => {
     rules: {
       'no-restricted-syntax': ['error', ...STRICT_RESTRICTED_SYNTAX],
       'no-nested-ternary': 'error',
+      'logical-assignment-operators': ['error', 'never'],
     },
   }
 
